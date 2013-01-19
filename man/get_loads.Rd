@@ -1,6 +1,6 @@
 \name{get_loads}
 \alias{get_loads}
-\title{Calculate loadings and communality for \code{plspm}}
+\title{Calculate loadings and communality for \code{matrixpls}}
 \usage{
   get_loads(X, Y.lvs, blocks)
 }
@@ -17,7 +17,7 @@
 }
 \description{
   Internal function. \code{get_loads} is called by
-  \code{plspm}.
+  \code{matrixpls}.
 }
 \keyword{internal}
 

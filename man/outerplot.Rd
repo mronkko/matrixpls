@@ -10,7 +10,7 @@
     cex.txt = 0.9, ...)
 }
 \arguments{
-  \item{x}{An object of class \code{"plspm"}.}
+  \item{x}{An object of class \code{"matrixpls"}.}
 
   \item{what}{What to plot: \code{"loadings"} or
   \code{"weights"}.}
@@ -55,7 +55,7 @@
 }
 \description{
   Plot either outer weights or loadings in the outer model
-  for objects of class \code{"plspm"}
+  for objects of class \code{"matrixpls"}
 }
 \note{
   \code{outerplot} uses the function \code{\link{plotmat}}
@@ -84,8 +84,8 @@
  # define vector of reflective modes
  sat.mod = rep("A", 6)
 
- # apply plspm
- satpls = plspm(satisfaction, sat.inner, sat.outer, sat.mod, scheme="centroid",
+ # apply matrixpls
+ satpls = matrixpls(satisfaction, sat.inner, sat.outer, sat.mod, scheme="centroid",
                scaled=FALSE)
 
  # plot loadings
@@ -96,7 +96,7 @@
  }
 }
 \seealso{
-  \code{\link{innerplot}}, \code{\link{plot.plspm}},
-  \code{\link{plspm}}, \code{\link{plot.plspm}}
+  \code{\link{innerplot}}, \code{\link{plot.matrixpls}},
+  \code{\link{matrixpls}}, \code{\link{plot.matrixpls}}
 }
 

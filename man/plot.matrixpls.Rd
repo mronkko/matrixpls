@@ -1,15 +1,15 @@
-\name{plot.plspm}
-\alias{plot.plspm}
+\name{plot.matrixpls}
+\alias{plot.matrixpls}
 \title{Plots for PLS Path Models}
 \usage{
-  \method{plot}{plspm} (x, what = "inner",
+  \method{plot}{matrixpls} (x, what = "inner",
     colpos = "#6890c4BB", colneg = "#f9675dBB",
     box.prop = 0.55, box.size = 0.08, box.cex = 1,
     box.col = "gray95", lcol = "gray95",
     txt.col = "gray40", arr.pos = 0.5, cex.txt = 0.9, ...)
 }
 \arguments{
-  \item{x}{An object of class \code{"plspm"}.}
+  \item{x}{An object of class \code{"matrixpls"}.}
 
   \item{what}{What to plot: \code{"inner"},
   \code{"loadings"}, \code{"weights"}.}
@@ -43,17 +43,17 @@
   \code{\link{plotmat}}.}
 }
 \description{
-  Plot method for objects of class \code{"plspm"}. This
+  Plot method for objects of class \code{"matrixpls"}. This
   function plots either the inner (i.e. structural) model
   with the estimated path coefficients, or the outer (i.e.
   measurement) model with loadings or weights.
 }
 \details{
-  \code{plot.plspm} is just a wraper of
+  \code{plot.matrixpls} is just a wraper of
   \code{\link{innerplot}} and \code{\link{outerplot}}.
 }
 \note{
-  Function \code{plot.plspm} is based on the function
+  Function \code{plot.matrixpls} is based on the function
   \code{\link{plotmat}} of package \code{diagram}. \cr
   \url{http://cran.r-project.org/web/packages/diagram/vignettes/diagram.pdf}
 }
@@ -79,8 +79,8 @@
  # define vector of reflective modes
  sat.mod = rep("A", 6)
 
- # apply plspm
- satpls = plspm(satisfaction, sat.inner, sat.outer, sat.mod, scheme="centroid",
+ # apply matrixpls
+ satpls = matrixpls(satisfaction, sat.inner, sat.outer, sat.mod, scheme="centroid",
                scaled=FALSE)
 
  # plot path coefficients
@@ -95,6 +95,6 @@
 }
 \seealso{
   \code{\link{innerplot}}, \code{\link{outerplot}},
-  \code{\link{plspm}}
+  \code{\link{matrixpls}}
 }
 

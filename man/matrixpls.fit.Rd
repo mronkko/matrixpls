@@ -1,8 +1,8 @@
-\name{plspm.fit}
-\alias{plspm.fit}
+\name{matrixpls.fit}
+\alias{matrixpls.fit}
 \title{Basic results for Partial Least Squares Path Modeling}
 \usage{
-  plspm.fit(Data, inner_matrix, outer_list, modes = NULL,
+  matrixpls.fit(Data, inner_matrix, outer_list, modes = NULL,
     scheme = "centroid", scaled = TRUE, tol = 1e-05,
     iter = 100)
 }
@@ -47,7 +47,7 @@
   value of \code{iter} is 100.}
 }
 \value{
-  An object of class \code{"plspm"}.
+  An object of class \code{"matrixpls"}.
 
   \item{outer.mod}{Results of the outer (measurement)
   model. Includes: outer weights, standardized loadings,
@@ -81,12 +81,12 @@
 \description{
   Estimate path models with latent variables by partial
   least squares approach without providing the full list of
-  results as \code{plspm}. This might be helpful when doing
+  results as \code{matrixpls}. This might be helpful when doing
   simulations, intensive computations, or when you don't
   want the whole enchilada.
 }
 \details{
-  \code{plspm.fit} performs the basic PLS algorithm and
+  \code{matrixpls.fit} performs the basic PLS algorithm and
   provides limited results (e.g. outer weights, LVs scores,
   path coefficients, R2, and loadings). \cr
 
@@ -119,8 +119,8 @@
  # vector of reflective modes
  sat_mod = rep("A", 6)
 
- # apply plspm.fit
- satpls = plspm.fit(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE)
+ # apply matrixpls.fit
+ satpls = matrixpls.fit(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE)
 
  # summary of results
  summary(satpls)

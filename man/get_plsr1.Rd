@@ -1,6 +1,6 @@
 \name{get_plsr1}
 \alias{get_plsr1}
-\title{PLS regression for \code{plspm}}
+\title{PLS regression for \code{matrixpls}}
 \usage{
   get_plsr1(predictors, response, nc = NULL, scaled = TRUE)
 }
@@ -19,7 +19,7 @@
 }
 \description{
   Internal function. \code{get_plsr1} is called by
-  \code{plspm} to do PLS-R1.
+  \code{matrixpls} to do PLS-R1.
 }
 \keyword{internal}
 

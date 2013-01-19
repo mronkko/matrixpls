@@ -1,8 +1,8 @@
-\name{plspm}
-\alias{plspm}
+\name{matrixpls}
+\alias{matrixpls}
 \title{PLS-PM: Partial Least Squares Path Modeling}
 \usage{
-  plspm(Data, inner_matrix, outer_list, modes = NULL,
+  matrixpls(Data, inner_matrix, outer_list, modes = NULL,
     scheme = "centroid", scaled = TRUE, tol = 1e-05,
     iter = 100, boot.val = FALSE, br = NULL, plsr = FALSE,
     dataset = TRUE)
@@ -66,7 +66,7 @@
   default).}
 }
 \value{
-  An object of class \code{"plspm"}.
+  An object of class \code{"matrixpls"}.
 
   \item{outer.mod}{Results of the outer (measurement)
   model. Includes: outer weights, standardized loadings,
@@ -128,7 +128,7 @@
   least squares approach
 }
 \details{
-  The function \code{plspm} estimates a path model by
+  The function \code{matrixpls} estimates a path model by
   partial least squares approach providing the full set of
   results. \cr
 
@@ -161,8 +161,8 @@
  # vector of modes (reflective indicators)
  sat_mod = rep("A", 6)
 
- # apply plspm
- satpls = plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=TRUE)
+ # apply matrixpls
+ satpls = matrixpls(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=TRUE)
 
  # summary of results
  summary(satpls)
@@ -206,6 +206,6 @@
   Holland.
 }
 \seealso{
-  \code{\link{plspm.fit}}, \code{\link{plot.plspm}}
+  \code{\link{matrixpls.fit}}, \code{\link{plot.matrixpls}}
 }
 

@@ -1,6 +1,6 @@
 \name{get_boots}
 \alias{get_boots}
-\title{Performs bootstrap validation in \code{plspm}}
+\title{Performs bootstrap validation in \code{matrixpls}}
 \usage{
   get_boots(DM, IDM, blocks, modes, scheme, scaled, br,
     plsr, tol, iter)
@@ -29,7 +29,7 @@
 }
 \description{
   Internal function. \code{get_boots} is called by
-  \code{plspm}.
+  \code{matrixpls}.
 }
 \keyword{internal}
 

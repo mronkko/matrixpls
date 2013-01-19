@@ -1,6 +1,6 @@
 \name{get_paths}
 \alias{get_paths}
-\title{Calculate path coefficients for \code{plspm}}
+\title{Calculate path coefficients for \code{matrixpls}}
 \usage{
   get_paths(IDM, Y.lvs, plsr)
 }
@@ -18,7 +18,7 @@
 }
 \description{
   Internal function. \code{get_paths} is called by
-  \code{plspm}.
+  \code{matrixpls}.
 }
 \keyword{internal}
 

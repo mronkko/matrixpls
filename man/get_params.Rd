@@ -1,6 +1,6 @@
 \name{get_params}
 \alias{get_params}
-\title{Check parameters for \code{plspm} and \code{plspm.fit}}
+\title{Check parameters for \code{matrixpls} and \code{matrixpls.fit}}
 \usage{
   get_params(x, inner, outer, modes = NULL,
     scheme = "centroid", scaled = TRUE, boot.val = FALSE,
@@ -46,12 +46,12 @@
   should be retrieved.}
 }
 \value{
-  list of validated parameters for \code{plspm} and
-  \code{plspm.fit}.
+  list of validated parameters for \code{matrixpls} and
+  \code{matrixpls.fit}.
 }
 \description{
   Internal function. \code{get_params} is called by
-  \code{plspm}.
+  \code{matrixpls}.
 }
 \keyword{internal}
 

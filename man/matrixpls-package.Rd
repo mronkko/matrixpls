@@ -1,15 +1,15 @@
-\name{plspm-package}
-\alias{plspm-package}
+\name{matrixpls-package}
+\alias{matrixpls-package}
 \docType{package}
 \title{
   Tools for Partial Least Squares Path Modeling
 }
 \description{
-  plspm contains a set of functions for performing Partial Least Squares Path Modeling (PLS-PM) analysis, as well as group comparison, and REBUS-PLS. This is a new version that no longer supports other PLS methods such as nipals, regresison, and canonical analysis. For the later methods use the package plsdepot.
+  matrixpls contains a set of functions for performing Partial Least Squares Path Modeling (PLS-PM) analysis, as well as group comparison, and REBUS-PLS. This is a new version that no longer supports other PLS methods such as nipals, regresison, and canonical analysis. For the later methods use the package plsdepot.
 }
 \details{
   \tabular{ll}{
-  Package: \tab plspm\cr
+  Package: \tab matrixpls\cr
   Type: \tab Package\cr
   Version: \tab 0.3.5\cr
   Date: \tab 2013-01-03\cr
@@ -25,7 +25,7 @@
   Maintainer: Gaston Sanchez \email{gaston.stat@gmail.com}
 }
 \references{
-  \url{http://www.gastonsanchez.com/plspm}
+  \url{http://www.gastonsanchez.com/matrixpls}
 
   Sanchez G (2013) \emph{PLS Path Modeling with R} \cr
   \url{http://www.gastonsanchez.com/PLS_Path_Modeling_with_R.pdf}

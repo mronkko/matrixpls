@@ -11,7 +11,7 @@
 }
 \arguments{
   \item{x}{Either a matrix defining an inner model or an
-  object of class \code{"plspm"}.}
+  object of class \code{"matrixpls"}.}
 
   \item{colpos}{Color of arrows for positive path
   coefficients.}
@@ -58,7 +58,7 @@
 }
 \description{
   Plot the inner (structural) model for objects of class
-  \code{"plspm"}, as well as inner model matrices
+  \code{"matrixpls"}, as well as inner model matrices
 }
 \note{
   \code{innerplot} uses the function \code{\link{plotmat}}
@@ -88,8 +88,8 @@
  # vector of reflective modes
  sat.mod = rep("A", 6)
 
- # apply plspm
- satpls = plspm(satisfaction, sat.inner, sat.outer, sat.mod, scheme="centroid",
+ # apply matrixpls
+ satpls = matrixpls(satisfaction, sat.inner, sat.outer, sat.mod, scheme="centroid",
                scaled=FALSE)
 
  # plot diagram of the inner model
@@ -97,7 +97,7 @@
  }
 }
 \seealso{
-  \code{\link{plspm}}, \code{\link{plot.plspm}},
+  \code{\link{matrixpls}}, \code{\link{plot.matrixpls}},
   \code{\link{outerplot}}
 }
 

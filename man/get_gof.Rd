@@ -1,6 +1,6 @@
 \name{get_gof}
 \alias{get_gof}
-\title{Goodness-of-fit for \code{plspm}}
+\title{Goodness-of-fit for \code{matrixpls}}
 \usage{
   get_gof(comu, R2, blocks, IDM)
 }
@@ -15,7 +15,7 @@
 }
 \description{
   Internal function. \code{get_gof} is called by
-  \code{plspm}
+  \code{matrixpls}
 }
 \keyword{internal}
 

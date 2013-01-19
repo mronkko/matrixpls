@@ -40,7 +40,7 @@
 }
 \description{
   Internal this function. \code{get_unidim} is called by
-  \code{plspm}
+  \code{matrixpls}
 }
 \keyword{internal}
 

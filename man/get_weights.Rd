@@ -1,6 +1,6 @@
 \name{get_weights}
 \alias{get_weights}
-\title{Calculate outer weights for \code{plspm}}
+\title{Calculate outer weights for \code{matrixpls}}
 \usage{
   get_weights(X, IDM, blocks, modes, scheme, tol, iter)
 }
@@ -21,7 +21,7 @@
 }
 \description{
   Internal function. \code{get_weights} is called by
-  \code{plspm}
+  \code{matrixpls}
 }
 \keyword{internal}
 

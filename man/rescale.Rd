@@ -5,7 +5,7 @@
   rescale(pls, Y = NULL)
 }
 \arguments{
-  \item{pls}{object of class \code{"plspm"}}
+  \item{pls}{object of class \code{"matrixpls"}}
 
   \item{Y}{Optional dataset (matrix or data frame) used
   when argument \code{dataset=NULL} inside \code{pls}.}
@@ -42,8 +42,8 @@
  # define vector of reflective modes
  sat.mod = rep("A", 6)
 
- # apply plspm
- my_pls = plspm(satisfaction, sat.inner, sat.outer, sat.mod, scheme="factor",
+ # apply matrixpls
+ my_pls = matrixpls(satisfaction, sat.inner, sat.outer, sat.mod, scheme="factor",
               scaled=FALSE)
 
  # rescaling standardized scores of latent variables
@@ -58,6 +58,6 @@
   Gaston Sanchez
 }
 \seealso{
-  \code{\link{plspm}}
+  \code{\link{matrixpls}}
 }
 

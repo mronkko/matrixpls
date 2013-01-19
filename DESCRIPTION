@@ -6,7 +6,7 @@ Date: 2013-01-03
 Authors@R: c(person("Mikko", "Ronkkö", role=c("aut", "cre"),
     email = "mikko.ronkko@aalto.fi"),
     person("Gaston", "Sanchez", role=c("aut"),
-    email = "gaston.stat@gmail.com")))
+    email = "gaston.stat@gmail.com"))
 Author: Mikko Rönkkö, Gaston Sanchez, and Laura Trinchera
 Maintainer: Mikko Rönkkö <mikko.ronkko@aalto.fi>
 Description: matrixpls is a matrix based implementation of Partial Least Squares Path Modeling
@@ -27,8 +27,8 @@ Suggests:
 License: GPL-3
 LazyLoad: yes
 Collate:
-    'plspm.R'
-    'plspm.fit.R'
+    'matrixpls.R'
+    'matrixpls.fit.R'
     'get_boots.R'
     'get_effects.R'
     'get_gof.R'
@@ -39,13 +39,13 @@ Collate:
     'get_plsr1.R'
     'get_unidim.R'
     'get_weights.R'
-    'print.plspm.R'
+    'print.matrixpls.R'
     'innerplot.R'
-    'plot.plspm.R'
-    'print.summary.plspm.R'
-    'summary.plspm.R'
-    'plspm.groups.R'
-    'print.plspm.groups.R'
+    'plot.matrixpls.R'
+    'print.summary.matrixpls.R'
+    'summary.matrixpls.R'
+    'matrixpls.groups.R'
+    'print.matrixpls.groups.R'
     'outerplot.R'
     'get_GQI.R'
     'get_locals_test.R'

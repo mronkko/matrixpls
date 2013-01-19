@@ -5,7 +5,7 @@
   get_GQI(pls, part, DM)
 }
 \arguments{
-  \item{pls}{an object of class \code{"plspm"}}
+  \item{pls}{an object of class \code{"matrixpls"}}
 
   \item{part}{vector with unit memberships or categorical
   variable}

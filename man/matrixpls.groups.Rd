@@ -1,12 +1,12 @@
-\name{plspm.groups}
-\alias{plspm.groups}
+\name{matrixpls.groups}
+\alias{matrixpls.groups}
 \title{Two Groups Comparison in PLS-PM}
 \usage{
-  plspm.groups(pls, group, Y = NULL, method = "bootstrap",
+  matrixpls.groups(pls, group, Y = NULL, method = "bootstrap",
     reps = NULL)
 }
 \arguments{
-  \item{pls}{object of class \code{"plspm"}}
+  \item{pls}{object of class \code{"matrixpls"}}
 
   \item{group}{factor with 2 levels indicating the groups
   to be compared}
@@ -22,7 +22,7 @@
   \code{NULL} then \code{reps}=100}
 }
 \value{
-  An object of class \code{"plspm.groups"}
+  An object of class \code{"matrixpls.groups"}
 
   \item{test}{Table with the results of the applied test.
   Includes: path coefficients of the global model, path
@@ -47,7 +47,7 @@
   significantly different
 }
 \details{
-  \code{plspm.groups} performs a two groups comparison test
+  \code{matrixpls.groups} performs a two groups comparison test
   in PLS-PM for comparing path coefficients between two
   groups. Only two methods are available: 1) bootstrap, and
   2) permutation. The bootstrap test is an adapted t-test
@@ -82,12 +82,12 @@
  # define vector of reflective modes
  sat.mod = rep("A", 6)
 
- # apply plspm
- my_pls = plspm(satisfaction, sat.inner, sat.outer, sat.mod, scheme="factor",
+ # apply matrixpls
+ my_pls = matrixpls(satisfaction, sat.inner, sat.outer, sat.mod, scheme="factor",
               scaled=FALSE)
 
  # permutation test with 100 permutations
- group_comp = plspm.groups(my_pls, satisfaction$gender,
+ group_comp = matrixpls.groups(my_pls, satisfaction$gender,
                            method="permutation", reps=100)
  group_comp
  }
@@ -107,6 +107,6 @@
   \url{http://disc-nt.cba.uh.edu/chin/plsfaq/multigroup.htm}
 }
 \seealso{
-  \code{\link{plspm}}
+  \code{\link{matrixpls}}
 }
 

@@ -1,6 +1,6 @@
 \name{get_effects}
 \alias{get_effects}
-\title{Path coefficient effects for \code{plspm}}
+\title{Path coefficient effects for \code{matrixpls}}
 \usage{
   get_effects(Path)
 }
@@ -12,7 +12,7 @@
 }
 \description{
   Internal function. \code{get_effects} is called by
-  \code{plspm}.
+  \code{matrixpls}.
 }
 \keyword{internal}
 

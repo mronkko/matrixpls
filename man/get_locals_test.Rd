@@ -7,7 +7,7 @@
 \arguments{
   \item{X}{data matrix}
 
-  \item{pls}{an object of class \code{"plspm"}}
+  \item{pls}{an object of class \code{"matrixpls"}}
 
   \item{g}{factor with 2 levels indicating the groups to be
   compared}
