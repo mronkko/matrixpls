@@ -4,7 +4,7 @@
 #'Internal function.
 #'
 #'@param X data matrix
-#'@param pls an object of class \code{"plspm"}
+#'@param pls an object of class \code{"matrixpls"}
 #'@param g factor with 2 levels indicating the groups to be compared
 #'@return list with path coefficients, loadings, and gof
 #'@keywords internal
@@ -14,7 +14,7 @@ get_locals_test <-
   {
     # =========================== ARGUMENTS ==============================
     # X: data matrix related with g
-    # pls: an object of class "plspm"
+    # pls: an object of class "matrixpls"
     # g: a factor with 2 levels indicating the groups to be compared
     
     # ========================== INPUTS SETTING ==========================

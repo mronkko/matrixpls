@@ -1,5 +1,5 @@
-#'@S3method print plspm
-print.plspm <-
+#'@S3method print matrixpls
+print.matrixpls <-
 function(x, ...)
 {
   cat("PARTIAL LEAST SQUARES PATH MODELING (PLS-PM)", "\n")
@@ -12,7 +12,7 @@ function(x, ...)
   cat("\n$loadings      ", "loadings")
   cat("\n$path.coefs    ", "path coefficients matrix")
   cat("\n$r.sqr         ", "R-squared")  
-  if (!inherits(x, "plspm.fit"))
+  if (!inherits(x, "matrixpls.fit"))
   {
     cat("\n$outer.cor     ", "outer correlations")
     cat("\n$inner.sum     ", "summary inner model")

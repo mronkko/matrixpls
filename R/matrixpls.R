@@ -4,7 +4,7 @@
 #'Estimate path models with latent variables by partial least squares approach
 #'
 #'@details
-#'The function \code{plspm} estimates a path model by partial least squares
+#'The function \code{matrixpls} estimates a path model by partial least squares
 #'approach providing the full set of results. \cr
 #'
 #'The argument \code{inner_matrix} is a matrix of zeros and ones that indicates
@@ -42,7 +42,7 @@
 #'to calculate path coefficients (\code{FALSE} by default).
 #'@param dataset A logical value indicating whether the data matrix should be
 #'retrieved (\code{TRUE} by default).
-#'@return An object of class \code{"plspm"}. 
+#'@return An object of class \code{"matrixpls"}. 
 #'@return \item{outer.mod}{Results of the outer (measurement) model. Includes:
 #'outer weights, standardized loadings, communalities, and redundancies}
 #'@return \item{inner.mod}{Results of the inner (structural) model. Includes: path
@@ -100,7 +100,7 @@
 #'Wold H. (1982) Soft modeling: the basic design and some extensions. In: K.G.
 #'Joreskog & H. Wold (Eds.), \emph{Systems under indirect observations:
 #'Causality, structure, prediction}, Part 2, pp. 1-54. Amsterdam: Holland.
-#'@seealso \code{\link{plspm.fit}}, \code{\link{plot.plspm}}
+#'@seealso \code{\link{matrixpls.fit}}, \code{\link{plot.matrixpls}}
 #'@export
 #'@examples
 #'
@@ -126,8 +126,8 @@
 #'  # vector of modes (reflective indicators)
 #'  sat_mod = rep("A", 6)
 #'
-#'  # apply plspm
-#'  satpls = plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=TRUE)
+#'  # apply matrixpls
+#'  satpls = matrixpls(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=TRUE)
 #'  
 #'  # summary of results
 #'  summary(satpls)
@@ -136,7 +136,7 @@
 #'  plot(satpls)
 #'  }
 #'
-plspm <-
+matrixpls <-
 function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid", 
          scaled = TRUE, tol = 0.00001, iter = 100, boot.val = FALSE, 
          br = NULL, plsr = FALSE, dataset = TRUE)
@@ -330,7 +330,7 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
               boot = res.boot, 
               data = data, 
               model = model)
-  class(res) = "plspm"
+  class(res) = "matrixpls"
   return(res)
 }
 

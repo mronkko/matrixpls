@@ -7,7 +7,7 @@
 #' H1: path coefficients are significantly different
 #' 
 #' @details
-#' \code{plspm.groups} performs a two groups comparison test in PLS-PM
+#' \code{matrixpls.groups} performs a two groups comparison test in PLS-PM
 #' for comparing path coefficients between two groups. Only two
 #' methods are available: 1) bootstrap, and 2) permutation.
 #' The bootstrap test is an adapted t-test based on bootstrap standard errors.
@@ -18,7 +18,7 @@
 #' (i.e. \code{pls$data=NULL}), the user must provide the data matrix 
 #' or data frame in \code{Y}.
 #' 
-#' @param pls object of class \code{"plspm"}
+#' @param pls object of class \code{"matrixpls"}
 #' @param group factor with 2 levels indicating the groups to be compared
 #' @param Y optional dataset (matrix or data frame) used when argument
 #' \code{dataset=NULL} inside \code{pls}.
@@ -26,7 +26,7 @@
 #' \code{"bootstrap"} or \code{"permutation"}
 #' @param reps integer indicating the number of either bootstrap resamples 
 #' or number of permutations. If \code{NULL} then \code{reps}=100
-#' @return An object of class \code{"plspm.groups"}
+#' @return An object of class \code{"matrixpls.groups"}
 #' @return \item{test}{Table with the results of the applied test. 
 #' Includes: path coefficients of the global model, path coeffs of group1, 
 #' path coeffs of group2, (absolute) difference of path coeffs between groups, 
@@ -43,7 +43,7 @@
 #' 
 #' Chin, W.W. (2000) Frequently Asked Questions, Partial Least Squares PLS-Graph. 
 #' Available from: \url{http://disc-nt.cba.uh.edu/chin/plsfaq/multigroup.htm}
-#' @seealso \code{\link{plspm}}
+#' @seealso \code{\link{matrixpls}}
 #' @export
 #' @examples
 #' 
@@ -69,24 +69,24 @@
 #'  # define vector of reflective modes
 #'  sat.mod = rep("A", 6)
 #'  
-#'  # apply plspm
-#'  my_pls = plspm(satisfaction, sat.inner, sat.outer, sat.mod, scheme="factor", 
+#'  # apply matrixpls
+#'  my_pls = matrixpls(satisfaction, sat.inner, sat.outer, sat.mod, scheme="factor", 
 #'               scaled=FALSE)
 #'               
 #'  # permutation test with 100 permutations
-#'  group_comp = plspm.groups(my_pls, satisfaction$gender, 
+#'  group_comp = matrixpls.groups(my_pls, satisfaction$gender, 
 #'                            method="permutation", reps=100)
 #'  group_comp
 #'  }
 #'
-plspm.groups <-
+matrixpls.groups <-
 function(pls, group, Y = NULL, method = "bootstrap", reps = NULL)
 {
   # =======================================================
   # checking arguments
   # =======================================================
-  if (class(pls) != "plspm") 
-    stop("'pls' must be an object of class 'plspm'")
+  if (class(pls) != "matrixpls") 
+    stop("'pls' must be an object of class 'matrixpls'")
   g = group
   if (!is.factor(g)) stop("'group' must be a factor")
   ng = nlevels(g)
@@ -390,7 +390,7 @@ function(pls, group, Y = NULL, method = "bootstrap", reps = NULL)
              group2 = innmod.g2, 
              settings = settings, 
              reps = reps)
-  class(res) = "plspm.groups"
+  class(res) = "matrixpls.groups"
   return(res)
 }
 

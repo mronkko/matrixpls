@@ -1,9 +1,9 @@
 #'@title Plot outer model
 #'
 #'@description Plot either outer weights or loadings in the 
-#'outer model for objects of class \code{"plspm"}
+#'outer model for objects of class \code{"matrixpls"}
 #'
-#'@param x An object of class \code{"plspm"}.
+#'@param x An object of class \code{"matrixpls"}.
 #'@param what What to plot: \code{"loadings"} or \code{"weights"}.
 #'@param colpos Color of arrows for positive path coefficients.
 #'@param colneg Color of arrows for negative path coefficients.
@@ -24,8 +24,8 @@
 #'@note \code{outerplot} uses the function
 #'\code{\link{plotmat}} of package \code{diagram}. \cr
 #'\url{http://cran.r-project.org/web/packages/diagram/vignettes/diagram.pdf}
-#'@seealso \code{\link{innerplot}}, \code{\link{plot.plspm}}, \code{\link{plspm}},
-#'\code{\link{plot.plspm}}
+#'@seealso \code{\link{innerplot}}, \code{\link{plot.matrixpls}}, \code{\link{matrixpls}},
+#'\code{\link{plot.matrixpls}}
 #'@export 
 #'@examples
 #'
@@ -50,8 +50,8 @@
 #'  # define vector of reflective modes
 #'  sat.mod = rep("A", 6)
 #'  
-#'  # apply plspm
-#'  satpls = plspm(satisfaction, sat.inner, sat.outer, sat.mod, scheme="centroid", 
+#'  # apply matrixpls
+#'  satpls = matrixpls(satisfaction, sat.inner, sat.outer, sat.mod, scheme="centroid", 
 #'                scaled=FALSE)
 #'                
 #'  # plot loadings
@@ -71,8 +71,8 @@ function(x, what="loadings", colpos = "#6890c4BB", colneg = "#f9675dBB",
   # =======================================================
   # checking arguments
   # =======================================================
-  if (!inherits(x, "plspm"))
-    stop("\nSorry, an object of class 'plspm' was expected")
+  if (!inherits(x, "matrixpls"))
+    stop("\nSorry, an object of class 'matrixpls' was expected")
   check_what = what %in% c("loadings", "weights")
   if (!check_what) what = "loadings"
   # get ingredients

@@ -1,7 +1,7 @@
-#' @title Check parameters for \code{plspm} and \code{plspm.fit}
+#' @title Check parameters for \code{matrixpls} and \code{matrixpls.fit}
 #' 
 #' @description
-#' Internal function. \code{get_params} is called by \code{plspm}.
+#' Internal function. \code{get_params} is called by \code{matrixpls}.
 #'
 #' @param x numeric matrix or data frame containing the manifest variables.
 #' @param inner square (lower triangular) boolean matrix for inner model.
@@ -16,7 +16,7 @@
 #' @param tol decimal value indicating the tolerance criterion for covergence.
 #' @param iter integer indicating the maximum number of iterations.
 #' @param dataset logical indicating whether the data matrix should be retrieved.
-#' @return list of validated parameters for \code{plspm} and \code{plspm.fit}.
+#' @return list of validated parameters for \code{matrixpls} and \code{matrixpls.fit}.
 #' @keywords internal
 #' @export
 get_params <-

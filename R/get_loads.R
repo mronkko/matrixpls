@@ -1,7 +1,7 @@
-#' @title Calculate loadings and communality for \code{plspm}
+#' @title Calculate loadings and communality for \code{matrixpls}
 #' 
 #' @description
-#' Internal function. \code{get_loads} is called by \code{plspm}.
+#' Internal function. \code{get_loads} is called by \code{matrixpls}.
 #' 
 #' @param X Data matrix
 #' @param Y.lvs Matrix of latent variables

@@ -1,7 +1,7 @@
 #' @title Unidimensionality of reflective blocks
 #' 
 #' @description
-#' Internal this function. \code{get_unidim} is called by \code{plspm}
+#' Internal this function. \code{get_unidim} is called by \code{matrixpls}
 #'
 #' @param x numeric matrix or data frame containing the manifest variables.
 #' @param outer list of vectors with column indices from \code{x} indicating 

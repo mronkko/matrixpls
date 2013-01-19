@@ -1,7 +1,7 @@
-#' @title Path coefficient effects for \code{plspm}
+#' @title Path coefficient effects for \code{matrixpls}
 #' 
 #' @description
-#' Internal function. \code{get_effects} is called by \code{plspm}.
+#' Internal function. \code{get_effects} is called by \code{matrixpls}.
 #' 
 #' @param Path Matrix of path coefficients
 #' @return data frame with direct, indirect, and total effects

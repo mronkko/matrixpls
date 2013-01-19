@@ -1,11 +1,11 @@
-#' @S3method summary plspm
-summary.plspm <-
+#' @S3method summary matrixpls
+summary.matrixpls <-
 function(object, ...)
 {
-  ## Reminder of model in objects "plspm"
+  ## Reminder of model in objects "matrixpls"
   # x$model <- list(IDM, blocks, scheme, modes, scaled, boot.val, 
   #                 plsr, obs, br, tol, iter, n.iter, outer)
-  ## Reminder of model in objects "plspm.fit"
+  ## Reminder of model in objects "matrixpls.fit"
   # x.fit$model <- list(IDM, blocks, scheme, modes, scaled, 
   #                     obs, tol, iter, n.iter, outer)
 
@@ -37,13 +37,13 @@ function(object, ...)
   # =======================================================  
   if (length(y$model) == 10) 
   {
-    # results for object "plspm.fit"
+    # results for object "matrixpls.fit"
     res = list(inputs = inputs, 
                outer.mod = y$outer.mod, 
                inner.mod = y$inner.mod, 
                xxx = y$model)
   } else {
-    # results for object "plspm"
+    # results for object "matrixpls"
     lat.cor = round(cor(y$latents), 4)
     res = list(inputs = inputs, 
                unidim = y$unidim, 
@@ -57,7 +57,7 @@ function(object, ...)
                boot = y$boot, 
                xxx = y$model)    
   }
-  class(res) = "summary.plspm"
+  class(res) = "summary.matrixpls"
   res
 }
 

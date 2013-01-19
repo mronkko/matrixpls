@@ -1,11 +1,11 @@
-#' @S3method print summary.plspm
-print.summary.plspm <-
+#' @S3method print summary.matrixpls
+print.summary.matrixpls <-
 function(x, ...)
 {
-  ## Reminder of model in objects "plspm"
+  ## Reminder of model in objects "matrixpls"
   # x$model <- list(IDM, blocks, scheme, modes, scaled, boot.val, 
   #                 plsr, obs, br, tol, iter, n.iter, outer)
-  ## Reminder of model in objects "plspm.fit"
+  ## Reminder of model in objects "matrixpls.fit"
   # x.fit$model <- list(IDM, blocks, scheme, modes, scaled, 
   #                     obs, tol, iter, n.iter, outer)
   

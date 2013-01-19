@@ -1,7 +1,7 @@
-#' @title Calculate outer weights for \code{plspm}
+#' @title Calculate outer weights for \code{matrixpls}
 #' 
 #' @description
-#' Internal function. \code{get_weights} is called by \code{plspm}
+#' Internal function. \code{get_weights} is called by \code{matrixpls}
 #' 
 #' @param X scaled data
 #' @param IDM Inner Design Matrix

@@ -2,12 +2,12 @@
 #'
 #'@description
 #'Estimate path models with latent variables by partial least squares approach
-#'without providing the full list of results as \code{plspm}. This might be helpful
+#'without providing the full list of results as \code{matrixpls}. This might be helpful
 #'when doing simulations, intensive computations, or when you don't want
 #'the whole enchilada.
 #'
 #'@details
-#'\code{plspm.fit} performs the basic PLS algorithm and provides
+#'\code{matrixpls.fit} performs the basic PLS algorithm and provides
 #'limited results (e.g. outer weights, LVs scores, path coefficients, R2, and
 #'loadings). \cr
 #'
@@ -37,7 +37,7 @@
 #'iterations (\code{tol=0.00001}). Can be specified between 0 and 0.001.
 #'@param iter An integer indicating the maximum number of iterations
 #'(\code{iter=100} by default). The minimum value of \code{iter} is 100.
-#'@return An object of class \code{"plspm"}. 
+#'@return An object of class \code{"matrixpls"}. 
 #'@return \item{outer.mod}{Results of the outer (measurement) model. Includes:
 #'outer weights, standardized loadings, communalities, and redundancies}
 #'@return \item{inner.mod}{Results of the inner (structural) model. Includes: path
@@ -95,8 +95,8 @@
 #'  # vector of reflective modes
 #'  sat_mod = rep("A", 6)
 #'
-#'  # apply plspm.fit
-#'  satpls = plspm.fit(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE)
+#'  # apply matrixpls.fit
+#'  satpls = matrixpls.fit(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE)
 #'  
 #'  # summary of results
 #'  summary(satpls)
@@ -105,7 +105,7 @@
 #'  plot(satpls)
 #'  }
 #'
-plspm.fit <-
+matrixpls.fit <-
 function(Data, inner_matrix, outer_list, modes = NULL, scheme="centroid", 
          scaled = TRUE, tol = 0.00001, iter = 100)
 {
@@ -230,7 +230,7 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme="centroid",
                r.sqr = R2, 
                data = NULL, 
                model = model)
-    class(res) = c("plspm.fit", "plspm")
+    class(res) = c("matrixpls.fit", "matrixpls")
     return(res)
 }
 

@@ -1,7 +1,7 @@
-#' @title Goodness-of-fit for \code{plspm}
+#' @title Goodness-of-fit for \code{matrixpls}
 #'
 #' @description
-#' Internal function. \code{get_gof} is called by \code{plspm}
+#' Internal function. \code{get_gof} is called by \code{matrixpls}
 #'
 #' @param comu communalities
 #' @param R2 R-squared coefficient

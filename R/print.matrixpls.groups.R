@@ -1,5 +1,5 @@
-#' @S3method print plspm.groups
-print.plspm.groups <-
+#' @S3method print matrixpls.groups
+print.matrixpls.groups <-
 function(x,...)
 {
     cat("GROUP COMPARISON IN PLS-PM FOR PATH COEFFICIENTS", "\n\n")

@@ -1,6 +1,6 @@
 #'@title Group Quality Index
 #'@description Calculate Group Quality Index for REBUS-PLS
-#'@param pls an object of class \code{"plspm"}
+#'@param pls an object of class \code{"matrixpls"}
 #'@param part vector with unit memberships or categorical variable
 #'@param DM data matrix
 #'@keywords internal
@@ -11,7 +11,7 @@ get_GQI <-
     # ========================== GQI function ==========================
     # Function to calculate Group Quality Index (GQI)        
     # =========================== arguments ==============================
-    # pls: object of class "plspm"
+    # pls: object of class "matrixpls"
     # part: vector with units memberships / or categorical variable
     # DM: data matrix
     

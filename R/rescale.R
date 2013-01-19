@@ -6,12 +6,12 @@
 #' @details
 #' \code{rescale} requires all outer weights to be positive
 #' 
-#' @param pls object of class \code{"plspm"}
+#' @param pls object of class \code{"matrixpls"}
 #' @param Y Optional dataset (matrix or data frame) used when argument
 #' \code{dataset=NULL} inside \code{pls}.
 #' @return A matrix with the rescaled latent variable scores
 #' @author Gaston Sanchez
-#' @seealso \code{\link{plspm}}
+#' @seealso \code{\link{matrixpls}}
 #' @export
 #' @examples
 #' 
@@ -36,8 +36,8 @@
 #'  # define vector of reflective modes
 #'  sat.mod = rep("A", 6)
 #'  
-#'  # apply plspm
-#'  my_pls = plspm(satisfaction, sat.inner, sat.outer, sat.mod, scheme="factor", 
+#'  # apply matrixpls
+#'  my_pls = matrixpls(satisfaction, sat.inner, sat.outer, sat.mod, scheme="factor", 
 #'               scaled=FALSE)
 #'               
 #'  # rescaling standardized scores of latent variables
@@ -54,8 +54,8 @@ function(pls, Y = NULL)
   # =======================================================
   # checking arguments
   # =======================================================
-  if (!inherits(pls, "plspm"))
-    stop("\nSorry, an object of class 'plspm' was expected")
+  if (!inherits(pls, "matrixpls"))
+    stop("\nSorry, an object of class 'matrixpls' was expected")
   # if Y available
   if (!is.null(Y))
   {

@@ -1,10 +1,10 @@
 #'@title Plot inner model
 #'
 #'@description 
-#'Plot the inner (structural) model for objects of class \code{"plspm"}, 
+#'Plot the inner (structural) model for objects of class \code{"matrixpls"}, 
 #'as well as inner model matrices
 #'
-#'@param x Either a matrix defining an inner model or an object of class \code{"plspm"}.
+#'@param x Either a matrix defining an inner model or an object of class \code{"matrixpls"}.
 #'@param colpos Color of arrows for positive path coefficients.
 #'@param colneg Color of arrows for negative path coefficients.
 #'@param box.prop Length/width ratio of ellipses.
@@ -27,7 +27,7 @@
 #'@note \code{innerplot} uses the function
 #'\code{\link{plotmat}} in package \code{diagram}. \cr
 #'\url{http://cran.r-project.org/web/packages/diagram/vignettes/diagram.pdf}
-#'@seealso \code{\link{plspm}}, \code{\link{plot.plspm}}, \code{\link{outerplot}}
+#'@seealso \code{\link{matrixpls}}, \code{\link{plot.matrixpls}}, \code{\link{outerplot}}
 #'@export 
 #'@examples
 #'
@@ -53,8 +53,8 @@
 #'  # vector of reflective modes
 #'  sat.mod = rep("A", 6)
 #'  
-#'  # apply plspm
-#'  satpls = plspm(satisfaction, sat.inner, sat.outer, sat.mod, scheme="centroid", 
+#'  # apply matrixpls
+#'  satpls = matrixpls(satisfaction, sat.inner, sat.outer, sat.mod, scheme="centroid", 
 #'                scaled=FALSE)
 #'                
 #'  # plot diagram of the inner model
@@ -72,10 +72,10 @@ innerplot <-
     # =======================================================
     # checking arguments
     # =======================================================
-    if (!inherits(x, "plspm") && !inherits(x, "matrix"))
+    if (!inherits(x, "matrixpls") && !inherits(x, "matrix"))
       stop(paste("\nSorry, don't know how to handle an object of class "), class(x))
-    # if x is "plspm"
-    if (inherits(x, "plspm"))
+    # if x is "matrixpls"
+    if (inherits(x, "matrixpls"))
     {
       # get ingredients
       IDM = x$model$IDM

@@ -3,7 +3,7 @@
 #'@description
 #'Calculates PLS-PM for global and local models from a given partition
 #'
-#'@param pls An object of class \code{"plspm"}
+#'@param pls An object of class \code{"matrixpls"}
 #'@param y One object of the following classes: \code{"rebus"}, 
 #'\code{"integer"}, or \code{"factor"}, that provides the class partitions.
 #'@param Y Optional dataset (matrix or data frame) used when 
@@ -36,7 +36,7 @@
 #'@return \item{loc.model.1}{PLS-PM of segment (class) 1}
 #'@return \item{loc.model.2}{PLS-PM of segment (class) 2}
 #'@return \item{loc.model.k}{PLS-PM of segment (class) k}
-#'@note Each element of the list is an object of class \code{"plspm"}. 
+#'@note Each element of the list is an object of class \code{"matrixpls"}. 
 #'Thus, in order to examine the results for each local model, 
 #'it is necessary to use the \code{summary} function.
 #'@author Laura Trinchera, Gaston Sanchez
@@ -54,7 +54,7 @@
 #'                               c("Price","Quality", "Satisfaction"))
 #'    sim.outer = list(c(1,2,3,4,5), c(6,7,8,9,10), c(11,12,13)) 
 #'    sim.mod = c("A","A","A")  ## reflective indicators
-#'    sim.global = plspm(sim.data, inner=sim.inner, 
+#'    sim.global = matrixpls(sim.data, inner=sim.inner, 
 #'                       outer=sim.outer, modes=sim.mod)
 #'    sim.global
 #'    
@@ -68,7 +68,7 @@
 #'    # Computation of local models 
 #'    local.rebus = local.models(sim.global, rebus.sim)
 #'    
-#'    # Display plspm summary for first local model 
+#'    # Display matrixpls summary for first local model 
 #'    summary(local.rebus$loc.model.1)
 #'  }
 #'
@@ -78,8 +78,8 @@ function(pls, y, Y=NULL)
   # =======================================================
   # checking arguments
   # =======================================================
-  if (class(pls)!="plspm") 
-    stop("\n'pls' must be an object of class 'plspm'")
+  if (class(pls)!="matrixpls") 
+    stop("\n'pls' must be an object of class 'matrixpls'")
   if (!is.element(class(y), c("rebus","integer","factor")))   
     stop("\n'y' must be of class 'rebus', 'integer' or 'factor'")
   if (class(y)=="rebus") {
@@ -154,20 +154,20 @@ function(pls, y, Y=NULL)
   # final models computation (global and local models)
   # =======================================================
   skem <- switch(scheme, "centroid"="centroid", "factor"="factor")
-  final.mod <- as.list(1:(n.clus+1))# final plspm models
+  final.mod <- as.list(1:(n.clus+1))# final matrixpls models
   for (k in 1:(n.clus+1))
   {
     if (k==1) {
       # global model
       X <- DM
-      final.mod[[1]] = plspm(X, IDM, new.sets, modes, skem, scaled, 
+      final.mod[[1]] = matrixpls(X, IDM, new.sets, modes, skem, scaled, 
                              tol=tol, iter=iter, dataset=dataset)
     } else
     {
       units.k <- which(segments==levels(segments)[k-1])
       # local models
       X.k <- DM[units.k,]
-      final.mod[[k]] = plspm(X.k, IDM, new.sets, modes, skem, scaled, 
+      final.mod[[k]] = matrixpls(X.k, IDM, new.sets, modes, skem, scaled, 
                              tol=tol, iter=iter, dataset=dataset)
     }
   }

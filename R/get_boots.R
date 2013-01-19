@@ -1,7 +1,7 @@
-#' @title Performs bootstrap validation in \code{plspm}
+#' @title Performs bootstrap validation in \code{matrixpls}
 #' 
 #' @description
-#' Internal function. \code{get_boots} is called by \code{plspm}.
+#' Internal function. \code{get_boots} is called by \code{matrixpls}.
 #' 
 #' @param DM Data Matrix
 #' @param IDM Inner Design Matrix
@@ -42,7 +42,7 @@ get_boots <-
     colnames(X) <- mvs.names
 
     # =======================================================
-    # computation of the original plspm model
+    # computation of the original matrixpls model
     # =======================================================  
     out.ws <- get_weights(X, IDM, blocks, modes, scheme, tol, iter)
     wgs.orig <- out.ws[[1]]

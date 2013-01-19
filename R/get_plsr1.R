@@ -1,7 +1,7 @@
-#' @title PLS regression for \code{plspm}
+#' @title PLS regression for \code{matrixpls}
 #' 
 #' @description
-#' Internal function. \code{get_plsr1} is called by \code{plspm} to do PLS-R1.
+#' Internal function. \code{get_plsr1} is called by \code{matrixpls} to do PLS-R1.
 #' 
 #' @param predictors matrix of predictors
 #' @param response response variable

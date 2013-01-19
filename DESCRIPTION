@@ -1,23 +1,26 @@
-Package: plspm
+Package: matrixpls
 Type: Package
-Title: Tools for Partial Least Squares Path Modeling
+Title: Matrix-based Partial Least Squares implementation
 Version: 0.3.5
 Date: 2013-01-03
-Authors@R: c(person("Gaston", "Sanchez", role=c("aut", "cre"),
-    email = "gaston.stat@gmail.com"),
-    person("Laura", "Trinchera", role=c("aut")))
-Author: Gaston Sanchez and Laura Trinchera
-Maintainer: Gaston Sanchez <gaston.stat@gmail.com>
-Description: plspm contains a set of functions for performing Partial Least
-    Squares Path Modeling (PLS-PM) analysis. This is a new version that no
-    longer supports other PLS methods such as nipals, regresison, and canonical
-    analysis. For the later methods use the package plsdepot.
-URL: http://www.gastonsanchez.com/plspm,
-    http://www.plsmodeling.com
+Authors@R: c(person("Mikko", "Ronkkö", role=c("aut", "cre"),
+    email = "mikko.ronkko@aalto.fi"),
+    person("Gaston", "Sanchez", role=c("aut"),
+    email = "gaston.stat@gmail.com")))
+Author: Mikko Rönkkö, Gaston Sanchez, and Laura Trinchera
+Maintainer: Mikko Rönkkö <mikko.ronkko@aalto.fi>
+Description: matrixpls is a matrix based implementation of Partial Least Squares Path Modeling
+   algorithm. This package is a fork of the popular plspm package and it replaces the core
+   algorithm with a matrix based implementation that is computationally more efficient and
+   does not require raw data but calculates the PLS estimates from a covariance matrix.
+   The package is designed towards Monte Carlo simulations and includes functions to
+   perform simple Monte Carlo simulations.
+URL: https://github.com/mronkko/matrixpls
 Depends:
     R (>= 2.15.1),
     amap,
-    diagram
+    diagram,
+    plspm
 Suggests:
     plsdepot,
     FactoMineR
@@ -46,12 +49,6 @@ Collate:
     'outerplot.R'
     'get_GQI.R'
     'get_locals_test.R'
-    'it.reb.R'
     'local.models.R'
     'print.local.models.R'
-    'print.rebus.R'
-    'print.rebus.test.R'
-    'rebus.pls.R'
-    'rebus.test.R'
-    'res.clus.R'
     'rescale.R'

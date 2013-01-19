@@ -1,7 +1,7 @@
-#' @title Calculate path coefficients for \code{plspm}
+#' @title Calculate path coefficients for \code{matrixpls}
 #' 
 #' @description
-#' Internal function. \code{get_paths} is called by \code{plspm}.
+#' Internal function. \code{get_paths} is called by \code{matrixpls}.
 #' 
 #' @param IDM Inner Design Matrix
 #' @param Y.lvs Matrix of latent variables
