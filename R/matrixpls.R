@@ -139,11 +139,12 @@
 matrixpls <-
 function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid", 
          scaled = TRUE, tol = 0.00001, iter = 100, boot.val = FALSE, 
-         br = NULL, plsr = FALSE, dataset = TRUE)
+         br = NULL, plsr = FALSE, dataset = TRUE, matrixData = FALSE)
 {
   # =======================================================
   # checking arguments
   # =======================================================
+  
   valid = get_params(x=Data, inner=inner_matrix, outer=outer_list, modes=modes, 
                      scheme=scheme, scaled=scaled, tol=tol, iter=iter,
                      boot.val=boot.val, br=br, plsr=plsr, dataset=dataset)
@@ -161,8 +162,92 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
   iter = valid$iter
   dataset = valid$dataset
   
+  # Stop if there are unimplemented options
+  if(sum(modes=="B")>0) stop("Mode B is not currently implemented in matrixpls")
+  if(scheme!="centroid") stop("Only centroid scheme is currently implemented in matrixpls")
+  if(plsr) stop("PLS regression is currently not implemented in matrixpls")
+  
+
+  if(matrixData){
+  	indicatorCovariances <- x
+  }
+  else{
+  	indicatorCovariances <- cov(x)
+  }
+  indicatorCorrelations <- cov2cor(indicatorCovariances)
+  
+  doBootstrap = boot.val
+  if (doBootstrap && nrow(Data) <= 10) {
+      warning("Bootstrapping stopped: very few cases.") 
+      doBootstrap<-FALSE
+  }
+  
+  #
+  # Boot will provide also estimates for the full data
+  #
+  
+  if(doBootstrap){
+  	if(matrixData) stop("Bootstrapping requires raw data")
+  	library(boot)
+  	boot.results<-boot(x,function(d,p) {
+  		
+  		cov.matrix<-cov(d[p,],d[p,])
+  		
+  		pls<-matrixpls.fit(cov.matrix,inner,outer,modes,scheme,scaled,tol,iter)
+  		
+  		# Selection matrix
+  		t<-lower.tri(inner)
+
+  		if(is.null(pls)){
+  			# if the method failed to converge, return a vector of NAs with appropriate lenght
+  			rep(NA,sum(t)*2+nrow(cov.matrix)*2+nrow(inner))
+  		}
+  		else{
+	  		c(pls$loading,pls$out.weights,pls$r.sqr,pls$path.coef[t]pls$path.effects[t])
+	  	}
+  	},br)
+  	
+  	# Unpack the results from t0
+	boot.loadIndices <- 1:ncol(Data)
+	boot.weightIndices <- boot.loadIndices+ncol(Data)
+	boot.R2Indices <- (tail(boot.weightIndices,1)+1):(tail(boot.weightIndices,1)+ncol(inner))
+	boot.pathIndices <- (tail(boot.R2Indices,1)+1):(tail(boot.R2Indices,1)+sum(lower.tri(inner)))
+	boot.effectIndices <- boot.pathIndices + sum(lower.tri(inner))
+	
+	effects<-matrix(0, nrow(inner),nrow(inner))
+	effects[lower.tri(effects)] <- boot$t0[boot.effectIndices]
+	path.coef<-matrix(0, nrow(inner),nrow(inner))
+	path.coef[lower.tri(path.coef)] <- boot$t0[boot.pathIndices]
+	
+  	pls<-list(path.coef = path.coef,
+  		 loadings = boot$t0[boot.loadIndices],
+  		 out.weights =  boot$t0[boot.weightIndices],
+  		 r.sqr = boot$t0[boot.R2Indices],
+  		 effects = effects)
+  }
+  
+  #
+  # If bootstrapping is not done, just call matrixpls.fit directly
+  #
+  
+  else{
+  	pls<-matrixpls.fit(indicatorCovariances,inner,outer,modes,scheme,scaled,tol,iter)
+  }
+
+  if (is.null(pls) || max(is.na(pls$loadings))) {
+    print(paste("Iterative process is non-convergent with 'iter'=", 
+                iter, " and 'tol'=", tol, sep=""))
+    message("Algorithm stops") 
+    stop("")
+  }
+
+
+  # We will be storing the results in the pls object
+  class(pls)<-"matrixpls"
+  
+
   # =======================================================
-  # inputs setting
+  # Define variables that are needed for reporting
   # =======================================================  
   IDM = inner
   lvs.names = rownames(IDM)
@@ -175,68 +260,79 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
   for (k in 1:length(blocks))
     blocklist[[k]] = rep(k,blocks[k])
   blocklist = unlist(blocklist)
-  Mode = modes
-  Mode[modes=="A"] = "Reflective"
-  Mode[modes=="B"] = "Formative"   
-  # building data matrix 'DM'
-  DM = matrix(NA, nrow(x), mvs)
-  mvs.names = rep(NA, mvs)
-  for (k in 1:lvs)
-  {        
-    DM[,which(blocklist==k)] <- as.matrix(x[,outer[[k]]])
-    mvs.names[which(blocklist==k)] = colnames(x)[outer[[k]]]
-  }
-  dimnames(DM) = list(rownames(x), mvs.names)
-  # apply the selected scaling
-  if (scaled) {
-    sd.X = sqrt((nrow(DM)-1)/nrow(DM)) * apply(DM, 2, sd)
-    X = scale(DM, scale=sd.X)
-  } else {
-    X = scale(DM, scale=FALSE)
-  }
-  dimnames(X) = list(rownames(x), mvs.names)
-  
-  # =======================================================
-  # Stage 1: Iterative procedure
-  # =======================================================  
-  out.ws = get_weights(X, IDM, blocks, modes, scheme, tol, iter)
-  if (is.null(out.ws)) {
-    print(paste("Iterative process is non-convergent with 'iter'=", 
-                iter, " and 'tol'=", tol, sep=""))
-    message("Algorithm stops") 
-    stop("")
-  }
-  out.weights = out.ws[[1]]
-  cor.XY = cor(X, X%*%out.ws[[2]])
-  w.sig = rep(NA, lvs)
-  for (k in 1:lvs) 
-    w.sig[k] <- ifelse(sum(sign(cor.XY[which(blocklist==k),k]))<=0,-1,1)
-  Z.lvs = X %*% out.ws[[2]] %*% diag(w.sig, lvs, lvs)
-  Y.lvs = Z.lvs
-  if (!scaled) 
-    Y.lvs = DM %*% out.ws[[2]] %*% diag(w.sig, lvs, lvs)
-  dimnames(Y.lvs) = list(rownames(X), lvs.names)
-  dimnames(Z.lvs) = list(rownames(X), lvs.names)
+  Mode = ifelse(modes=="A","Mode A","Mode B")
+
+
   # =======================================================
   # Stage 2: Path coefficients and total effects
   # =======================================================  
-  pathmod = get_paths(IDM, Y.lvs, plsr)
-  innmod = pathmod[[1]]
-  Path = pathmod[[2]]
-  R2 = pathmod[[3]]
-  Path.efs = get_effects(Path)
+
+  endo = rowSums(IDM)
+  endo[endo!=0] <- 1  # vector indicating endogenous LVs
+  innmod <- as.list(1:sum(endo))
+
+  for (aux in 1:sum(endo)) 
+  {
+    k1 <- which(endo==1)[aux]    # index for endo LV
+    k2 <- which(IDM[k1,]==1)     # index for indep LVs
+    inn.val <- c(pls$r.sqr[k1], 0, pls$Path(k1,k2))
+    inn.lab <- c("R2", "Intercept", paste("path_",names(k2),sep=""))
+    names(inn.val) <- NULL
+    innmod[[aux]] <- data.frame(concept=inn.lab, value=round(inn.val,4))
+  }
+  
+  names(innmod) <- lvs.names[endo!=0]  
+  
+  pls["inner.mod"] <- innmod
+  
+  # initialize
+  efs.labs <- dir.efs <- ind.efs <- tot.efs <- NULL
+  for (j in 1:lvs) 
+  {
+    for (i in j:lvs)
+    {
+      if (i != j) 
+      {
+        # labels
+        efs.labs = c(efs.labs, paste(lvs.names[j],"->",lvs.names[i],sep=""))
+        # direct effects
+        dir.efs = c(dir.efs, pls$Path[i,j])
+        # indirect effects
+        ind.efs = c(ind.efs, pls$effects[i,j]-pls$Path[i,j])
+        # total effects
+        tot.efs = c(tot.efs, pls$effects[i,j])
+      }
+    }
+  }
+  # results
+  Effects = data.frame(relationships = efs.labs, 
+                       dir.effects = dir.efs, 
+                       ind.effects = ind.efs, 
+                       tot.effects = tot.efs)
+
+  pls["effects"] <- Effects
+    
+  # Composites scores
+  
+  if(matrixData){
+    pls["latents"] <- NA
+    pls["scores"] <- NA
+  }
+  else{
+    outer_matrix <- sapply(outer_list,function(x) match(1:n,x,nomatch=0)>0)
+    composites <- x %*% outer_matrix
+    dimnames(composites) = list(rownames(x), lvs.names)
+    pls["latents"] <- composites
+    pls["scores"] <- composites
+
+  }
+  
   # =======================================================
   # Stage 3: Measurement loadings and communalities
   # =======================================================  
-  loadcomu = get_loads(X, Y.lvs, blocks)    
-  loads = loadcomu[[1]]
-  comu = loadcomu[[2]]
-  endo = rowSums(IDM)
-  endo[endo != 0] = 1  
-  redun = rep(0, mvs)
-  for (j in 1:lvs)
-    if (endo[j] == 1)
-      redun[blocklist==j] = comu[blocklist==j] * R2[j]
+  
+  # Communalities are needed later
+  comu<-pls$loadings^2
   
   # =======================================================
   # Measurement model
@@ -247,21 +343,69 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
     aux <- which(blocklist==j)
     outmod[[j]] <- round(cbind(weights=out.weights[aux], std.loads=loads[aux], 
                                communal=comu[aux], redundan=redun[aux]), 4)
-    outcor[[j]] <- round(cor(DM[,aux], Y.lvs), 4)
   }
   names(outmod) = lvs.names
-  names(outcor) = lvs.names  
   
+  pls["outer.mod"] <- outmod
+
   # =======================================================
   # Unidimensionality
   # ======================================================= 
-  unidim = get_unidim(x=NULL, outer=NULL, modes=modes, 
-                         DM=DM, blocks=blocks, check=FALSE)
-  
+
+  Alpha = rep(1, lvs)   # Cronbach's Alpha for each block
+  Rho = rep(1, lvs)     # D.G. Rho for each block
+  eig.1st = rep(1, lvs) # first eigenvalue
+  eig.2nd = rep(0, lvs) # second eigenvalue
+
+  for (aux in 1:lvs) 
+  {      
+    if (blocks[aux] != 1) 
+    { 
+      if (modes[aux]=="A") 
+      {
+      	# Cronbach´s alpha
+      	# PLSMP does not use information about weights  to determine if indicators are
+      	# reverse codes, so we will not do it either
+      	
+        Alpha[aux] <- alpha(indicatorCovariances[outer_list[[aux]],outer_list[[aux]]])
+
+        # dillon-goldstein rho
+        
+        # Equation 2.5 in Vinzi, V. E., Amato, S., & Trinchera, L. (2010). PLS path modeling: Recent developments and open issues for model assessment and improvement. V. Esposito Vinzi, W. Chin, J. Henseler & H. Wang, eds,“Handbook of Partial Least Squares-Concepts, Methods and Applications”, Springer, Berlin, Heidelberg, New York.
+
+		loadings <- loadings[outer_list[[aux]]]
+		
+		# Standardize the loadings if not already standardized
+		
+		if(! scaled){
+			loadings <- loadings * diag(indicatorCovariances)[outer_list[[aux]]]^2
+		}
+		squaredLoadings <- loadings^2
+        Rho[aux] <- sum(squaredLoadings) /
+        	 (sum(squaredLoadings) + sum(1-squaredLoadings))
+      } else {  # modes[aux]=="B"
+        Alpha[aux] = 0
+        Rho[aux] = 0
+      }
+      eigenValues<-eigen(indicatorCorrelations[outer_list[[aux]],outer_list[[aux]]])
+      eig.1st[aux] = eigenValues$values[1]
+      eig.2nd[aux] = eigenValues$values[2]
+    }
+  }
+  unidim = data.frame(Type.measure = Mode, 
+                      MVs = blocks,
+                      C.alpha = Alpha, 
+                      DG.rho = Rho,
+                      eig.1st, 
+                      eig.2nd)
+  rownames(unidim) = lvs.names
+
+  pls["unidim"] <- unidim
+
   # =======================================================
   # Summary Inner model
   # =======================================================  
-  exo.endo = rowSums(IDM)
+  exo.endo = ifelse(rowSums(IDM)==0
   exo.endo[rowSums(IDM)==0] = "Exogen"
   exo.endo[rowSums(IDM)!=0] = "Endogen"
   av.comu = rep(0, lvs)   # average communality
@@ -280,58 +424,100 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
   }
   names(ave) = lvs.names
   innsum = data.frame(LV.Type = exo.endo, 
-                      Measure = abbreviate(Mode, 5), 
+                      Measure = Mode, 
                       MVs = blocks, 
-                      R.square = R2, 
+                      R.square = pls["r.sqr"], 
                       Av.Commu = av.comu, 
                       Av.Redun = av.redu, 
                       AVE = ave)
   rownames(innsum) = lvs.names
+  pls["inner.sum"] <- innsum
+
   
   # =======================================================
   # GoF Index
   # =======================================================  
-  gof = get_gof(comu, R2, blocks, IDM)
   
+  pls["gof"] <- get_gof(comu, pls["r.sqr"], blocks, IDM)
+
   # =======================================================
   # Results
   # =======================================================  
-  skem <- switch(scheme, "centroid"="centroid", "factor"="factor", "path"="path")
-  model <- list(IDM=IDM, blocks=blocks, scheme=skem, modes=modes, scaled=scaled, 
-                boot.val=boot.val, plsr=plsr, obs=nrow(X), br=br, 
-                tol=tol, iter=iter, n.iter=out.ws[[3]], outer=outer)
+  
+  if(matrixData) obs<-NA
+  else obs <- nrow(matrixData)
+  
+  pls["model"] <- list(IDM=IDM, blocks=blocks, scheme=scheme, modes=modes, scaled=scaled, 
+                boot.val=boot.val, plsr=plsr, obs=obs, br=br, 
+                tol=tol, iter=iter, n.iter=NA, outer=outer)
   # deliver dataset?
-  if (dataset) data = DM else data = NULL
-  # deliver bootstrap validation results? 
-  if (boot.val) 
-  {
-    if (nrow(X) <= 10) {
-      warning("Bootstrapping stopped: very few cases.") 
-    } else { 
-      n.efs = nrow(Path.efs)
-      res.boot = get_boots(DM, IDM, blocks, modes, scheme, scaled, br, plsr, tol, iter)
-    }
-  } else {
-    res.boot = FALSE
+  if (dataset && ! matrixData){
+	pls["data"] <- as.matrix(Data)
+
   }
-  res = list(outer.mod = outmod, 
-              inner.mod = innmod, 
-              latents = Z.lvs, 
-              scores = Y.lvs,
-              out.weights = out.weights, 
-              loadings = loads, 
-              path.coefs = Path, 
-              r.sqr = R2,
-              outer.cor = outcor, 
-              inner.sum = innsum, 
-              effects = Path.efs,
-              unidim = unidim, 
-              gof = gof, 
-              boot = res.boot, 
-              data = data, 
-              model = model)
-  class(res) = "matrixpls"
-  return(res)
+  else{
+    pls["data"] <- NULL
+  }
+  # deliver bootstrap validation results? 
+  if (doBootstrap) 
+  {
+	# TODO: Refactor this to use the boot package to calculate the descriptives
+	
+    WEIGS <- boots$t[,boot.weightIndices]
+    LOADS <- boots$t[,boot.loadIndices]
+    PATHS <- boots$t[,boot.pathIndices]
+    TOEFS <- boots$t[,boot.effectIndices]
+    RSQRS <- boots$t[,boot.R2Indices]
+
+    colnames(WEIGS) <- mvs.names
+    WB <- data.frame(Original = wgs.orig, 
+                     Mean.Boot = apply(WEIGS, 2, mean), 
+                     Std.Error = apply(WEIGS, 2, sd), 
+                     perc.025 = apply(WEIGS, 2, function(x) quantile(x, 0.025)),
+                     perc.975 = apply(WEIGS, 2, function(x) quantile(x, 0.975)))
+    # Loadings
+    colnames(LOADS) <- mvs.names
+    LB <- data.frame(Original = loads.orig, 
+                     Mean.Boot = apply(LOADS, 2, mean),
+                     Std.Error = apply(LOADS, 2, sd), 
+                     perc.025 = apply(LOADS, 2, function(x) quantile(x, 0.025)),
+                     perc.975 = apply(LOADS, 2, function(x) quantile(x, 0.975)))
+    # Path coefficients
+    colnames(PATHS) <- path.labs
+    PB <- data.frame(Original = path.orig, 
+                     Mean.Boot = apply(PATHS, 2, mean),
+                     Std.Error = apply(PATHS, 2, sd), 
+                     perc.025 = apply(PATHS, 2, function(x) quantile(x, 0.025)),
+                     perc.975 = apply(PATHS, 2, function(x) quantile(x, 0.975)))
+
+    # Total effects
+    colnames(TOEFS) <- Path.efs[, 1]
+    TE <- data.frame(Original = Path.efs[, 4], 
+                     Mean.Boot = apply(TOEFS, 2, mean), 
+                     Std.Error = apply(TOEFS, 2, sd),
+                     perc.025 = apply(TOEFS, 2, function(x) quantile(x, 0.025)), 
+                     perc.975 = apply(TOEFS, 2, function(x) quantile(x, 0.975)))
+    # R-squared
+    colnames(RSQRS) <- lvs.names[endo == 1]
+    RB <- data.frame(Original = r2.orig, 
+                     Mean.Boot = apply(RSQRS, 2, mean),
+                     Std.Error = apply(RSQRS, 2, sd), 
+                     perc.025 = apply(RSQRS, 2, function(x) quantile(x, 0.025)),
+                     perc.975 = apply(RSQRS, 2, function(x) quantile(x, 0.975)))
+    # Bootstrap Results
+    pls["boot"] <- list(weights = WB, 
+                     loadings = LB, 
+                     paths = PB, 
+                     rsq = RB, 
+                     total.efs = TE)
+    }
+    pls["boot"] <- NA
+
+  } else {
+      pls["boot"] <- FALSE
+  }
+
+  return(pls)
 }
 
 

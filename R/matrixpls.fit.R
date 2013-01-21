@@ -109,128 +109,147 @@ matrixpls.fit <-
 function(Data, inner_matrix, outer_list, modes = NULL, scheme="centroid", 
          scaled = TRUE, tol = 0.00001, iter = 100)
 {
-    # =======================================================
-    # checking arguments
-    # =======================================================
-    valid = get_params(x=Data, inner=inner_matrix, outer=outer_list, modes=modes, 
-                       scheme=scheme, scaled=scaled, boot.val=FALSE, br=NULL, 
-                       plsr=FALSE, tol=tol, iter=iter, dataset=FALSE)
-    x = valid$x
-    inner = valid$inner
-    outer = valid$outer
-    modes = valid$modes
-    scheme = valid$scheme
-    SCHEMES = valid$SCHEMES
-    scaled = valid$scaled
-    boot.val = valid$boot.val
-    br = valid$br
-    plsr = valid$plsr
-    tol = valid$tol
-    iter = valid$iter
-    dataset = valid$dataset
-    
-    # =======================================================
+	
+	# =======================================================
     # inputs setting
     # =======================================================  
-    # inner design matrix
-    IDM = inner
-    # latent variables names
-    lvs.names = rownames(IDM)
-    dimnames(IDM) = list(lvs.names, lvs.names)
-    # how many latent variables
-    lvs = nrow(IDM)
-    # get blocks: number of mvs per block
-    blocks = unlist(lapply(outer, length))
-    mvs = sum(blocks)
-    names(blocks) = lvs.names
-    blocklist = outer
-    for (k in 1:length(outer))
-         blocklist[[k]] <- rep(k,blocks[k])
-    blocklist = unlist(blocklist)
-    Mode = modes
-    Mode[modes=="A"] = "Reflective"
-    Mode[modes=="B"] = "Formative"   
-    # building data matrix 'DM'
-    DM = matrix(NA, nrow(x), mvs)
-    mvs.names = rep(NA, mvs)
-    for (k in 1:lvs)
-    {        
-        DM[,which(blocklist==k)] = as.matrix(x[,outer[[k]]])
-        mvs.names[which(blocklist==k)] = colnames(x)[outer[[k]]]
-    }
-    dimnames(DM) = list(rownames(x), mvs.names)
-    # apply the selected scaling
-    if (scaled) {
-        sd.X = sqrt((nrow(DM)-1)/nrow(DM)) * apply(DM, 2, sd)
-        X = scale(DM, scale=sd.X)
-    } else {
-        X = scale(DM, scale=FALSE)
-    }
-    dimnames(X) = list(rownames(x), mvs.names)
+
+	# Names of the composites
+	lvs.names <- colnames(inner_matrix)
+	mv.names  <- colnames(Data)
+	
+	# A binary vector showing which composites are endogenous
+	endo <- rowSums(inner_matrix)>0
+	
+    # The estimation uses the following matrices
+    #
+    # inner_matrix: a p by p matrix specifying the inner model
+    # outer_matrix: a n by p matrix specifying the outer model
+	#
+    # S: n by n indicator covariance matrix
+	#
+    # W: n by p matrix of outer weights
+    # C: is a p by p covariance matrix of composites
+    # E: is a p by p matrix of inner weights
+    # 
+    # where
+    #
+	# n: number of indicators
+    # p: number of composites
+
+	n<-nrow(Data)
+	p<-nrow(inner_matrix)
+
+	outer_matrix <- sapply(outer_list,function(x) match(1:n,x,nomatch=0)>0)
+	
+	# Standardize the data
+	if(scaled) Data <-cov2cor(Data)
 
     # =======================================================
     # Stage 1: Iterative procedure
     # =======================================================  
-    out.ws <- get_weights(X, IDM, blocks, modes, scheme, tol, iter)
-    if (is.null(out.ws)) {
-        print(paste("Iterative process is non-convergent with 'iter'=", 
-                    iter, " and 'tol'=", tol, sep=""))
-        stop("Algorithm stops") 
-    }
-    out.weights = out.ws[[1]]
-    cor.XY = cor(X, X%*%out.ws[[2]])
-    w.sig = rep(NA, lvs)
-    for (k in 1:lvs) 
-         w.sig[k] <- ifelse(sum(sign(cor.XY[which(blocklist==k),k]))<=0,-1,1)
-    Z.lvs = X %*% out.ws[[2]] %*% diag(w.sig, lvs, lvs)
-    Y.lvs = Z.lvs
-    if (!scaled) 
-        Y.lvs = DM %*% out.ws[[2]] %*% diag(w.sig, lvs, lvs)
-    dimnames(Y.lvs) = list(rownames(X), lvs.names)
-    dimnames(Z.lvs) = list(rownames(X), lvs.names)
-    # =======================================================
-    # Stage 2: Path coefficients and total effects
-    # =======================================================  
-    pathmod = get_paths(IDM, Y.lvs, plsr)
-    innmod = pathmod[[1]]
-    Path = pathmod[[2]]
-    R2 = pathmod[[3]]
-    # =======================================================
-    # Stage 3: Measurement loadings and communalities
-    # =======================================================  
-    loadcomu = get_loads(X, Y.lvs, blocks)    
-    loads = loadcomu[[1]]
-    comu = loadcomu[[2]]
+
+	for(iteration in 1:max(1,iter)){
+	
+		#
+		# Outer estimation
+		#
+		
+		if(iteration == 1 ){
+
+			# If this is the first iteration, start with equal weights instead of doing
+			# outer estimation
+			W_unscaled <- outer_matrix
+		}
+		else{
+			
+			# We have already performed inner estimation, do outer estimation of weights
+			# Element-wise multiplication by outer_matrix chooses the relevant
+			# correlations
+			IC <- S %*% W %*% E
+			W_unscaled <- IC * outer_matrix
+		}
+
+		
+		# Calculate the variances of the unscaled composites
+		
+		var_C_unscaled <- diag(t(W_unscaled) %*% S %*% W_unscaled)
+		
+		# Create the weights that are used to form the standardized composites after
+		# the outer estimation by scaling the unscaled weights
+		
+		W_new <- W_unscaled %*% diag(x = 1/sqrt(var_C_unscaled))
+	
+	
+		converged <- ifelse(iteration > 1, max(abs(W_new-W)) < tol, 0)
+		
+		W <- W_new
+		
+		# Create the composite covariance matrix
+	
+	 	C <- t(W) %*% S %*% W
+	 		
+		# Are the weights converged?
+		
+		if(converged) break;
+		
+		#
+		# Inner estimation
+		#
+		
+		# Calculate unscaled inner weights using the centroid weighting scheme
+		
+		E_unscaled <- sign(C * (inner_matrix + t(inner_matrix)))
+		
+		# Calculate the variances of the unscaled composites. 
+		
+		var_C_unscaled <- diag(E_unscaled * C * E_unscaled)
+		
+		# Create the weights that are used to form the standardized composites after the
+		# inner estimation
+		
+		E <- E_unscaled %*% diag(x = 1/var_C_unscaled)
+		
+		# In rare cases, we have underidentified regressions that the algorithm cannot handle
+		if(max(is.nan(E))) stop("An inner model regression was empirically underidentified.")
+	}	
+	
+	# Check if we got a convergence
+	
+	if (!converged) return(NULL)
 
     # =======================================================
-    # Measurement model
+    # Stage 2: Path coefficients
     # =======================================================  
-    outmod <- as.list(1:lvs)
-    for (j in 1:lvs)
-    {
-        aux <- which(blocklist==j)
-        outmod[[j]] <- round(cbind(weights=out.weights[aux], std.loads=loads[aux], 
-                             communal=comu[aux]), 4)
+
+    # A p x p lower diagonal matrix of path estimates
+    Path <- inner_matrix
+    R2 <- rep(0,p)
+    
+    # Loop over the endogenous variables and do the regressions
+
+    for (aux in which(endo)){
+    	indeps <- inner_matrix[aux,]
+    	coefs <- solve(C[indeps,indeps],C[indeps,aux])
+    	Path[indeps,aux] <- coefs
+    	R2[aux] <- colSums(coefs * C[indeps,aux])
     }
-    names(outmod) = lvs.names
+
+    # Composite loadings and weights are available already from the iterative algorithm
+    
 
     # =======================================================
     # Results
     # =======================================================  
-    skem = switch(scheme, "centroid"="centroid", "factor"="factor", "path"="path")
-    model = list(IDM=IDM, blocks=blocks, scheme=skem, modes=modes, scaled=scaled, 
-                  obs=nrow(X), tol=tol, iter=iter, n.iter=out.ws[[3]], outer=outer)
-    res = list(outer.mod = outmod, 
-               inner.mod = innmod, 
-               latents = Z.lvs, 
-               scores = Y.lvs,
-               out.weights = out.weights, 
-               loadings = loads, 
-               path.coefs = Path, 
-               r.sqr = R2, 
-               data = NULL, 
-               model = model)
-    class(res) = c("matrixpls.fit", "matrixpls")
+
+    res = list(out.weights = W, 
+               loadings = W_unscaled, 
+               path.coefs = Path,
+               r.sqr = R2,
+               effects = C
+               outer.cor = IC)
+               
+    class(res) = c("matrixpls.fit")
     return(res)
 }
 
