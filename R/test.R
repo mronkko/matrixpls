@@ -1,3 +1,4 @@
+library(parallel)
 source("matrixpls.fit.R")
 source("matrixpls.R")
 source("matrixpls.mc.R")
@@ -5,6 +6,7 @@ source("matrixpls.mc.R")
 # Set up parallel bootstrapping
 
 options(boot.parallel="multicore")
+options(boot.ncpus=detectCores())
 
 # Create a Monte Carlo study
 

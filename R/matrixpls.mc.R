@@ -81,7 +81,7 @@ matrixpls.mc <- function(rep = 1, beta = NULL, gamma = NULL, Phi = NULL, observe
         data <- mvrnorm(n = nobs, mu = rep(0, ncol(Sigma)), Sigma = Sigma)
         times.matrixpls <- times.matrixpls + system.time(results.matrixpls <- matrixpls(data, ...))[1:5]
         if (plspm) {
-            times.plspm <- times.matrixpls + system.time(results.plspm <- plspm(data, ...))[1:5]
+            times.plspm <- times.plspm + system.time(results.plspm <- plspm(data, ...))[1:5]
             
             # Compare the results and stop if they are too different
             for(index in 1:length(results.plspm$inner.mod)){

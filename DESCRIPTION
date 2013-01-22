@@ -20,35 +20,12 @@ Depends:
     R (>= 2.15.1),
     amap,
     diagram,
-    plspm
-Suggests:
-    plsdepot,
-    FactoMineR
+    plspm,
+    MASS,
+    psych
 License: GPL-3
 LazyLoad: yes
 Collate:
     'matrixpls.R'
     'matrixpls.fit.R'
-    'get_boots.R'
-    'get_effects.R'
-    'get_gof.R'
-    'get_loads.R'
-    'get_params.R'
-    'get_path_scheme.R'
-    'get_paths.R'
-    'get_plsr1.R'
-    'get_unidim.R'
-    'get_weights.R'
-    'print.matrixpls.R'
-    'innerplot.R'
-    'plot.matrixpls.R'
-    'print.summary.matrixpls.R'
-    'summary.matrixpls.R'
-    'matrixpls.groups.R'
-    'print.matrixpls.groups.R'
-    'outerplot.R'
-    'get_GQI.R'
-    'get_locals_test.R'
-    'local.models.R'
-    'print.local.models.R'
-    'rescale.R'
+    'matrixpls.mc.R'
