@@ -1,15 +1,12 @@
-library(parallel)
-source("matrixpls.fit.R")
-source("matrixpls.R")
-source("matrixpls.mc.R")
-
+#
+# Creates Monte Carlo study with four latent variables, A-D each with 3 indicators and estimates
+#
 # Set up parallel bootstrapping
 
 options(boot.parallel="multicore")
 options(boot.ncpus=detectCores())
 
 # Create a Monte Carlo study
-
 
 Phi<-diag(c(1,1, #Variances of A and B
 			1-(.5*(.5+.3*.1)+.1*(.1+.3*.5)), #Error variance of C

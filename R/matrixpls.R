@@ -1,470 +1,206 @@
-#'@title PLS-PM: Partial Least Squares Path Modeling
+#'@title Basic results for Partial Least Squares Path Modeling as a vector
 #'
 #'@description
-#'Estimate path models with latent variables by partial least squares approach
-#'
+#'Estimates a PLS model as described by Wold (1982) and provides a minimum set of estimates as a vector. This function
+#'is used internally by MatrixPLS. Instead of calling this function directly, you should
+#'call matrixpls.mc, matrixpls.plspm, or matrixpls.boot.
+#
 #'@details
-#'The function \code{matrixpls} estimates a path model by partial least squares
-#'approach providing the full set of results. \cr
+#'\code{matrixpls.fit} performs the basic PLS algorithm and provides
+#'the results in a vector without names. The function is designed to be as efficient
+#'as possible. This function does not do any input validation and typically should not
+#'be called directly\cr
 #'
 #'The argument \code{inner_matrix} is a matrix of zeros and ones that indicates
-#'the structural relationships between latent variables. This must be a lower
+#'the structural relationships between composites. This must be a lower
 #'triangular matrix. \code{inner_matrix} will contain a 1 when column \code{j}
 #'affects row \code{i}, 0 otherwise. \cr
 #'
-#'@param Data A numeric matrix or data frame containing the manifest variables.
+#'@param S Covariance matrix that is used to estimate the PLS model.
 #'@param inner_matrix A square (lower triangular) boolean matrix representing the
-#'inner model (i.e. the path relationships betwenn latent variables).
+#'inner model (i.e. the path relationships between the composite variables).
 #'@param outer_list List of vectors with column indices from \code{x} indicating
-#'the sets of manifest variables asociated to the latent variables
-#'(i.e. which manifest variables correspond to the latent variables).
+#'the sets of manifest variables associated to the composites
 #'Length of \code{outer_list} must be equal to the number of rows of \code{inner_matrix}.
-#'@param modes A character vector indicating the type of measurement for each
-#'latent variable. \code{'A'} for reflective measurement or \code{'B'} for
-#'formative measurement (\code{NULL} by default). The length of \code{modes}
+#'@param modes A character vector indicating the type of estimation for each
+#'composite, Either \code{'A'} or \code{'B'}. The length of \code{modes}
 #'must be equal to the length of \code{outer_list}).
 #'@param scheme A string of characters indicating the type of inner weighting
 #'scheme. Possible values are \code{'centroid'}, \code{'factor'}, or
 #'\code{'path'}.
-#'@param scaled A logical value indicating whether scaling data is performed
-#'When (\code{TRUE} data is scaled to standardized values (mean=0 and variance=1)
-#'The variance is calculated dividing by \code{N} instead of \code{N-1}).
 #'@param tol Decimal value indicating the tolerance criterion for the
-#'iterations (\code{tol=0.00001}). Can be specified between 0 and 0.001.
+#'iterations (\code{tol=0.00001}). Must be a positive number.
 #'@param iter An integer indicating the maximum number of iterations
-#'(\code{iter=100} by default). The minimum value of \code{iter} is 100.
-#'@param boot.val A logical value indicating whether bootstrap validation is
-#'performed (\code{FALSE} by default).
-#'@param br An integer indicating the number bootstrap resamples. Used only
-#'when \code{boot.val=TRUE}. When \code{boot.val=TRUE}, the default number of
-#'re-samples is 100, but it can be specified in a range from 100 to 1000.
-#'@param plsr A logical value indicating whether pls regression is applied
-#'to calculate path coefficients (\code{FALSE} by default).
-#'@param dataset A logical value indicating whether the data matrix should be
-#'retrieved (\code{TRUE} by default).
-#'@return An object of class \code{'matrixpls'}.
-#'@return \item{outer.mod}{Results of the outer (measurement) model. Includes:
-#'outer weights, standardized loadings, communalities, and redundancies}
-#'@return \item{inner.mod}{Results of the inner (structural) model. Includes: path
-#'coefficients and R-squared for each endogenous latent variable}
-#'@return \item{latents}{Matrix of standardized latent variables (variance=1
-#'calculated divided by \code{N}) obtained from centered data (mean=0)}
-#'@return \item{scores}{Matrix of latent variables used to estimate the inner
-#'model. If \code{scaled=FALSE} then \code{scores} are latent variables
-#'calculated with the original data (non-stardardized). If \code{scaled=TRUE}
-#'then \code{scores} and \code{latents} have the same values}
-#'@return \item{out.weights}{Vector of outer weights}
-#'@return \item{loadings}{Vector of standardized loadings (i.e. correlations with
-#'LVs)}
-#'@return \item{path.coefs}{Matrix of path coefficients (this matrix has a similar
-#'form as \code{inner_matrix})}
-#'@return \item{r.sqr}{Vector of R-squared coefficients}
-#'@return \item{outer.cor}{Correlations between the latent variables and the
-#'manifest variables (also called crossloadings)}
-#'@return \item{inner.sum}{Summarized results by latent variable of the inner
-#'model. Includes: type of LV, type of measurement, number of indicators,
-#'R-squared, average communality, average redundancy, and average variance
-#'extracted}
-#'@return \item{effects}{Path effects of the structural relationships. Includes:
-#'direct, indirect, and total effects}
-#'@return \item{unidim}{Results for checking the unidimensionality of blocks
-#'(These results are only meaningful for reflective blocks)}
-#'@return \item{gof}{Goodness-of-Fit index}
-#'@return \item{data}{Data matrix containing the manifest variables used in the
-#'model. Only when \code{dataset=TRUE}}
-#'@return \item{boot}{List of bootstrapping results; only available when argument
-#'\code{boot.val=TRUE}}
-#'@author Gaston Sanchez
+#'(\code{iter=100} by default).'
+#'@param unbiasedLoadings PLS estimates factor loadings with composite loadings severely biased estimates of factor loadings. Setting this option to TRUE will use maximum likelihood common factor analysis instead of the component loadings (default: FALSE)
+#'@param unbiasedCompositeReliability The Composite Reliability statistic that is typically presented with PLS results assumes equal weights for the indicators. This is never correct in a PLS analysis resulting in a biased estimate. Setting this option to TRUE will use a formulate that takes indicator weighting into account (default: FALSE)
+#'@param disattenuate Setting this option to TRUE will dissattenuate the composite covariance matrix with the estimated composite reliabilities before estimating the inner model regressions. (default: FALSE)
+#'@return A vector containing the PLS results in the following order: weights, loading
+#'estimates, path estimates, lower triangular of the composite correlation matrix.
+#'@author Mikko R\303\266nkk\303\266
 #'
-#'@references Tenenhaus M., Esposito Vinzi V., Chatelin Y.M., and Lauro C.
-#'(2005) PLS path modeling. \emph{Computational Statistics & Data Analysis},
-#'\bold{48}, pp. 159-205.
+#'@references Wold, H. (1982). Soft modeling - The Basic Design And Some Extensions. In K. G. J\303\266reskog & S. Wold (Eds.), \emph{Systems under indirect observation\342\200\257: causality, structure, prediction} (pp. 1\342\200\22354). Amsterdam: North-Holland.
 #'
-#'Tenenhaus M., Pages J. (2001) Multiple factor analysis combined with
-#'PLS path modelling. Application to the analysis of relationships between
-#'physicochemical variables, sensory profiles and hedonic judgements.
-#'\emph{Chemometrics and Intelligent Laboratory Systems}, \bold{58}, pp.
-#'261-273.
+#'Lohm\303\266ller, J. B. (1989). \emp{composite path modeling with partial least squares}. Physica-Verlag.
 #'
-#'Tenenhaus M., Hanafi M. (2010) A bridge between PLS path modeling and
-#'multi-block data analysis. \emph{Handbook on Partial Least Squares (PLS):
-#'Concepts, methods, and applications.} Springer.
+#'Aguirre-Urreta, M. I., Marakas, G. M., & Ellis, M. E. (in press). Measurement of Composite Reliability in Research Using Partial Least Squares: Some Issues and an Alternative Approach. \emp{The DATA BASE for Advances in Information Systems.}
 #'
-#'Lohmoller J.-B. (1989) \emph{Latent variables path modelin with partial
-#'least squares.} Heidelberg: Physica-Verlag.
-#'
-#'Wold H. (1985) Partial Least Squares. In: Kotz, S., Johnson, N.L. (Eds.),
-#'\emph{Encyclopedia of Statistical Sciences}, Vol. 6. Wiley, New York, pp.
-#'581-591.
-#'
-#'Wold H. (1982) Soft modeling: the basic design and some extensions. In: K.G.
-#'Joreskog & H. Wold (Eds.), \emph{Systems under indirect observations:
-#'Causality, structure, prediction}, Part 2, pp. 1-54. Amsterdam: Holland.
-#'@seealso \code{\link{matrixpls.fit}}, \code{\link{plot.matrixpls}}
-#'@export
-#'@examples
-#'
-#'  \dontrun{
-#'  ## typical example of PLS-PM in customer satisfaction analysis
-#'  ## model with six LVs and reflective indicators
-#'
-#'  # load dataset satisfaction
-#'  data(satisfaction)
-#'
-#'  # inner model matrix
-#'  IMAG = c(0,0,0,0,0,0)
-#'  EXPE = c(1,0,0,0,0,0)
-#'  QUAL = c(0,1,0,0,0,0)
-#'  VAL = c(0,1,1,0,0,0)
-#'  SAT = c(1,1,1,1,0,0)
-#'  LOY = c(1,0,0,0,1,0)
-#'  sat_inner = rbind(IMAG, EXPE, QUAL, VAL, SAT, LOY)
-#'
-#'  # outer model list
-#'  sat_outer = list(1:5, 6:10, 11:15, 16:19, 20:23, 24:27)
-#'
-#'  # vector of modes (reflective indicators)
-#'  sat_mod = rep('A', 6)
-#'
-#'  # apply matrixpls
-#'  satpls = matrixpls(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=TRUE)
-#'
-#'  # summary of results
-#'  summary(satpls)
-#'
-#'  # default plot (inner model)
-#'  plot(satpls)
-#'  }
+#'Dijkstra, T. K., & Henseler, J. (2012). Consistent and Asymptotically Normal PLS Estimators for Linear Structural Equations. RU Groningen working paper. Retrieved from http://www.rug.nl/staff/t.k.dijkstra/Dijkstra-Henseler-PLSc-linear.pdf
 #'
 
-library(plspm)
-library(boot)
 library(psych)
 
-matrixpls <- function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid", scaled = TRUE, tol = 1e-05, iter = 100, boot.val = FALSE, br = NULL, plsr = FALSE, dataset = TRUE, matrixData = FALSE) {
-    # ======================================================= checking arguments =======================================================
+matrixpls <- function(S, inner_matrix, outer_list, modes, scheme = "centroid", tol = 1e-05, iter = 100, unbiasedLoadings = FALSE, unbiasedCompositeReliability = FALSE, disattenuate = FALSE) {
     
-    valid = get_params(x = Data, inner = inner_matrix, outer = outer_list, modes = modes, scheme = scheme, scaled = scaled, tol = tol, iter = iter, boot.val = boot.val, br = br, plsr = plsr, dataset = dataset)
-    x = valid$x
-    inner = valid$inner
-    outer = valid$outer
-    modes = valid$modes
-    # scheme = valid$scheme
-    SCHEMES = valid$SCHEMES
-    scaled = valid$scaled
-    boot.val = valid$boot.val
-    br = valid$br
-    plsr = valid$plsr
-    tol = valid$tol
-    iter = valid$iter
-    dataset = valid$dataset
+    # ==================================================================================== inputs setting ====================================================================================
     
-    # Stop if there are unimplemented options
-    if (sum(modes == "B") > 0) 
-        stop("Mode B is not currently implemented in matrixpls")
-    if (scheme != "centroid") 
-        stop(paste("Only centroid scheme is currently implemented in matrixpls. Current value: ", scheme))
-    if (plsr) 
-        stop("PLS regression is currently not implemented in matrixpls")
+    # Names of the composites
+    lvs.names <- colnames(inner_matrix)
+    mv.names <- colnames(S)
     
+    # A binary vector showing which composites are endogenous
+    endo <- rowSums(inner_matrix) > 0
     
-    if (matrixData) {
-        indicatorCovariances <- x
-    } else {
-        indicatorCovariances <- cov(x)
+    # The estimation uses the following matrices
+    # 
+    # inner_matrix: a p by p matrix specifying the inner model outer_matrix: a n by p matrix specifying the outer model
+    # 
+    # S: n by n indicator covariance matrix
+    # 
+    # W: n by p matrix of outer weights C: is a p by p covariance matrix of composites E: is a p by p matrix of inner weights
+    # 
+    # where
+    # 
+    # n: number of indicators p: number of composites
+    
+    n <- nrow(S)
+    p <- nrow(inner_matrix)
+    
+    outer_matrix <- sapply(outer_list, function(x) match(1:n, x, nomatch = 0) > 0)
+    
+    S <- cov2cor(S)
+    
+    # ==================================================================================== Stage 1: Iterative procedure ====================================================================================
+    
+    for (iteration in 1:max(1, iter)) {
+        
+        # Outer estimation
+        
+        if (iteration == 1) {
+            
+            # If this is the first iteration, start with equal weights instead of doing outer estimation
+            W_unscaled <- outer_matrix
+        } else {
+            
+            # We have already performed inner estimation, do outer estimation of weights Element-wise multiplication by outer_matrix chooses the relevant correlations
+            IC <- S %*% W %*% E
+            W_unscaled <- IC * outer_matrix
+        }
+        
+        
+        # Calculate the variances of the unscaled composites
+        
+        var_C_unscaled <- diag(t(W_unscaled) %*% S %*% W_unscaled)
+        
+        # Create the weights that are used to form the standardized composites after the outer estimation by scaling the unscaled weights
+        
+        W_new <- W_unscaled %*% diag(x = 1/sqrt(var_C_unscaled))
+        
+        
+        converged <- ifelse(iteration > 1, sum((abs(W) - abs(W_new))^2) < tol, 0)
+        
+        W <- W_new
+        
+        # Create the composite covariance matrix
+        
+        C <- t(W) %*% S %*% W
+        
+        # Are the weights converged?
+        
+        if (converged) 
+            break
+        
+        # Inner estimation
+        
+        # Calculate unscaled inner weights using the centroid weighting scheme
+        
+        E_unscaled <- sign(C * (inner_matrix + t(inner_matrix)))
+        
+        # Calculate the variances of the unscaled composites.  TODO: Optimize this as a single matrix operation
+        var_C_unscaled <- rep(1, ncol(C))
+        
+        for (x in 1:ncol(C)) {
+            var_C_unscaled[x] = sum(E_unscaled[x, ] %o% E_unscaled[x, ] * C)
+        }
+        
+        # Create the weights that are used to form the standardized composites after the inner estimation
+        
+        E <- E_unscaled %*% diag(x = 1/var_C_unscaled)
+        
+        # In rare cases, we have underidentified regressions that the algorithm cannot handle
+        if (max(is.nan(E))) {
+            for (matName in c("S", "C", "W", "W_unscaled", "E", "E_unscaled", "var_C_unscaled")) {
+                print(matName)
+                print(get(matName))
+            }
+            print(paste("Iteration:", iteration, max(is.nan(E))))
+            stop("An inner model regression was empirically underidentified.")
+        }
     }
-    indicatorCorrelations <- cov2cor(indicatorCovariances)
     
-    doBootstrap = boot.val
-    if (doBootstrap && nrow(Data) <= 10) {
-        warning("Bootstrapping stopped: very few cases.")
-        doBootstrap <- FALSE
-    }
+    # Check if we got a convergence
     
-    # Boot will provide also estimates for the full data
+    if (!converged) 
+        return(NULL)
     
-    if (doBootstrap) {
+    # ==================================================================================== Stage 2: Path coefficients ====================================================================================
     
-        # Selection matrix
-    	selectWeightsFromMatrix<-matrix(0,nrow(indicatorCovariances),ncol(inner))
-		for(i in 1:ncol(inner)){
-			selectWeightsFromMatrix[outer[[i]],i]<-1
+    
+    if (unbiasedLoadings) {
+        load.est <- matrix(0, nrow(S), ncol(inner))
+        # Loop over the indicator blocks and perform EFAs
+
+        for (col in 1:length(outer)) {
+			load.est[outer[[col]], col] <- fa(S[outer[[col]], outer[[col]]])$loadings[, 1]
+			
 		}
-		selectWeightsFromMatrix <- which(selectWeightsFromMatrix==1)
-		
-        if (matrixData) 
-            stop("Bootstrapping requires raw data")
-        boot.results <- boot(x, function(d, p) {
+    } else {
+        load.est = W_unscaled
+    }
+    
+    if (disattenuate) {
+        
+        if (unbiasedCompositeReliability) {
+            # Calculate composite reliabilities
+            # 
+            # Aguirre-Urreta, M. I., Marakas, G. M., & Ellis, M. E. (in press). Measurement of Composite Reliability in Research Using Partial Least Squares: Some Issues and an Alternative Approach. The DATA BASE
+            # for Advances in Information Systems.
             
-            cov.matrix <- cov(d[p, ], d[p, ])
-            
-            pls <- matrixpls.fit(cov.matrix, inner, outer, modes, scheme, scaled, tol, iter)
-
-            if (is.null(pls)) {
-                # if the method failed to converge, return a vector of NAs with appropriate lenght
-                stop("Non-convergent results not implemented")
-                rep(NA, 2 * (nrow(cov.matrix) * nrow(inner)) + nrow(inner) + 2 * nrow(inner)^2)
-            } else {
-                c(pls$loadings[selectWeightsFromMatrix], pls$out.weights[selectWeightsFromMatrix], pls$r.sqr, pls$path.coef[which(inner==1)], pls$effects[lower.tri(inner)])
-            }
-        }, br)
-        
-        # Unpack the results from t0
-        boot.loadIndices <- 1:ncol(Data)
-        boot.weightIndices <- ncol(Data) + boot.loadIndices
-        boot.R2Indices <- tail(boot.weightIndices, 1) + 1:ncol(inner)
-        boot.pathIndices <- tail(boot.R2Indices, 1) + 1:sum(inner)
-        boot.effectIndices <- tail(boot.pathIndices,1) + 1:sum(lower.tri(inner))
-		
-		path.coefs <- matrix(0,ncol(inner),ncol(inner))
-		path.coefs[which(inner==1)] <- boot.results$t0[boot.pathIndices]
-		
-		loads <- matrix(0, nrow(indicatorCovariances), ncol(inner))
-		loads[selectWeightsFromMatrix] <- boot.results$t0[boot.loadIndices]
-		
-		out.weights <- matrix(0, nrow(indicatorCovariances), ncol(inner))
-		out.weights[selectWeightsFromMatrix] <- boot.results$t0[boot.weightIndices]
-		
-		effs <- matrix(0,ncol(inner),ncol(inner))
-		effs[lower.tri(inner)] <- boot.results$t0[boot.effectIndices]
-		
-        pls <- list(path.coefs = path.coefs,
-        		loadings = loads,
-        		out.weights = out.weights,
-        		r.sqr = boot.results$t0[boot.R2Indices],
-        		effects = effs)
-    } else {
-        # If bootstrapping is not done, just call matrixpls.fit directly
-        pls <- matrixpls.fit(indicatorCovariances, inner, outer, modes, scheme, scaled, tol, iter)
-    }
-        
-    if (is.null(pls) || max(is.na(pls$loadings))) {
-        print(paste("Iterative process is non-convergent with 'iter'=", iter, " and 'tol'=", tol, sep = ""))
-        message("Algorithm stops")
-        stop("")
-    }
-    
-    # ======================================================= Define variables that are needed for reporting =======================================================
-    IDM = inner
-    if (is.null(dimnames(inner))) 
-        lvs.names <- paste("LV", 1:ncol(inner), sep = "")
-    if (!is.null(rownames(inner))) 
-        lvs.names <- rownames(inner)
-    if (!is.null(colnames(inner))) 
-        lvs.names <- colnames(inner)
-    
-    dimnames(IDM) = list(lvs.names, lvs.names)
-    lvs = nrow(IDM)
-    blocks = unlist(lapply(outer, length))
-    mvs = sum(blocks)
-    mvs.names = 1:mvs
-    names(blocks) = lvs.names
-    blocklist = outer
-    for (k in 1:length(blocks)) blocklist[[k]] = rep(k, blocks[k])
-    blocklist = unlist(blocklist)
-    Mode = ifelse(modes == "A", "Mode A", "Mode B")
-
-    # ======================================================= Stage 2: Path coefficients and total effects =======================================================
-
-    colnames(pls$path.coefs) <- lvs.names
-    rownames(pls$path.coefs) <- lvs.names
-    
-    endo = rowSums(IDM)
-    endo[endo != 0] <- 1  # vector indicating endogenous LVs
-    innmod <- as.list(1:sum(endo))
-    
-    for (aux in 1:sum(endo)) {
-        k1 <- which(endo == 1)[aux]  # index for endo LV
-        k2 <- which(IDM[k1, ] == 1)  # index for indep LVs
-        inn.val <- c(pls$r.sqr[k1], 0, pls$path.coefs[k1, k2])
-        inn.lab <- c("R2", "Intercept", paste("path_", names(k2), sep = ""))
-        names(inn.val) <- NULL
-        innmod[[aux]] <- data.frame(concept = inn.lab, value = round(inn.val, 4))
-    }
-    
-    
-    names(innmod) <- lvs.names[endo != 0]
-    
-    pls[["inner.mod"]] <- innmod
-    
-    # initialize
-    efs.labs <- dir.efs <- ind.efs <- tot.efs <- NULL
-    for (j in 1:lvs) {
-        for (i in j:lvs) {
-            if (i != j) {
-                # labels
-                efs.labs = c(efs.labs, paste(lvs.names[j], "->", lvs.names[i], sep = ""))
-                # direct effects
-                dir.efs = c(dir.efs, pls$path.coefs[i, j])
-                # indirect effects
-                ind.efs = c(ind.efs, pls$effects[i, j] - pls$path.coefs[i, j])
-                # total effects
-                tot.efs = c(tot.efs, pls$effects[i, j])
-            }
+            reliabilities <- colSums(W * load.est)^2
+            disattenuationMatrix <- sqrt(reliabilities %o% reliabilities)
+            diag(disattenuationMatrix) <- C <- C * disattenuationMatrix
+        } else {
+            stop("Disattennuation has been implemented only for unbiased composite reliability")
         }
     }
     
-    Effects = data.frame(relationships = efs.labs, dir.effects = dir.efs, ind.effects = ind.efs, tot.effects = tot.efs)
+    # A p x p lower diagonal matrix of path estimates
+    Path <- inner_matrix
+    R2 <- rep(0, p)
     
-    pls[["effects"]] <- Effects
+    # Loop over the endogenous variables and do the regressions
     
-    # Composites scores
-    
-    if (matrixData) {
-        pls[["latents"]] <- NA
-        pls[["scores"]] <- NA
-    } else {
-        outer_matrix <- sapply(outer_list, function(x) match(1:mvs, x, nomatch = 0) > 0)
-        composites <- x %*% outer_matrix
-        dimnames(composites) = list(rownames(x), lvs.names)
-        pls[["latents"]] <- composites
-        pls[["scores"]] <- composites
-        
+    for (aux in which(endo)) {
+        indeps <- which(inner_matrix[aux, ] == 1)
+        coefs <- solve(C[indeps, indeps], C[indeps, aux])
+        Path[aux, indeps] <- coefs
     }
     
-    # ======================================================= Stage 3: Measurement loadings and communalities =======================================================
     
-    comu <- rowSums(pls$loadings)^2
-    redun = rep(0, mvs)
-    for (j in 1:lvs) {
-        if (endo[j] == 1) {
-            redun[blocklist == j] <- comu[blocklist == j] * pls$r.sqr[j]
-        }
-    }
-    # ======================================================= Measurement model =======================================================
-    outcor <- outmod <- as.list(1:lvs)
-
-    for (j in 1:lvs) {
-        aux <- which(blocklist == j)
-        outmod[[j]] <- round(cbind(weights = pls$out.weights[aux,j], std.loads = pls$loadings[aux,j], communal = comu[aux], redundan = redun[aux]), 4)
-    }
-    names(outmod) = lvs.names
-    pls[["outer.mod"]] <- outmod
-    
-    # ======================================================= Unidimensionality =======================================================
-    
-    Alpha = rep(1, lvs)  # Cronbach's Alpha for each block
-    Rho = rep(1, lvs)  # D.G. Rho for each block
-    eig.1st = rep(1, lvs)  # first eigenvalue
-    eig.2nd = rep(0, lvs)  # second eigenvalue
-    
-    for (aux in 1:lvs) {
-        if (blocks[aux] != 1) {
-            if (modes[aux] == "A") {
-                # Cronbach\302\264s alpha PLSMP does not use information about weights to determine if indicators are reverse codes, so we will not do it either
-                
-                Alpha[aux] <- alpha(indicatorCovariances[outer_list[[aux]], outer_list[[aux]]])$total$std.alpha
-                
-                # dillon-goldstein rho
-                
-                # Equation 2.5 in Vinzi, V. E., Amato, S., & Trinchera, L. (2010). PLS path modeling: Recent developments and open issues for model assessment and improvement. V. Esposito Vinzi, W. Chin, J. Henseler
-                # & H. Wang, eds,\342\200\234Handbook of Partial Least Squares-Concepts, Methods and Applications\342\200\235, Springer, Berlin, Heidelberg, New York.
-                
-                loads <- pls$loadings[outer_list[[aux]],aux]
-                
-                # Standardize the loads if not already standardized
-                
-                if (!scaled) {
-                  loads <- loads * diag(indicatorCovariances)[outer_list[[aux]]]^2
-                }
-                squaredLoads <- loads^2
-                Rho[aux] <- sum(squaredLoads)/(sum(squaredLoads) + sum(1 - squaredLoads))
-            } else {
-                Alpha[aux] = 0
-                Rho[aux] = 0
-            }
-            eigenValues <- eigen(indicatorCorrelations[outer_list[[aux]], outer_list[[aux]]])
-            eig.1st[aux] = eigenValues$values[1]
-            eig.2nd[aux] = eigenValues$values[2]
-        }
-    }
-    unidim = data.frame(Type.measure = Mode, MVs = blocks, C.alpha = Alpha, DG.rho = Rho, eig.1st, eig.2nd)
-    rownames(unidim) = lvs.names
-    
-    pls[["unidim"]] <- unidim
-    
-    # ======================================================= Summary Inner model =======================================================
-    
-    exo.endo = ifelse(rowSums(IDM) == 0, "Exogen", "Endogen")
-    
-    av.comu = rep(0, lvs)  # average communality
-    av.redu = rep(0, lvs)  # average redundancy
-    ave = rep(0, lvs)  # average variance extracted
-    for (k in 1:lvs) {
-        av.comu[k] = mean(comu[which(blocklist == k)])
-        av.redu[k] = mean(redun[which(blocklist == k)])
-        if (modes[k] == "A") {
-            ave.num = sum(comu[which(blocklist == k)])
-            ave.denom = sum(comu[which(blocklist == k)]) + sum(1 - (comu[which(blocklist == k)]))
-            ave[k] = ave.num/ave.denom
-        }
-    }
-    names(ave) = lvs.names
-    innsum = data.frame(LV.Type = exo.endo, Measure = Mode, MVs = blocks, R.square = pls[["r.sqr"]], Av.Commu = av.comu, Av.Redun = av.redu, AVE = ave)
-    rownames(innsum) = lvs.names
-    pls[["inner.sum"]] <- innsum
+    # ==================================================================================== Results ====================================================================================
     
     
-    # ======================================================= GoF Index =======================================================
+    return(c(W[which(outer_matrix==1)], load.est[which(outer_matrix==1)], Path[which(inner_matrix==1)], C[lower.tri(inner_matrix)]))
     
-    pls[["gof"]] <- get_gof(comu, pls[["r.sqr"]], blocks, IDM)
-    
-    # ======================================================= Results =======================================================
-    
-    if (matrixData) 
-        obs <- NA else obs <- nrow(matrixData)
-    
-    pls[["model"]] <- list(IDM = IDM, blocks = blocks, scheme = scheme, modes = modes, scaled = scaled, boot.val = boot.val, plsr = plsr, obs = obs, br = br, tol = tol, iter = iter, n.iter = NA, outer = outer)
-    # deliver dataset?
-    if (dataset && !matrixData) {
-        pls[["data"]] <- as.matrix(Data)
-        
-    } else {
-        pls[["data"]] <- NULL
-    }
-    # deliver bootstrap validation results?
-    if (doBootstrap) {
-
-        # TODO: Refactor this to use the boot package to calculate the descriptives
-        
-        WEIGS <- boot.results$t[, boot.weightIndices]
-        LOADS <- boot.results$t[, boot.loadIndices]
-        PATHS <- boot.results$t[, boot.pathIndices]
-        TOEFS <- boot.results$t[, boot.effectIndices]
-        RSQRS <- boot.results$t[, boot.R2Indices]
-        
-        colnames(WEIGS) <- mvs.names
-        WB <- data.frame(Original =boot.results$t0[boot.weightIndices], Mean.Boot = apply(WEIGS, 2, mean), Std.Error = apply(WEIGS, 2, sd), perc.025 = apply(WEIGS, 2, function(x) quantile(x, 0.025)), perc.975 = apply(WEIGS, 2, function(x) quantile(x, 
-            0.975)))
-        # Loadings
-        colnames(LOADS) <- mvs.names
-        LB <- data.frame(Original = boot.results$t0[boot.loadIndices], Mean.Boot = apply(LOADS, 2, mean), Std.Error = apply(LOADS, 2, sd), perc.025 = apply(LOADS, 2, function(x) quantile(x, 0.025)), perc.975 = apply(LOADS, 2, 
-            function(x) quantile(x, 0.975)))
-        # Path coefficients
-        # colnames(PATHS) <- path.labs
-        PB <- data.frame(Original = boot.results$t0[boot.pathIndices], Mean.Boot = apply(PATHS, 2, mean), Std.Error = apply(PATHS, 2, sd), perc.025 = apply(PATHS, 2, function(x) quantile(x, 0.025)), perc.975 = apply(PATHS, 2, 
-            function(x) quantile(x, 0.975)))
-        
-        # Total effects
-        #colnames(TOEFS) <- Path.efs[, 1]
-        TE <- data.frame(Original = boot.results$t0[boot.effectIndices], Mean.Boot = apply(TOEFS, 2, mean), Std.Error = apply(TOEFS, 2, sd), perc.025 = apply(TOEFS, 2, function(x) quantile(x, 0.025)), perc.975 = apply(TOEFS, 
-            2, function(x) quantile(x, 0.975)))
-        # R-squared
-        # colnames(RSQRS) <- lvs.names[endo == 1]
-        RB <- data.frame(Original = boot.results$t0[boot.R2Indices], Mean.Boot = apply(RSQRS, 2, mean), Std.Error = apply(RSQRS, 2, sd), perc.025 = apply(RSQRS, 2, function(x) quantile(x, 0.025)), perc.975 = apply(RSQRS, 2, function(x) quantile(x, 
-            0.975)))
-        # Bootstrap Results
-        pls[["boot"]] <- list(weights = WB, loadings = LB, paths = PB, rsq = RB, total.efs = TE)
-    } else {
-        pls[["boot"]] <- FALSE
-    }
-    
-    # Set the class to be plspm so that the results can be printed with plspm functions
-    class(pls) <- "plspm"
-    return(pls)
 }
-
-
-
-
  
