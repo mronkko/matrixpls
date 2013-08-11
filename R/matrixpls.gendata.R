@@ -18,7 +18,6 @@
 library("simsem")
 
 matrixpls.gendata <- function(Sigma = NULL, nobs = NULL, dist = NULL) {
-    
-    
+	
 }
  

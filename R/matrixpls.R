@@ -1,12 +1,10 @@
 #'@title Basic results for Partial Least Squares Path Modeling as a vector
 #'
 #'@description
-#'Estimates a PLS model as described by Wold (1982) and provides a minimum set of estimates as a vector. This function
-#'is used internally by MatrixPLS. Instead of calling this function directly, you should
-#'call matrixpls.mc, matrixpls.plspm, or matrixpls.boot.
+#'Estimates a PLS model as described by Wold (1982) and provides a minimum set of estimates as a named vector.
 #
 #'@details
-#'\code{matrixpls.fit} performs the basic PLS algorithm and provides
+#'\code{matrixpls} performs the basic PLS algorithm and provides
 #'the results in a vector without names. The function is designed to be as efficient
 #'as possible. This function does not do any input validation and typically should not
 #'be called directly\cr

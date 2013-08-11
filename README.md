@@ -1,25 +1,26 @@
-matrixpls
+MatrixPLS
 ============================
 
-   **matrixpls** is a matrix based implementation of Partial Least Squares Path Modeling
-   algorithm. This package is a fork of the popular plspm package and it replaces the core
-   algorithm with a matrix based implementation that is computationally more efficient and
-   does not require raw data but calculates the PLS estimates from a covariance matrix.
-   The package is designed towards Monte Carlo simulations and includes functions to
-   perform simple Monte Carlo simulations.
+   **MatrixPLS** is a matrix based implementation of Partial Least Squares Path Modeling
+   algorithm. The matrix based implementation is computationally more efficient than 
+   existing PLS implementation (plspm and semPLS) and does not require raw data but
+   calculates the PLS estimates from a covariance matrix. The package is designed 
+   towards Monte Carlo simulations and includes functions to perform simple Monte Carlo simulations.
 ## Requirements and Installation
 
-To install the stable version of **matrixpls** from CRAN, run in your R console:
+To install the stable version of **MatrixPLS** from CRAN, run in your R console:
 ```r
 install.packages("matrixpls")
 ```
 
-To install the latest development version of **matrixpls** from github (using the package "devtools"), run in your R console:
+To install the latest development version of **MatrixPLS** from github (using the package "devtools"), run in your R console:
 ```
 # install.packages("devtools") 
 library(devtools)
 install_github('matrixpls', username='mronkko')
 ```
+
+TODO: Update the example
 
 ## Example Usage with a Customer Satisfaction Model 
 ```
@@ -60,15 +61,8 @@ plot(satpls, what="weights")
 ```
 
 
-Links
------
-[plspm package github](http://github.com/gastonstat/plspm)
-
-[plspm documentation](http://www.gastonsanchez.com/plspm)
-
-[PLS Modeling stuff](http://www.plsmodeling.com)
 
 
 Author Contact
 --------------
-Mikko Rönkkö (mikko.ronkko@aalto.fi)
+Mikko R??nkk?? (mikko.ronkko@aalto.fi)

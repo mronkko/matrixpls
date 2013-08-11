@@ -1,8 +1,7 @@
 #'@title Partial Least Squares Path Modeling with PLSPM interface
 #'
 #'@description
-#'Estimate a PLS model as described by Wold (1982). This function is designed to be a drop-in replacement for the
-#'\code{plspm} function in the PLSPM package
+#'A convenience function 
 #'
 #'@details
 #'The function \code{matrixpls} estimates a path model by partial least squares
