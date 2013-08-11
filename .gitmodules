@@ -1,0 +1,3 @@
+[submodule "simsem"]
+	path = simsem
+	url = git@github.com:simsem/simsem.git
