@@ -1,204 +1,346 @@
+library(assertive)
+
 #'@title Basic results for Partial Least Squares Path Modeling as a vector
 #'
 #'@description
-#'Estimates a PLS model as described by Wold (1982) and provides a minimum set of estimates as a named vector.
+#'Estimates a weight matrix using the PLS algorithm
 #
 #'@details
-#'\code{matrixpls} performs the basic PLS algorithm and provides
-#'the results in a vector without names. The function is designed to be as efficient
-#'as possible. This function does not do any input validation and typically should not
-#'be called directly\cr
+#'\code{matrixpls.weights} performs the PLS weighting algorithm by calling the 
+#'inner and outer estimators iteratively until either the convergence criterion or
+#'maximum number of iterations is reached and provides the results in a matrix.
 #'
-#'The argument \code{inner_matrix} is a matrix of zeros and ones that indicates
-#'the structural relationships between composites. This must be a lower
-#'triangular matrix. \code{inner_matrix} will contain a 1 when column \code{j}
-#'affects row \code{i}, 0 otherwise. \cr
+#'The argument \code{innerMatrix} is a matrix of zeros and ones that indicates
+#'the regression relationships between composites. In Wold's original papers, 
+#'the model was constrained to be recursive implying a lower
+#'triangular matrix, but MatrixPLS does not have this restriction.
+#'\code{innerMatrix} will contain a 1 when a variable on the column \code{j}
+#'has a regression path toward the variable on row \code{i}, 0 otherwise. \cr
 #'
-#'@param S Covariance matrix that is used to estimate the PLS model.
-#'@param inner_matrix A square (lower triangular) boolean matrix representing the
+#'The argument \code{weightRelations} is a matrix of zero and non-zeros that indicates
+#'how the indicators are combined to form the composites. In Wold's original papers, 
+#'each indicator was allowed to contribute to only one composite, but MatrixPLS does
+#'not have this restriction.
+#'\code{weightRelations} will contain a non-zero value when a indicator variable on the
+#'column \code{j} is a part of the composites variable on row \code{i}, zero otherwise. 
+#'The values are used as starting values for the weighting algorithm.\cr
+#'
+#'@param S Covariance matrix of the data.
+#
+#'@param innerMatrix A square matrix of ones and zeros representing the
 #'inner model (i.e. the path relationships between the composite variables).
-#'@param outer_list List of vectors with column indices from \code{x} indicating
-#'the sets of manifest variables associated to the composites
-#'Length of \code{outer_list} must be equal to the number of rows of \code{inner_matrix}.
-#'@param modes A character vector indicating the type of estimation for each
-#'composite, Either \code{'A'} or \code{'B'}. The length of \code{modes}
-#'must be equal to the length of \code{outer_list}).
-#'@param scheme A string of characters indicating the type of inner weighting
-#'scheme. Possible values are \code{'centroid'}, \code{'factor'}, or
-#'\code{'path'}.
+#
+#'@param weightRelations real matrix representing the weight relations
+#'(i.e. the how the indicators are combined to form the composite variables).
+#'
+#'@param outerEstimators A function or a list of functions used for outer estimation. If
+#'the value of this parameter is a function, the same function is applied to all
+#'composites. If the value of the parameter is a list, the composite \code{n} is estimated
+#'with the estimator in the \code{n}th position in the list.
+##
 #'@param tol Decimal value indicating the tolerance criterion for the
-#'iterations (\code{tol=0.00001}). Must be a positive number.
+#'iterations (\code{tol=0.00001} by default). Must be a positive number.
+#
 #'@param iter An integer indicating the maximum number of iterations
-#'(\code{iter=100} by default).'
-#'@param unbiasedLoadings PLS estimates factor loadings with composite loadings severely biased estimates of factor loadings. Setting this option to TRUE will use maximum likelihood common factor analysis instead of the component loadings (default: FALSE)
-#'@param unbiasedCompositeReliability The Composite Reliability statistic that is typically presented with PLS results assumes equal weights for the indicators. This is never correct in a PLS analysis resulting in a biased estimate. Setting this option to TRUE will use a formulate that takes indicator weighting into account (default: FALSE)
-#'@param disattenuate Setting this option to TRUE will dissattenuate the composite covariance matrix with the estimated composite reliabilities before estimating the inner model regressions. (default: FALSE)
-#'@return A vector containing the PLS results in the following order: weights, loading
-#'estimates, path estimates, lower triangular of the composite correlation matrix.
-#'@author Mikko R\303\266nkk\303\266
+#'(\code{iter=100} by default).
 #'
-#'@references Wold, H. (1982). Soft modeling - The Basic Design And Some Extensions. In K. G. J\303\266reskog & S. Wold (Eds.), \emph{Systems under indirect observation\342\200\257: causality, structure, prediction} (pp. 1\342\200\22354). Amsterdam: North-Holland.
-#'
-#'Lohm\303\266ller, J. B. (1989). \emp{composite path modeling with partial least squares}. Physica-Verlag.
-#'
-#'Aguirre-Urreta, M. I., Marakas, G. M., & Ellis, M. E. (in press). Measurement of Composite Reliability in Research Using Partial Least Squares: Some Issues and an Alternative Approach. \emp{The DATA BASE for Advances in Information Systems.}
-#'
-#'Dijkstra, T. K., & Henseler, J. (2012). Consistent and Asymptotically Normal PLS Estimators for Linear Structural Equations. RU Groningen working paper. Retrieved from http://www.rug.nl/staff/t.k.dijkstra/Dijkstra-Henseler-PLSc-linear.pdf
-#'
+#'@param validateInput A boolean indicating whether the validity of the input matrix
+#'and the parameter values should be tested
+#
+#'@return A weight matrix where composites are on rows and indicators are on columns or
+#'NULL if maximum number of iterations was reached without convergence.
+#
 
-library(psych)
 
-matrixpls <- function(S, inner_matrix, outer_list, modes, scheme = "centroid", tol = 1e-05, iter = 100, unbiasedLoadings = FALSE, unbiasedCompositeReliability = FALSE, disattenuate = FALSE) {
-    
-    # ==================================================================================== inputs setting ====================================================================================
-    
-    # Names of the composites
-    lvs.names <- colnames(inner_matrix)
-    mv.names <- colnames(S)
-    
-    # A binary vector showing which composites are endogenous
-    endo <- rowSums(inner_matrix) > 0
-    
-    # The estimation uses the following matrices
-    # 
-    # inner_matrix: a p by p matrix specifying the inner model outer_matrix: a n by p matrix specifying the outer model
-    # 
-    # S: n by n indicator covariance matrix
-    # 
-    # W: n by p matrix of outer weights C: is a p by p covariance matrix of composites E: is a p by p matrix of inner weights
-    # 
-    # where
-    # 
-    # n: number of indicators p: number of composites
-    
-    n <- nrow(S)
-    p <- nrow(inner_matrix)
-    
-    outer_matrix <- sapply(outer_list, function(x) match(1:n, x, nomatch = 0) > 0)
-    
-    S <- cov2cor(S)
-    
-    # ==================================================================================== Stage 1: Iterative procedure ====================================================================================
-    
-    for (iteration in 1:max(1, iter)) {
-        
-        # Outer estimation
-        
-        if (iteration == 1) {
-            
-            # If this is the first iteration, start with equal weights instead of doing outer estimation
-            W_unscaled <- outer_matrix
-        } else {
-            
-            # We have already performed inner estimation, do outer estimation of weights Element-wise multiplication by outer_matrix chooses the relevant correlations
-            IC <- S %*% W %*% E
-            W_unscaled <- IC * outer_matrix
-        }
-        
-        
-        # Calculate the variances of the unscaled composites
-        
-        var_C_unscaled <- diag(t(W_unscaled) %*% S %*% W_unscaled)
-        
-        # Create the weights that are used to form the standardized composites after the outer estimation by scaling the unscaled weights
-        
-        W_new <- W_unscaled %*% diag(x = 1/sqrt(var_C_unscaled))
-        
-        
-        converged <- ifelse(iteration > 1, sum((abs(W) - abs(W_new))^2) < tol, 0)
-        
-        W <- W_new
-        
-        # Create the composite covariance matrix
-        
-        C <- t(W) %*% S %*% W
-        
-        # Are the weights converged?
-        
-        if (converged) 
-            break
-        
-        # Inner estimation
-        
-        # Calculate unscaled inner weights using the centroid weighting scheme
-        
-        E_unscaled <- sign(C * (inner_matrix + t(inner_matrix)))
-        
-        # Calculate the variances of the unscaled composites.  TODO: Optimize this as a single matrix operation
-        var_C_unscaled <- rep(1, ncol(C))
-        
-        for (x in 1:ncol(C)) {
-            var_C_unscaled[x] = sum(E_unscaled[x, ] %o% E_unscaled[x, ] * C)
-        }
-        
-        # Create the weights that are used to form the standardized composites after the inner estimation
-        
-        E <- E_unscaled %*% diag(x = 1/var_C_unscaled)
-        
-        # In rare cases, we have underidentified regressions that the algorithm cannot handle
-        if (max(is.nan(E))) {
-            for (matName in c("S", "C", "W", "W_unscaled", "E", "E_unscaled", "var_C_unscaled")) {
-                print(matName)
-                print(get(matName))
-            }
-            print(paste("Iteration:", iteration, max(is.nan(E))))
-            stop("An inner model regression was empirically underidentified.")
-        }
-    }
-    
-    # Check if we got a convergence
-    
-    if (!converged) 
-        return(NULL)
-    
-    # ==================================================================================== Stage 2: Path coefficients ====================================================================================
-    
-    
-    if (unbiasedLoadings) {
-        load.est <- matrix(0, nrow(S), ncol(inner))
-        # Loop over the indicator blocks and perform EFAs
+matrixpls.weights <- function(S, innerMatrix, weightRelations,
+	outerEstimators = matrixpls.outerEstimator.modeA, 
+	innerEstimator = matrixpls.innerEstimator.centroid,
+	tol = 1e-05, iter = 100, validateInput = TRUE) {
 
-        for (col in 1:length(outer)) {
-			load.est[outer[[col]], col] <- fa(S[outer[[col]], outer[[col]]])$loadings[, 1]
-			
+	if(validateInput){
+		# All parameters must have values
+		assert_all_are_not_na(formals())
+		
+		# S must be symmetric and a valid covariance matrix
+		assert_is_matrix(S)
+		assert_is_symmetric_matrix(S)
+		assert_is_true(is.positive.semi.definite(S))
+		
+		# innerMatrix must be a square matrix consisting of ones and zeros and zero diagonal
+		# and all variables must be linked to at least one other variable
+		assert_is_matrix(innerMatrix)
+		assert_is_true(nrow(innerMatrix)==ncol(innerMatrix))
+		assert_all_are_true(innerMatrix==0 | innerMatrix == 1)
+		assert_all_are_true(diag(innerMatrix)==0
+		assert_all_are_true(rowSums(innerMatrix)+colSums(innerMatrix)>0)
+		
+		# weightRelations must be a real matrix and each indicators must be
+		# linked to at least one composite and each composite at least to one indicator
+		assert_is_matrix(weightRelations)
+		assert_all_are_real(weightRelations)
+		assert_all_are_true(apply(1,innerMatrix!=0,any))
+		assert_all_are_true(apply(2,innerMatrix!=0,any))
+		
+		# the number of rows in weightRelations must match the dimensions of other matrices
+		assert_is_true(nrow(innerMatrix)==nrow(weightRelations))
+		assert_is_true(ncol(S)==ncol(weightRelations))
+		
+		# outerEstimators must be a list of same length as number of rows in innerMatrix or
+		# a function
+		
+		if(is.list(outerEstimators)){
+			assert_is_true(length(estimators) == nrow(weightRelations))
+			for(outerEstimator in outerEstimators){
+				assert_is_function(outerEstimator)
+			}
 		}
-    } else {
-        load.est = W_unscaled
-    }
-    
-    if (disattenuate) {
-        
-        if (unbiasedCompositeReliability) {
-            # Calculate composite reliabilities
-            # 
-            # Aguirre-Urreta, M. I., Marakas, G. M., & Ellis, M. E. (in press). Measurement of Composite Reliability in Research Using Partial Least Squares: Some Issues and an Alternative Approach. The DATA BASE
-            # for Advances in Information Systems.
-            
-            reliabilities <- colSums(W * load.est)^2
-            disattenuationMatrix <- sqrt(reliabilities %o% reliabilities)
-            diag(disattenuationMatrix) <- C <- C * disattenuationMatrix
-        } else {
-            stop("Disattennuation has been implemented only for unbiased composite reliability")
-        }
-    }
-    
-    # A p x p lower diagonal matrix of path estimates
-    Path <- inner_matrix
-    R2 <- rep(0, p)
-    
-    # Loop over the endogenous variables and do the regressions
-    
-    for (aux in which(endo)) {
-        indeps <- which(inner_matrix[aux, ] == 1)
-        coefs <- solve(C[indeps, indeps], C[indeps, aux])
-        Path[aux, indeps] <- coefs
-    }
-    
-    
-    # ==================================================================================== Results ====================================================================================
-    
-    
-    return(c(W[which(outer_matrix==1)], load.est[which(outer_matrix==1)], Path[which(inner_matrix==1)], C[lower.tri(inner_matrix)]))
-    
+		else{
+			assert_is_function(outerEstimator)
+		}
+		
+		assert_is_function(innerEstimator)
+
+		# tol must be positive
+		assert_is_positive(tol)
+		
+		#iter must not be negative
+		assert_is_positive(iter)
+	}
+	
+	# =========== Start of iterative procedure ===========
+
+	# The weight matrix
+	
+	W <- scaleWeights(weightRelations)
+
+	for (iteration in 1:iter) {
+	
+		# Get new inner weights from inner estimation
+
+		E <- innerEstimator(S, W, innerModel)
+		
+		# Get new weights from outer estimation
+		
+		if(is.list(outerEstimator)){
+			stop("Not implemented")
+		}
+		else{
+			W_new<-outerEstimator()
+			W_new <- scaleWeights(outerEstimator())
+		}	
+		
+		# Check convergence
+		
+		if(max(abs(W_new-W)) <= tol) return(W_new)
+		
+		# Prepare for the next round
+		
+		W <- W_new
+	
+	}
+	
+	# Reaching the end of the loop without convergence
+	
+	return(NULL)
 }
- 
+
+
+matrixpls <- function(..., ) {
+
+	# =========== inputs setting ===========
+	
+	# Names of the composites
+	lvs.names <- colnames(innerMatrix)
+	mv.names <- colnames(S)
+	
+	# A binary vector showing which composites are endogenous
+	endo <- rowSums(innerMatrix) > 0
+	
+	# The estimation uses the following matrices
+	# 
+	# innerMatrix: a p by p matrix specifying the inner model weightRelations: a n by p matrix specifying the outer model
+	# 
+	# S: n by n indicator covariance matrix
+	# 
+	# W: n by p matrix of outer weights C: is a p by p covariance matrix of composites E: is a p by p matrix of inner weights
+	# 
+	# where
+	# 
+	# n: number of indicators p: number of composites
+	
+	n <- nrow(S)
+	p <- nrow(innerMatrix)
+	
+	weightRelations <- sapply(outer_list, function(x) match(1:n, x, nomatch = 0) > 0)
+	
+	S <- cov2cor(S)
+	
+	# =========== Stage 2: Path coefficients ===========
+	
+	
+	if (unbiasedLoadings) {
+	load.est <- matrix(0, nrow(S), ncol(inner))
+	# Loop over the indicator blocks and perform EFAs
+	
+	for (col in 1:length(outer)) {
+				load.est[outer[[col]], col] <- fa(S[outer[[col]], outer[[col]]])$loadings[, 1]
+				
+			}
+	} else {
+	load.est = W_unscaled
+	}
+	
+	if (disattenuate) {
+	
+	if (unbiasedCompositeReliability) {
+	# Calculate composite reliabilities
+	# 
+	# Aguirre-Urreta, M. I., Marakas, G. M., & Ellis, M. E. (in press). Measurement of Composite Reliability in Research Using Partial Least Squares: Some Issues and an Alternative Approach. The DATA BASE
+	# for Advances in Information Systems.
+	
+	reliabilities <- colSums(W * load.est)^2
+	disattenuationMatrix <- sqrt(reliabilities %o% reliabilities)
+	diag(disattenuationMatrix) <- C <- C * disattenuationMatrix
+	} else {
+	stop("Disattennuation has been implemented only for unbiased composite reliability")
+	}
+	}
+	
+	# A p x p lower diagonal matrix of path estimates
+	Path <- innerMatrix
+	R2 <- rep(0, p)
+	
+	# Loop over the endogenous variables and do the regressions
+	
+	for (aux in which(endo)) {
+	indeps <- which(innerMatrix[aux, ] == 1)
+	coefs <- solve(C[indeps, indeps], C[indeps, aux])
+	Path[aux, indeps] <- coefs
+	}
+	
+	
+	# =========== Results ===========
+	
+	
+	return(c(W[which(weightRelations==1)], load.est[which(weightRelations==1)], Path[which(innerMatrix==1)], C[lower.tri(innerMatrix)]))
+	
+}
+
+# =========== Inner estimators ===========
+
+matrixpls.innerEstimator.centroid <- function(S, W, innerMatrix){
+
+	# Centroid is just the sign of factor weighting
+	
+	E <- sign(matrixpls.innerEstimator.factor(S, W, innerMatrix))
+	
+	return(E)
+}
+
+#
+# Path weighting weights by regression and by correlation
+#
+
+matrixpls.innerEstimator.path <- function(S, W, innerMatrix){
+	
+	# Start with the factor weights
+	E <- matrixpls.innerEstimator.factor(S, W, innerMatrix)
+	
+	# Loop over each row of innerMatrix
+	
+	for(row in 1:nrow(innerMatrix)){
+
+		# Which LVs does this LV depend on
+		
+		independents <- which(innerMatrix[row,]!=0)
+		
+		# If there are at least (regression with one independent equals correlation, which
+		# we already have from the factor weights)
+
+		if(length(independents)>1){
+			# Use the regression coefficients as weights
+			coefs <- solve(C[independents,independents],C[independents,row])
+			E[row,independents] <- coefs
+		}
+	}
+	
+	return(E)
+}
+
+matrixpls.innerEstimator.factor <- function(S, W, innerMatrix){
+
+	# Create the composite covariance matrix
+		
+	C <- t(W) %*% S %*% W
+
+	# Calculate unscaled inner weights using the centroid weighting scheme
+	
+	E <- C * (innerMatrix | t(innerMatrix))
+	
+	return(E)
+} 
+
+matrixpls.innerEstimator.identity(C, innerMatrix){
+	return(diag(nrow(innerMatrix))
+}
+
+# =========== Outer estimators ===========
+
+matrixpls.outerEstimator.modeA <- function(S, W, E, weightRelations){
+
+	# Calculate the covariance matrix between indicators and composites
+	W_new <- S %*% W %*% E
+
+	# Set the non-existing weight relations to zero
+	W_new[weightRelations == 0] <- 0
+	
+	return(W_new)
+}
+
+matrixpls.outerEstimator.modeB <- function(S, W, E, weightRelations){
+
+	# Calculate the covariance matrix between indicators and composites
+	IC <- S %*% W %*% E
+	
+	W_new = matrix(0,nrow(weightRelations),ncol(weightRelations))
+	
+	for(row in 1:nrow(weightRelations)){
+
+		# Which indicators contribute to this LV
+		
+		independents <- which(weightRelations[row,]!=0)
+		
+		# If there are at least (regression with one independent equals correlation, which
+		# we already have from the factor weights)
+
+		if(length(independents)>1){
+			# Use the regression coefficients as weights
+			coefs <- solve(IC[independents,independents],IC[independents,row])
+			W_new[row,independents] <- coefs
+		}
+	}
+	
+	return(E)
+}
+
+matrixpls.outerEstimator.fixedWeights <- function(S, W, E, weightRelations){
+	return(weightRelations)
+}
+
+# =========== Utility functions ===========
+
+#
+# Scales the weight matrix so that the resulting composites have unit variance
+#
+
+scaleWeights <- function(S, W){
+	
+	# Calculate the variances of the unscaled composites
+		
+	var_C_unscaled <- diag(t(W) %*% S %*% W)
+		
+	# Scaling the unscaled weights and return
+		
+	return(W  %*% diag(x = 1/sqrt(var_C_unscaled)))
+}
+
