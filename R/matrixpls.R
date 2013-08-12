@@ -49,6 +49,7 @@
 #'@return \item{weights}{Weight matrix where composites are on rows and indicators are on columns}
 #'@return \item{iterations}{Number of iterations performed}
 #'@return \item{converged}{A boolean indicating if the algoritm converged}
+#'@export
 
 matrixpls.weights <- function(S, innerMatrix, weightRelations,
 	outerEstimators = matrixpls.outerEstimator.modeA, 
@@ -183,6 +184,7 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 #
 # 
 #'@return A named vector of class \code{matrixpls} containing parameter estimates followed by weights
+#'@export
 
 
 matrixpls <- function(S, model, weightRelations, ..., validateInput = TRUE) {
@@ -286,6 +288,7 @@ matrixpls <- function(S, model, weightRelations, ..., validateInput = TRUE) {
 #'
 #'@return A matrix of unscaled inner weights with the same dimesions as \code{innerMatrix}
 #'
+#'@export
 
 matrixpls.innerEstimator.centroid <- function(S, W, innerMatrix){
 
@@ -312,6 +315,7 @@ matrixpls.innerEstimator.centroid <- function(S, W, innerMatrix){
 #'
 #'@return A matrix of unscaled inner weights with the same dimesions as \code{innerMatrix}
 #'
+#'@export
 
 matrixpls.innerEstimator.path <- function(S, W, innerMatrix){
 	
@@ -355,6 +359,7 @@ matrixpls.innerEstimator.path <- function(S, W, innerMatrix){
 #'
 #'@return A matrix of unscaled inner weights with the same dimesions as \code{innerMatrix}
 #'
+#'@export
 
 matrixpls.innerEstimator.factor <- function(S, W, innerMatrix){
 
@@ -394,6 +399,7 @@ matrixpls.innerEstimator.factor <- function(S, W, innerMatrix){
 #'Wold, H. (1966). Nonlinear estimation by iterative least squares procedures. Research Papers in Statistics: Festschrift for J. Neyman, 411–444.
 #'
 #'Wold, H. (1982). Soft modeling - The Basic Design And Some Extensions. In K. G. Jöreskog & S. Wold (Eds.), Systems under indirect observation: causality, structure, prediction (pp. 1–54). Amsterdam: North-Holland.
+#'@export
 
 
 
@@ -423,6 +429,9 @@ matrixpls.innerEstimator.identity <- function(C, innerMatrix){
 #'
 #'@return A matrix of unscaled outer weights with the same dimesions as \code{weightRelations}
 #'
+#'@export
+
+
 matrixpls.outerEstimator.modeA <- function(S, W, E, weightRelations){
 
 	# Calculate the covariance matrix between indicators and composites
@@ -454,6 +463,8 @@ matrixpls.outerEstimator.modeA <- function(S, W, E, weightRelations){
 #'
 #'@return A matrix of unscaled outer weights with the same dimesions as \code{weightRelations}
 #'
+#'@export
+
 
 matrixpls.outerEstimator.modeB <- function(S, W, E, weightRelations){
 
@@ -501,6 +512,7 @@ matrixpls.outerEstimator.modeB <- function(S, W, E, weightRelations){
 #'
 #'@return A matrix of unscaled outer weights with the same dimesions as \code{weightRelations}
 #'
+#'@export
 
 matrixpls.outerEstimator.fixedWeights <- function(S, W, E, weightRelations){
 	return(weightRelations)

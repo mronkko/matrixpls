@@ -8,7 +8,7 @@
 #'  requires no distributional assumptions.
 #'
 #'@param model 
-#'    An object inheriting from class \code[sempls]{plsm} as returned from
+#'    An object inheriting from class \code{plsm} as returned from
 #'    \code{\link[sempls]{plsm}} or \code{\link[sempls]{read.splsm}}.
 #' 
 #'@param data 
@@ -52,7 +52,7 @@
 #'    correlations shall be calculated pairwise. If the observed data
 #'    does not contain missing values, the results are not affected.
 #'    The default is \code{FALSE}. For more details the R help,
-#'    \code{?cor}, can be consulted.}
+#'    \code{?cor}, can be consulted.
 #'    
 #'@param method A \code{character} naming the method to calculate
 #'    the correlations. Possible values are:
@@ -75,7 +75,7 @@
 #'@param verbose Logical: If \code{FALSE} no status messages are printed.
 #'  
 #'@param object
-#'    An object of class \code[sempls]{sempls}.
+#'    An object of class \code{sempls}.
 #'    
 #'@param x
 #'    An object of the according class.
@@ -121,7 +121,7 @@
 #'
 #'
 #'@return
-#'  \code{matrixpls.sempls} returns an object of class \code[sempls]{sempls}, with the following elements:
+#'  \code{matrixpls.sempls} returns an object of class \code{sempls}, with the following elements:
 #'
 #'  \item{coefficients}{
 #'    A \code{data.frame} containing the estimates for
@@ -162,7 +162,7 @@
 #'    All the other values are just storing information used in
 #'    the \code{call}.
 #'  }
-#'}
+#'
 #'
 #'@author Mikko Rönkkö
 #'@author Armin Monecke
@@ -231,7 +231,7 @@
 #'            rSquared=rSquared(ecsi), full=FALSE)
 #'
 #'}
-#'
+#'@export
 
 matrixpls.sempls <-
 function(model, data, maxit=20, tol=1e-7, scaled=TRUE, sum1=FALSE, wscheme="centroid", pairwise=FALSE,

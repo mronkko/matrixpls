@@ -6,14 +6,14 @@ library(simsem)
 #' A wrapper function to use MatrixPLS with simsem
 #
 #'@details
-#' This funtion calls the \code{sim} function from the \code{simsem} package to perform Monte
+#' This funtion calls the \code{\link[simsem]{sim}} function from the \code{simsem} package to perform Monte
 #' Carlo simulations with MatrixPLS. The function parses the model parameter and replaces it with
 #' a function call that estimates the same model with MatrixPLS.
 #' 
-# 
+#'@export
 
 
-matrixpls.sim <- function(nRep, model, ...){
+matrixpls.sim <- function(...){
 
     # A function that takes a data set and returns a list. The list must
 	# contain at least three objects: a vector of parameter estimates (coef),
