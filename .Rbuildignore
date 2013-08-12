@@ -7,3 +7,4 @@ tests
 .Rapp.history
 .git
 run_tests.R
+README.md

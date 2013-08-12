@@ -28,7 +28,7 @@
 #'@param innerMatrix A square matrix of ones and zeros representing the
 #'inner model (i.e. the path relationships between the composite variables).
 #
-#'@param weightRelations real matrix representing the weight relations
+#'@param weightRelations real matrix representing the weight relations and starting weights
 #'(i.e. the how the indicators are combined to form the composite variables).
 #'
 #'@param outerEstimators A function or a list of functions used for outer estimation. If
@@ -44,12 +44,11 @@
 #'
 #'@param validateInput A boolean indicating whether the validity of the input matrix
 #'and the parameter values should be tested
-#
-#'@return A list with three items 
-#'weights: weight matrix where composites are on rows and indicators are on columns or
-#'iterations: number of iterations performed.
-#'converged: a boolean indicating if the algoritm converged
-
+#'
+#'@return An object of class \code{"matrixpls.weights"}. 
+#'@return \item{weights}{Weight matrix where composites are on rows and indicators are on columns}
+#'@return \item{iterations}{Number of iterations performed}
+#'@return \item{converged}{A boolean indicating if the algoritm converged}
 
 matrixpls.weights <- function(S, innerMatrix, weightRelations,
 	outerEstimators = matrixpls.outerEstimator.modeA, 
@@ -158,13 +157,6 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 #'inner and outer estimators iteratively until either the convergence criterion or
 #'maximum number of iterations is reached and provides the results in a matrix.
 #'
-#'The argument \code{innerMatrix} is a matrix of zeros and ones that indicates
-#'the regression relationships between composites. In Wold's original papers, 
-#'the model was constrained to be recursive implying a lower
-#'triangular matrix, but MatrixPLS does not have this restriction.
-#'\code{innerMatrix} will contain a 1 when a variable on the column \code{j}
-#'has a regression path toward the variable on row \code{i}, 0 otherwise. \cr
-#'
 #'The argument \code{weightRelations} is a matrix of zero and non-zeros that indicates
 #'how the indicators are combined to form the composites. In Wold's original papers, 
 #'each indicator was allowed to contribute to only one composite, but MatrixPLS does
@@ -178,8 +170,11 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 #'@param Model There are four options for this argument: 1. SimSem object created by model
 #'command from simsem package, 2. lavaan script, lavaan parameter table, or a list that
 #'contains all argument that users use to run lavaan (including cfa, sem, lavaan), 3.
-#'MxModel object from the OpenMx package, or 4.  A square matrix of ones and zeros 
+#'MxModel object from the OpenMx package, or 4. A square matrix of ones and zeros 
 #'representing the free regression paths in the model.
+#'
+#'@param weightRelations real matrix representing the weight relations and starting weights
+#'(i.e. the how the indicators are combined to form the composite variables).
 #'
 #'@param ... All other parameters are passed through to \code{matrixpls.weights}
 #'
@@ -187,7 +182,7 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 #'and the parameter values should be tested
 #
 # 
-#'@return A named vector of parameter estimates and weights
+#'@return A named vector of class \code{matrixpls} containing parameter estimates followed by weights
 
 
 matrixpls <- function(S, model, weightRelations, ..., validateInput = TRUE) {
@@ -275,6 +270,23 @@ matrixpls <- function(S, model, weightRelations, ..., validateInput = TRUE) {
 
 # =========== Inner estimators ===========
 
+#'@title PLS inner estimation with the centroid scheme
+#'
+#'@description
+#'Calculates a set of inner weights based on the centroid scheme
+#
+#'@details
+#'~~~ Explain  the centroid scheme here ~~~
+#'
+#'@param S Covariance matrix of the data.
+#'
+#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'
+#'@param innerMatrix A square matrix specifying the relationships of the latent variables in the model
+#'
+#'@return A matrix of unscaled inner weights with the same dimesions as \code{innerMatrix}
+#'
+
 matrixpls.innerEstimator.centroid <- function(S, W, innerMatrix){
 
 	# Centroid is just the sign of factor weighting
@@ -284,9 +296,22 @@ matrixpls.innerEstimator.centroid <- function(S, W, innerMatrix){
 	return(E)
 }
 
+#'@title PLS inner estimation with the path scheme
+#'
+#'@description
+#'Calculates a set of inner weights based on the path scheme
 #
-# Path weighting weights by regression and by correlation
-#
+#'@details
+#'~~~ Explain  the path scheme here ~~~
+#'
+#'@param S Covariance matrix of the data.
+#'
+#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'
+#'@param innerMatrix A square matrix specifying the relationships of the latent variables in the model
+#'
+#'@return A matrix of unscaled inner weights with the same dimesions as \code{innerMatrix}
+#'
 
 matrixpls.innerEstimator.path <- function(S, W, innerMatrix){
 	
@@ -314,6 +339,23 @@ matrixpls.innerEstimator.path <- function(S, W, innerMatrix){
 	return(E)
 }
 
+#'@title PLS inner estimation with the factor scheme
+#'
+#'@description
+#'Calculates a set of inner weights based on the factor scheme
+#
+#'@details
+#'~~~ Explain  the factor scheme here ~~~
+#'
+#'@param S Covariance matrix of the data.
+#'
+#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'
+#'@param innerMatrix A square matrix specifying the relationships of the latent variables in the model
+#'
+#'@return A matrix of unscaled inner weights with the same dimesions as \code{innerMatrix}
+#'
+
 matrixpls.innerEstimator.factor <- function(S, W, innerMatrix){
 
 	# Create the composite covariance matrix
@@ -327,12 +369,60 @@ matrixpls.innerEstimator.factor <- function(S, W, innerMatrix){
 	return(E)
 } 
 
+#'@title PLS inner estimation with the identity scheme
+#'
+#'@description
+#'
+#'The identity scheme is an inner weighting scheme where the inner weight matrix is an identity matrix.
+#
+#'@details
+#'
+#'This scheme is not commonly discussed in the current PLS literature, but it is a special case 
+#'that is analyzed in the early PLS literature and currently implmented in at least WarpPLS.
+#'
+#'The identity scheme with Mode A outer estimation converges toward the first principal component of each indicator block.
+#'
+#'@param S Covariance matrix of the data.
+#'
+#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'
+#'@param innerMatrix A square matrix specifying the relationships of the latent variables in the model
+#'
+#'@return A matrix of unscaled inner weights with the same dimesions as \code{innerMatrix}
+#'
+#'@references
+#'Wold, H. (1966). Nonlinear estimation by iterative least squares procedures. Research Papers in Statistics: Festschrift for J. Neyman, 411–444.
+#'
+#'Wold, H. (1982). Soft modeling - The Basic Design And Some Extensions. In K. G. Jöreskog & S. Wold (Eds.), Systems under indirect observation: causality, structure, prediction (pp. 1–54). Amsterdam: North-Holland.
+
+
+
 matrixpls.innerEstimator.identity <- function(C, innerMatrix){
 	return(diag(nrow(innerMatrix)))
 }
 
 # =========== Outer estimators ===========
 
+#'@title PLS outer estimation with Mode A
+#'
+#'@description
+#'
+#'Performs Mode A outer estimation by calculating correlation matrix between the indicators and composites.
+#
+#'@details
+#'
+#'~~~ Explain details here ~~
+#'
+#'@param S Covariance matrix of the data.
+#'
+#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'
+#'@param E Inner weight matrix. A square matrix of inner estimates between the composites.
+#'
+#'@param weightRelations A matrix specifying the weight relationships and their starting values.
+#'
+#'@return A matrix of unscaled outer weights with the same dimesions as \code{weightRelations}
+#'
 matrixpls.outerEstimator.modeA <- function(S, W, E, weightRelations){
 
 	# Calculate the covariance matrix between indicators and composites
@@ -343,6 +433,27 @@ matrixpls.outerEstimator.modeA <- function(S, W, E, weightRelations){
 	
 	return(W_new)
 }
+
+#'@title PLS outer estimation with Mode B
+#'
+#'@description
+#'
+#'Performs Mode B outer estimation by calculating correlation matrix between the indicators and composites.
+#
+#'@details
+#'
+#'~~~ Explain details here ~~
+#'
+#'@param S Covariance matrix of the data.
+#'
+#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'
+#'@param E Inner weight matrix. A square matrix of inner estimates between the composites.
+#'
+#'@param weightRelations A matrix specifying the weight relationships and their starting values.
+#'
+#'@return A matrix of unscaled outer weights with the same dimesions as \code{weightRelations}
+#'
 
 matrixpls.outerEstimator.modeB <- function(S, W, E, weightRelations){
 
@@ -369,6 +480,27 @@ matrixpls.outerEstimator.modeB <- function(S, W, E, weightRelations){
 	
 	return(E)
 }
+
+#'@title PLS outer estimation with fixed weights
+#'
+#'@description
+#'
+#'Returns the starting weights as outer estimates.
+#
+#'@details
+#'
+#'~~~ Explain details here ~~
+#'
+#'@param S Covariance matrix of the data.
+#'
+#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'
+#'@param E Inner weight matrix. A square matrix of inner estimates between the composites.
+#'
+#'@param weightRelations A matrix specifying the weight relationships and their starting values.
+#'
+#'@return A matrix of unscaled outer weights with the same dimesions as \code{weightRelations}
+#'
 
 matrixpls.outerEstimator.fixedWeights <- function(S, W, E, weightRelations){
 	return(weightRelations)
