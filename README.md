@@ -30,6 +30,12 @@ library(devtools)
 install_github('matrixpls', username='mronkko')
 ```
 
+To check out the source code and install from local copy, run the following shell commands
+
+```
+git clone https://github.com/mronkko/matrixpls.git
+R CMD INSTALL matrixpls
+```
 
 Author Contact
 --------------
