@@ -1,13 +1,14 @@
-Package: matrixpls
+Encoding: UTF-8
+Package: MatrixPLS
 Type: Package
 Title: Matrix-based Partial Least Squares estimation
 Version: 0.0.1
 Date: 2013-01-03
-Authors@R: c(person("Mikko", "Ronkkö", role=c("aut", "cre"),
-    email = "mikko.ronkko@aalto.fi"),
-Author: Mikko Rönkkö
-Maintainer: Mikko Rönkkö <mikko.ronkko@aalto.fi>
-Description: matrixpls is a matrix based implementation of Partial Least Squares Path Modeling
+Authors@R: c(person("Mikko", "RÃ¶nkkÃ¶", role=c("aut", "cre"),
+    email = "mikko.ronkko@aalto.fi"))
+Author: Mikko RÃ¶nkkÃ¶
+Maintainer: Mikko RÃ¶nkkÃ¶ <mikko.ronkko@aalto.fi>
+Description: MatrixPLS is a matrix based implementation of Partial Least Squares Path Modeling
    algorithm. This package is computationally more efficient and more modular than the two
    other R packages implementing the Partial Least Squares algorithms and
    does not require raw data but calculates the PLS estimates from a covariance matrix.
@@ -16,9 +17,8 @@ Description: matrixpls is a matrix based implementation of Partial Least Squares
 URL: https://github.com/mronkko/matrixpls
 Depends:
     R (>= 3.0.0),
-    assertive
-Suggests: plspm, semPLS, simsem, boot
+    assertive,
+    matrixcalc
+Suggests: plspm, semPLS, simsem, boot, psych
 License: GPL-3
 LazyLoad: yes
-Collate:
-    'matrixpls.R'

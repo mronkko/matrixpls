@@ -1,0 +1,9 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+.gitmodules
+simsem
+tests
+.DS_Store
+.Rapp.history
+.git
+run_tests.R

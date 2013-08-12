@@ -1,4 +1,5 @@
 library(assertive)
+library(RUnit)
 
 #
 # Tests that all the relevant vignettes in Version03 directory (matrix syntax) of SimSem
@@ -17,9 +18,7 @@ test.simsem.Version03 <- function()
 
 test.simsem.Version05 <- function()
 {
-	#SupportingDocs/Examples/Version03/ex1/ex1.R
-	DEACTIVATED('Not implemented')
-#	checkEquals()
+	execute.simsem.tests("../simsem/SupportingDocs/Examples/Version05")
 }
 
 #
@@ -29,16 +28,15 @@ test.simsem.Version05 <- function()
 
 test.simsem.Version05mx <- function()
 {
-	#SupportingDocs/Examples/Version03/ex1/ex1.R
-	DEACTIVATED('Not implemented')
-#	checkEquals()
+	execute.simsem.tests("../simsem/SupportingDocs/Examples/Version05mx")
 }
-
 #
 # A helper function to execute the SimSem tests
 #
 
 execute.simsem.tests <- function(directory){
+
+	DEACTIVATED('Not implemented')
 
 	library(gtools)
 	library(simsem)
@@ -52,7 +50,7 @@ execute.simsem.tests <- function(directory){
 	
 	for(vignette in vignettes){
 		fileName <- paste(directory,vignette,sep="/")
-		print(paste("Preparing vignette from file",fileName)
+		print(paste("Preparing vignette from file",fileName))
 
 		vignetteCode <- readChar(fileName, file.info(fileName)$size)
 		
@@ -100,5 +98,3 @@ test.populationValues <- function()
 	DEACTIVATED('Not implemented')
 	#checkEquals()
 }
-
-test.simsem.Version03()

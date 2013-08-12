@@ -1,5 +1,3 @@
-library(assertive)
-
 #'@title Basic results for Partial Least Squares Path Modeling as a vector
 #'
 #'@description
@@ -47,9 +45,10 @@ library(assertive)
 #'@param validateInput A boolean indicating whether the validity of the input matrix
 #'and the parameter values should be tested
 #
-#'@return A weight matrix where composites are on rows and indicators are on columns or
-#'NULL if maximum number of iterations was reached without convergence.
-#
+#'@return A list with three items 
+#'weights: weight matrix where composites are on rows and indicators are on columns or
+#'iterations: number of iterations performed.
+#'converged: a boolean indicating if the algoritm converged
 
 
 matrixpls.weights <- function(S, innerMatrix, weightRelations,
@@ -58,20 +57,24 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 	tol = 1e-05, iter = 100, validateInput = TRUE) {
 
 	if(validateInput){
+	
+		library(assertive)
+		library(matrixcalc)
+
 		# All parameters must have values
 		assert_all_are_not_na(formals())
 		
 		# S must be symmetric and a valid covariance matrix
 		assert_is_matrix(S)
 		assert_is_symmetric_matrix(S)
-		assert_is_true(is.positive.semi.definite(S))
+		assert_is_identical_to_true(is.positive.semi.definite(S))
 		
 		# innerMatrix must be a square matrix consisting of ones and zeros and zero diagonal
 		# and all variables must be linked to at least one other variable
 		assert_is_matrix(innerMatrix)
-		assert_is_true(nrow(innerMatrix)==ncol(innerMatrix))
+		assert_is_identical_to_true(nrow(innerMatrix)==ncol(innerMatrix))
 		assert_all_are_true(innerMatrix==0 | innerMatrix == 1)
-		assert_all_are_true(diag(innerMatrix)==0
+		assert_all_are_true(diag(innerMatrix)==0)
 		assert_all_are_true(rowSums(innerMatrix)+colSums(innerMatrix)>0)
 		
 		# weightRelations must be a real matrix and each indicators must be
@@ -82,14 +85,14 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 		assert_all_are_true(apply(2,innerMatrix!=0,any))
 		
 		# the number of rows in weightRelations must match the dimensions of other matrices
-		assert_is_true(nrow(innerMatrix)==nrow(weightRelations))
-		assert_is_true(ncol(S)==ncol(weightRelations))
+		assert_is_identical_to_true(nrow(innerMatrix)==nrow(weightRelations))
+		assert_is_identical_to_true(ncol(S)==ncol(weightRelations))
 		
 		# outerEstimators must be a list of same length as number of rows in innerMatrix or
 		# a function
 		
 		if(is.list(outerEstimators)){
-			assert_is_true(length(estimators) == nrow(weightRelations))
+			assert_is_identical_to_true(length(outerEstimators) == nrow(weightRelations))
 			for(outerEstimator in outerEstimators){
 				assert_is_function(outerEstimator)
 			}
@@ -101,10 +104,10 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 		assert_is_function(innerEstimator)
 
 		# tol must be positive
-		assert_is_positive(tol)
+		assert_all_are_positive(tol)
 		
 		#iter must not be negative
-		assert_is_positive(iter)
+		assert_all_are_positive(iter)
 	}
 	
 	# =========== Start of iterative procedure ===========
@@ -117,7 +120,7 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 	
 		# Get new inner weights from inner estimation
 
-		E <- innerEstimator(S, W, innerModel)
+		E <- innerEstimator(S, W, innerMatrix)
 		
 		# Get new weights from outer estimation
 		
@@ -131,7 +134,8 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 		
 		# Check convergence
 		
-		if(max(abs(W_new-W)) <= tol) return(W_new)
+		if(max(abs(W_new-W)) <= tol) return(list(weightMatrix = W, iterations = iteration,
+			converged = TRUE))
 		
 		# Prepare for the next round
 		
@@ -141,88 +145,131 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 	
 	# Reaching the end of the loop without convergence
 	
-	return(NULL)
+	return(list(weightMatrix = W, iterations = iter, converged = FALSE))
 }
 
+#'@title Basic results for Partial Least Squares Path Modeling as a vector
+#'
+#'@description
+#'Estimates a weight matrix using the PLS algorithm
+#
+#'@details
+#'\code{matrixpls.weights} performs the PLS weighting algorithm by calling the 
+#'inner and outer estimators iteratively until either the convergence criterion or
+#'maximum number of iterations is reached and provides the results in a matrix.
+#'
+#'The argument \code{innerMatrix} is a matrix of zeros and ones that indicates
+#'the regression relationships between composites. In Wold's original papers, 
+#'the model was constrained to be recursive implying a lower
+#'triangular matrix, but MatrixPLS does not have this restriction.
+#'\code{innerMatrix} will contain a 1 when a variable on the column \code{j}
+#'has a regression path toward the variable on row \code{i}, 0 otherwise. \cr
+#'
+#'The argument \code{weightRelations} is a matrix of zero and non-zeros that indicates
+#'how the indicators are combined to form the composites. In Wold's original papers, 
+#'each indicator was allowed to contribute to only one composite, but MatrixPLS does
+#'not have this restriction.
+#'\code{weightRelations} will contain a non-zero value when a indicator variable on the
+#'column \code{j} is a part of the composites variable on row \code{i}, zero otherwise. 
+#'The values are used as starting values for the weighting algorithm.\cr
+#'
+#'@param S Covariance matrix of the data.
+#
+#'@param Model There are four options for this argument: 1. SimSem object created by model
+#'command from simsem package, 2. lavaan script, lavaan parameter table, or a list that
+#'contains all argument that users use to run lavaan (including cfa, sem, lavaan), 3.
+#'MxModel object from the OpenMx package, or 4.  A square matrix of ones and zeros 
+#'representing the free regression paths in the model.
+#'
+#'@param ... All other parameters are passed through to \code{matrixpls.weights}
+#'
+#'@param validateInput A boolean indicating whether the validity of the input matrix
+#'and the parameter values should be tested
+#
+# 
+#'@return A named vector of parameter estimates and weights
 
-matrixpls <- function(..., ) {
 
-	# =========== inputs setting ===========
+matrixpls <- function(S, model, weightRelations, ..., validateInput = TRUE) {
+
+	stop("Not implemented")
 	
-	# Names of the composites
-	lvs.names <- colnames(innerMatrix)
-	mv.names <- colnames(S)
-	
-	# A binary vector showing which composites are endogenous
-	endo <- rowSums(innerMatrix) > 0
-	
-	# The estimation uses the following matrices
-	# 
-	# innerMatrix: a p by p matrix specifying the inner model weightRelations: a n by p matrix specifying the outer model
-	# 
-	# S: n by n indicator covariance matrix
-	# 
-	# W: n by p matrix of outer weights C: is a p by p covariance matrix of composites E: is a p by p matrix of inner weights
-	# 
-	# where
-	# 
-	# n: number of indicators p: number of composites
-	
-	n <- nrow(S)
-	p <- nrow(innerMatrix)
-	
-	weightRelations <- sapply(outer_list, function(x) match(1:n, x, nomatch = 0) > 0)
-	
-	S <- cov2cor(S)
-	
-	# =========== Stage 2: Path coefficients ===========
-	
-	
-	if (unbiasedLoadings) {
-	load.est <- matrix(0, nrow(S), ncol(inner))
-	# Loop over the indicator blocks and perform EFAs
-	
-	for (col in 1:length(outer)) {
-				load.est[outer[[col]], col] <- fa(S[outer[[col]], outer[[col]]])$loadings[, 1]
-				
-			}
-	} else {
-	load.est = W_unscaled
-	}
-	
-	if (disattenuate) {
-	
-	if (unbiasedCompositeReliability) {
-	# Calculate composite reliabilities
-	# 
-	# Aguirre-Urreta, M. I., Marakas, G. M., & Ellis, M. E. (in press). Measurement of Composite Reliability in Research Using Partial Least Squares: Some Issues and an Alternative Approach. The DATA BASE
-	# for Advances in Information Systems.
-	
-	reliabilities <- colSums(W * load.est)^2
-	disattenuationMatrix <- sqrt(reliabilities %o% reliabilities)
-	diag(disattenuationMatrix) <- C <- C * disattenuationMatrix
-	} else {
-	stop("Disattennuation has been implemented only for unbiased composite reliability")
-	}
-	}
-	
-	# A p x p lower diagonal matrix of path estimates
-	Path <- innerMatrix
-	R2 <- rep(0, p)
-	
-	# Loop over the endogenous variables and do the regressions
-	
-	for (aux in which(endo)) {
-	indeps <- which(innerMatrix[aux, ] == 1)
-	coefs <- solve(C[indeps, indeps], C[indeps, aux])
-	Path[aux, indeps] <- coefs
-	}
-	
-	
-	# =========== Results ===========
-	
-	
-	return(c(W[which(weightRelations==1)], load.est[which(weightRelations==1)], Path[which(innerMatrix==1)], C[lower.tri(innerMatrix)]))
+#	# =========== inputs setting ===========
+#	
+#	# Names of the composites
+#	lvs.names <- colnames(innerMatrix)
+#	mv.names <- colnames(S)
+#	
+#	# A binary vector showing which composites are endogenous
+#	endo <- rowSums(innerMatrix) > 0
+#	
+#	# The estimation uses the following matrices
+#	# 
+#	# innerMatrix: a p by p matrix specifying the inner model weightRelations: a n by p matrix specifying the outer model
+#	# 
+#	# S: n by n indicator covariance matrix
+#	# 
+#	# W: n by p matrix of outer weights C: is a p by p covariance matrix of composites E: is a p by p matrix of inner weights
+#	# 
+#	# where
+#	# 
+#	# n: number of indicators p: number of composites
+#	
+#	n <- nrow(S)
+#	p <- nrow(innerMatrix)
+#	
+#	weightRelations <- sapply(outer_list, function(x) match(1:n, x, nomatch = 0) > 0)
+#	
+#	S <- cov2cor(S)
+#	
+#	# =========== Stage 2: Path coefficients ===========
+#	
+#	
+#	if (unbiasedLoadings) {
+#	load.est <- matrix(0, nrow(S), ncol(inner))
+#	# Loop over the indicator blocks and perform EFAs
+#	
+#	for (col in 1:length(outer)) {
+#				load.est[outer[[col]], col] <- fa(S[outer[[col]], outer[[col]]])$loadings[, 1]
+#				
+#			}
+#	} else {
+#	load.est = W_unscaled
+#	}
+#	
+#	if (disattenuate) {
+#	
+#	if (unbiasedCompositeReliability) {
+#	# Calculate composite reliabilities
+#	# 
+#	# Aguirre-Urreta, M. I., Marakas, G. M., & Ellis, M. E. (in press). Measurement of Composite Reliability in Research Using Partial Least Squares: Some Issues and an Alternative Approach. The DATA BASE
+#	# for Advances in Information Systems.
+#	
+#	reliabilities <- colSums(W * load.est)^2
+#	disattenuationMatrix <- sqrt(reliabilities %o% reliabilities)
+#	diag(disattenuationMatrix) <- C <- C * disattenuationMatrix
+#	} else {
+#	stop("Disattennuation has been implemented only for unbiased composite reliability")
+#	}
+#	}
+#	
+#	# A p x p lower diagonal matrix of path estimates
+#	Path <- innerMatrix
+#	R2 <- rep(0, p)
+#	
+#	# Loop over the endogenous variables and do the regressions
+#	
+#	for (aux in which(endo)) {
+#	indeps <- which(innerMatrix[aux, ] == 1)
+#	coefs <- solve(C[indeps, indeps], C[indeps, aux])
+#	Path[aux, indeps] <- coefs
+#	}
+#	
+#	
+#	# =========== Results ===========
+#	
+#	
+#	return(c(W[which(weightRelations==1)], load.est[which(weightRelations==1)], Path[which(innerMatrix==1)], C[lower.tri(innerMatrix)]))
 	
 }
 
@@ -280,8 +327,8 @@ matrixpls.innerEstimator.factor <- function(S, W, innerMatrix){
 	return(E)
 } 
 
-matrixpls.innerEstimator.identity(C, innerMatrix){
-	return(diag(nrow(innerMatrix))
+matrixpls.innerEstimator.identity <- function(C, innerMatrix){
+	return(diag(nrow(innerMatrix)))
 }
 
 # =========== Outer estimators ===========

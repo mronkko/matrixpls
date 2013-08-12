@@ -1,55 +1,59 @@
-#'@title Partial Least Squares Path Modeling with PLSPM interface
+library(plspm)
+library(psych)
+
+#'@title A PLS-PM compatibility wrapper for MatrixPLS
 #'
 #'@description
-#'A convenience function 
+#'Estimate path models with latent variables by partial least squares approach
 #'
 #'@details
-#'The function \code{matrixpls} estimates a path model by partial least squares
-#'approach providing the full set of results. The results are identical with the
-#'results provided by the \code{plspm} function in the PLSPM package and the
-#'parameters that the model accept are identical with the exception that PLS regression
-#'is not supported.\cr
+#'The function \code{matrixpls.plspm} estimates a path model by partial least squares
+#'approach providing the full set of results. \cr
 #'
 #'The argument \code{inner_matrix} is a matrix of zeros and ones that indicates
-#'the structural relationships between the composites. This must be a lower
+#'the structural relationships between latent variables. This must be a lower
 #'triangular matrix. \code{inner_matrix} will contain a 1 when column \code{j}
 #'affects row \code{i}, 0 otherwise. \cr
 #'
-#'@param Data A numeric matrix or data frame containing the indicator variables or a covariance matrix of the indicator variables.
+#'@param Data A numeric matrix or data frame containing the manifest variables.
 #'@param inner_matrix A square (lower triangular) boolean matrix representing the
-#'inner model (i.e. the path relationships between composites).
-#'@param outer_list List of vectors with column indices from \code{x} indicating
-#'the sets of manifest variables asociated to the composites
-#'(i.e. which manifest variables correspond to the composites).
+#'inner_matrix model (i.e. the path relationships betwenn latent variables).
+#'@param outer_list List of vectors with column indices from \code{x} indicating 
+#'the sets of manifest variables asociated to the latent variables
+#'(i.e. which manifest variables correspond to the latent variables).
 #'Length of \code{outer_list} must be equal to the number of rows of \code{inner_matrix}.
-#'@param modes A character vector indicating the type of estimation for each
-#'composite, Either \code{'A'} or \code{'B'}. The length of \code{modes}
+#'@param modes A character vector indicating the type of measurement for each
+#'latent variable. \code{"A"} for reflective measurement or \code{"B"} for
+#'formative measurement (\code{NULL} by default). The length of \code{modes}
 #'must be equal to the length of \code{outer_list}).
-#'@param scheme A string of characters indicating the type of inner weighting
-#'scheme. Possible values are \code{'centroid'}, \code{'factor'}, or
-#'\code{'path'}.
+#'@param scheme A string of characters indicating the type of inner_matrix weighting
+#'scheme. Possible values are \code{"centroid"}, \code{"factor"}, or
+#'\code{"path"}.
 #'@param scaled A logical value indicating whether scaling data is performed
 #'When (\code{TRUE} data is scaled to standardized values (mean=0 and variance=1)
+#'The variance is calculated dividing by \code{N} instead of \code{N-1}).
 #'@param tol Decimal value indicating the tolerance criterion for the
-#'iterations (\code{tol=0.00001}). Must be a positive number.
+#'iterations (\code{tol=0.00001}). Can be specified between 0 and 0.001.
 #'@param iter An integer indicating the maximum number of iterations
 #'(\code{iter=100} by default). The minimum value of \code{iter} is 100.
 #'@param boot.val A logical value indicating whether bootstrap validation is
-#'performed (\code{FALSE} by default).
+#'performed (\code{FALSE} by default). 
 #'@param br An integer indicating the number bootstrap resamples. Used only
-#'when \code{boot.val=TRUE}. When \code{boot.val=TRUE}, the default number of
-#'re-samples is 100.
+#'when \code{boot.val=TRUE}. When \code{boot.val=TRUE}, the default number of 
+#'re-samples is 100, but it can be specified in a range from 100 to 1000.
+#'@param plsr A logical value indicating whether pls regression is applied
+#'to calculate path coefficients (\code{FALSE} by default).
 #'@param dataset A logical value indicating whether the data matrix should be
 #'retrieved (\code{TRUE} by default).
-#'@param matrixData A logical value indicating whether the data should be interpreted as a covariance matrix instead of raw data. (\code{FALSE} by default).
-#'@return An object of class \code{'plspm'}.
+#'@return An object of class \code{"plspm"}. 
 #'@return \item{outer.mod}{Results of the outer (measurement) model. Includes:
 #'outer weights, standardized loadings, communalities, and redundancies}
-#'@return \item{inner.mod}{Results of the inner (structural) model. Includes: path
-#'coefficients and R-squared for each endogenous composite}
-#'@return \item{latents}{Matrix of standardized composites}
-#'@return \item{scores}{Matrix of composites used to estimate the inner
-#'model. If \code{scaled=FALSE} then \code{scores} are composites
+#'@return \item{inner_matrix.mod}{Results of the inner_matrix (structural) model. Includes: path
+#'coefficients and R-squared for each endogenous latent variable}
+#'@return \item{latents}{Matrix of standardized latent variables (variance=1
+#'calculated divided by \code{N}) obtained from centered data (mean=0)}
+#'@return \item{scores}{Matrix of latent variables used to estimate the inner_matrix
+#'model. If \code{scaled=FALSE} then \code{scores} are latent variables
 #'calculated with the original data (non-stardardized). If \code{scaled=TRUE}
 #'then \code{scores} and \code{latents} have the same values}
 #'@return \item{out.weights}{Vector of outer weights}
@@ -58,9 +62,9 @@
 #'@return \item{path.coefs}{Matrix of path coefficients (this matrix has a similar
 #'form as \code{inner_matrix})}
 #'@return \item{r.sqr}{Vector of R-squared coefficients}
-#'@return \item{outer.cor}{Correlations between the composites and the
+#'@return \item{outer.cor}{Correlations between the latent variables and the
 #'manifest variables (also called crossloadings)}
-#'@return \item{inner.sum}{Summarized results by composite of the inner
+#'@return \item{inner_matrix.sum}{Summarized results by latent variable of the inner_matrix
 #'model. Includes: type of LV, type of measurement, number of indicators,
 #'R-squared, average communality, average redundancy, and average variance
 #'extracted}
@@ -73,20 +77,34 @@
 #'model. Only when \code{dataset=TRUE}}
 #'@return \item{boot}{List of bootstrapping results; only available when argument
 #'\code{boot.val=TRUE}}
-#'@return \item{boot.raw}{Object of type boot returned by the bootstrap procedure; only available when argument
-#'\code{boot.val=TRUE}}
-#'@author Mikko R\303\266nkk\303\266
+#'@author Mikko Rönkkö
 #'@author Gaston Sanchez
 #'
-#'@references Wold H. (1982) Soft modeling: the basic design and some extensions. In: K.G.
-#'J\303\266reskog & H. Wold (Eds.), \emph{Systems under indirect observations:
-#'Causality, structure, prediction}, Part 2, pp. 1-54. Amsterdam: Holland.
+#'@references Tenenhaus M., Esposito Vinzi V., Chatelin Y.M., and Lauro C.
+#'(2005) PLS path modeling. \emph{Computational Statistics & Data Analysis},
+#'\bold{48}, pp. 159-205.
 #'
-#'Lohm\303\266ller J.-B. (1989) \emph{composites path modelin with partial
+#'Tenenhaus M., Pages J. (2001) Multiple factor analysis combined with
+#'PLS path modelling. Application to the analysis of relationships between
+#'physicochemical variables, sensory profiles and hedonic judgements.
+#'\emph{Chemometrics and Intelligent Laboratory Systems}, \bold{58}, pp.
+#'261-273.
+#'
+#'Tenenhaus M., Hanafi M. (2010) A bridge between PLS path modeling and
+#'multi-block data analysis. \emph{Handbook on Partial Least Squares (PLS):
+#'Concepts, methods, and applications.} Springer.
+#'
+#'Lohmoller J.-B. (1989) \emph{Latent variables path modelin with partial
 #'least squares.} Heidelberg: Physica-Verlag.
 #'
+#'Wold H. (1985) Partial Least Squares. In: Kotz, S., Johnson, N.L. (Eds.),
+#'\emph{Encyclopedia of Statistical Sciences}, Vol. 6. Wiley, New York, pp.
+#'581-591.
 #'
-#'@seealso \code{\link{matrixpls.fit}}
+#'Wold H. (1982) Soft modeling: the basic design and some extensions. In: K.G.
+#'Joreskog & H. Wold (Eds.), \emph{Systems under indirect observations:
+#'Causality, structure, prediction}, Part 2, pp. 1-54. Amsterdam: Holland.
+#'@seealso \code{\link[plspm]{plspm}}, \code{\link[plspm]{plspm.fit}}, \code{\link[plspm]{plot.plspm}}
 #'@export
 #'@examples
 #'
@@ -97,36 +115,37 @@
 #'  # load dataset satisfaction
 #'  data(satisfaction)
 #'
-#'  # inner model matrix
+#'  # inner_matrix model matrix
 #'  IMAG = c(0,0,0,0,0,0)
 #'  EXPE = c(1,0,0,0,0,0)
 #'  QUAL = c(0,1,0,0,0,0)
 #'  VAL = c(0,1,1,0,0,0)
-#'  SAT = c(1,1,1,1,0,0)
+#'  SAT = c(1,1,1,1,0,0) 
 #'  LOY = c(1,0,0,0,1,0)
-#'  sat_inner = rbind(IMAG, EXPE, QUAL, VAL, SAT, LOY)
+#'  sat_inner_matrix = rbind(IMAG, EXPE, QUAL, VAL, SAT, LOY)
 #'
 #'  # outer model list
 #'  sat_outer = list(1:5, 6:10, 11:15, 16:19, 20:23, 24:27)
 #'
 #'  # vector of modes (reflective indicators)
-#'  sat_mod = rep('A', 6)
+#'  sat_mod = rep("A", 6)
 #'
-#'  # apply matrixpls
-#'  satpls = matrixpls(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=TRUE)
-#'
+#'  # apply plspm
+#'  satpls = matrixpls.plspm(satisfaction, sat_inner_matrix, sat_outer, sat_mod, scaled=FALSE, boot.val=TRUE)
+#'  
 #'  # summary of results
 #'  summary(satpls)
 #'
-#'  # default plot (inner model)
+#'  # default plot (inner_matrix model)
 #'  plot(satpls)
 #'  }
 #'
 
-library(psych)
-
-matrixpls.plspm <- function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid", scaled = TRUE, tol = 1e-05, iter = 100, boot.val = FALSE, br = NULL, plsr = FALSE, dataset = TRUE, matrixData = FALSE) {
-    
+matrixpls.plspm <-
+function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid", 
+         scaled = TRUE, tol = 0.00001, iter = 100, boot.val = FALSE, 
+         br = NULL, plsr = FALSE, dataset = TRUE){
+         
     # ======================================================= checking arguments =======================================================
     
     if (!is.matrix(x) && !is.data.frame(x)) 
@@ -135,27 +154,27 @@ matrixpls.plspm <- function(Data, inner_matrix, outer_list, modes = NULL, scheme
         rownames(x) <- 1:nrow(x)
     if (is.null(colnames(x))) 
         colnames(x) <- paste("MV", 1:ncol(x), sep = "")
-    if (!is.matrix(inner)) 
-        stop("Invalid argument 'inner'. Must be a matrix.")
-    if (nrow(inner) != ncol(inner)) 
-        stop("Invalid argument 'inner'. Must be a square matrix.")
-    for (j in 1:ncol(inner)) for (i in 1:nrow(inner)) {
+    if (!is.matrix(inner_matrix)) 
+        stop("Invalid argument 'inner_matrix'. Must be a matrix.")
+    if (nrow(inner_matrix) != ncol(inner_matrix)) 
+        stop("Invalid argument 'inner_matrix'. Must be a square matrix.")
+    for (j in 1:ncol(inner_matrix)) for (i in 1:nrow(inner_matrix)) {
         if (i <= j) 
-            if (inner[i, j] != 0) 
-                stop("argument 'inner' must be a lower triangular matrix")
-        if (length(intersect(inner[i, j], c(1, 0))) == 0) 
-            stop("elements in 'inner' must be '1' or '0'")
+            if (inner_matrix[i, j] != 0) 
+                stop("argument 'inner_matrix' must be a lower triangular matrix")
+        if (length(intersect(inner_matrix[i, j], c(1, 0))) == 0) 
+            stop("elements in 'inner_matrix' must be '1' or '0'")
     }
-    if (is.null(dimnames(inner))) 
-        lvs.names <- paste("LV", 1:ncol(inner), sep = "")
-    if (!is.null(rownames(inner))) 
-        lvs.names <- rownames(inner)
-    if (!is.null(colnames(inner))) 
-        lvs.names <- colnames(inner)
+    if (is.null(dimnames(inner_matrix))) 
+        lvs.names <- paste("LV", 1:ncol(inner_matrix), sep = "")
+    if (!is.null(rownames(inner_matrix))) 
+        lvs.names <- rownames(inner_matrix)
+    if (!is.null(colnames(inner_matrix))) 
+        lvs.names <- colnames(inner_matrix)
     if (!is.list(outer)) 
         stop("Invalid argument 'outer'. Must be a list.")
-    if (length(outer) != nrow(inner)) 
-        stop("Number of rows of 'inner' does not coincide with length of 'outer'.")
+    if (length(outer) != nrow(inner_matrix)) 
+        stop("Number of rows of 'inner_matrix' does not coincide with length of 'outer'.")
     if (is.null(modes)) {
         modes <- rep("A", length(outer))
         warning("Argument 'modes' missing. Default reflective 'modes' is used.")
@@ -204,19 +223,12 @@ matrixpls.plspm <- function(Data, inner_matrix, outer_list, modes = NULL, scheme
         dataset <- TRUE
     
     # Stop if there are unimplemented options
-    if (sum(modes == "B") > 0) 
-        stop("Mode B is not currently implemented in matrixpls")
-    if (scheme != "centroid") 
-        stop(paste("Only centroid scheme is currently implemented in matrixpls. Current value: ", scheme))
     if (plsr) 
         stop("PLS regression is currently not implemented in matrixpls")
     
     
-    if (matrixData) {
-        indicatorCovariances <- x
-    } else {
-        indicatorCovariances <- cov(x)
-    }
+	indicatorCovariances <- cov(x)
+    
     indicatorCorrelations <- cov2cor(indicatorCovariances)
     
     doBootstrap = boot.val
@@ -230,51 +242,50 @@ matrixpls.plspm <- function(Data, inner_matrix, outer_list, modes = NULL, scheme
     if (doBootstrap) {
         
         # Selection matrix
-        selectWeightsFromMatrix <- matrix(0, nrow(indicatorCovariances), ncol(inner))
-        for (i in 1:ncol(inner)) {
+        selectWeightsFromMatrix <- matrix(0, nrow(indicatorCovariances), ncol(inner_matrix))
+        for (i in 1:ncol(inner_matrix)) {
             selectWeightsFromMatrix[outer[[i]], i] <- 1
         }
         selectWeightsFromMatrix <- which(selectWeightsFromMatrix == 1)
-        
-        if (matrixData) 
-            stop("Bootstrapping requires raw data")
-        
+                
         boot.results <- boot(x, function(d, p) {
             
             cov.matrix <- cov(d[p, ], d[p, ])
             
-            pls <- matrixpls.fit(cov.matrix, inner, outer, modes, scheme, scaled, tol, iter)
+            # TODO: Fix this call
+            pls <- matrixpls(cov.matrix, inner_matrix, outer, modes, scheme, scaled, tol, iter)
             
             if (is.null(pls)) {
-                return(rep(NA, length(selectWeightsFromMatrix) * 2 + nrow(inner) + sum(inner) + sum(lower.tri(inner))))
+                return(rep(NA, length(selectWeightsFromMatrix) * 2 + nrow(inner_matrix) + sum(inner_matrix) + sum(lower.tri(inner_matrix))))
             } else {
-                return(c(pls$loadings[selectWeightsFromMatrix], pls$out.weights[selectWeightsFromMatrix], pls$r.sqr, pls$path.coef[which(inner == 1)], pls$effects[lower.tri(inner)]))
+                return(c(pls$loadings[selectWeightsFromMatrix], pls$out.weights[selectWeightsFromMatrix], pls$r.sqr, pls$path.coef[which(inner_matrix == 1)], pls$effects[lower.tri(inner_matrix)]))
             }
         }, br)
         
         # Unpack the results from t0
         boot.loadIndices <- 1:ncol(Data)
         boot.weightIndices <- ncol(Data) + boot.loadIndices
-        boot.R2Indices <- tail(boot.weightIndices, 1) + 1:ncol(inner)
-        boot.pathIndices <- tail(boot.R2Indices, 1) + 1:sum(inner)
-        boot.effectIndices <- tail(boot.pathIndices, 1) + 1:sum(lower.tri(inner))
+        boot.R2Indices <- tail(boot.weightIndices, 1) + 1:ncol(inner_matrix)
+        boot.pathIndices <- tail(boot.R2Indices, 1) + 1:sum(inner_matrix)
+        boot.effectIndices <- tail(boot.pathIndices, 1) + 1:sum(lower.tri(inner_matrix))
         
-        path.coefs <- matrix(0, ncol(inner), ncol(inner))
-        path.coefs[which(inner == 1)] <- boot.results$t0[boot.pathIndices]
+        path.coefs <- matrix(0, ncol(inner_matrix), ncol(inner_matrix))
+        path.coefs[which(inner_matrix == 1)] <- boot.results$t0[boot.pathIndices]
         
-        loads <- matrix(0, nrow(indicatorCovariances), ncol(inner))
+        loads <- matrix(0, nrow(indicatorCovariances), ncol(inner_matrix))
         loads[selectWeightsFromMatrix] <- boot.results$t0[boot.loadIndices]
         
-        out.weights <- matrix(0, nrow(indicatorCovariances), ncol(inner))
+        out.weights <- matrix(0, nrow(indicatorCovariances), ncol(inner_matrix))
         out.weights[selectWeightsFromMatrix] <- boot.results$t0[boot.weightIndices]
         
-        effs <- matrix(0, ncol(inner), ncol(inner))
-        effs[lower.tri(inner)] <- boot.results$t0[boot.effectIndices]
+        effs <- matrix(0, ncol(inner_matrix), ncol(inner_matrix))
+        effs[lower.tri(inner_matrix)] <- boot.results$t0[boot.effectIndices]
         
         pls <- list(path.coefs = path.coefs, loadings = loads, out.weights = out.weights, r.sqr = boot.results$t0[boot.R2Indices], effects = effs)
     } else {
-        # If bootstrapping is not done, just call matrixpls.fit directly
-        pls <- matrixpls.fit(indicatorCovariances, inner, outer, modes, scheme, scaled, tol, iter)
+        # If bootstrapping is not done, just call matrixpls directly
+        # TODO: Fix this call
+        pls <- matrixpls(indicatorCovariances, inner_matrix, outer, modes, scheme, scaled, tol, iter)
     }
     
     if (is.null(pls) || max(is.na(pls$loadings))) {
@@ -284,13 +295,13 @@ matrixpls.plspm <- function(Data, inner_matrix, outer_list, modes = NULL, scheme
     }
     
     # ======================================================= Define variables that are needed for reporting =======================================================
-    IDM = inner
-    if (is.null(dimnames(inner))) 
-        lvs.names <- paste("LV", 1:ncol(inner), sep = "")
-    if (!is.null(rownames(inner))) 
-        lvs.names <- rownames(inner)
-    if (!is.null(colnames(inner))) 
-        lvs.names <- colnames(inner)
+    IDM = inner_matrix
+    if (is.null(dimnames(inner_matrix))) 
+        lvs.names <- paste("LV", 1:ncol(inner_matrix), sep = "")
+    if (!is.null(rownames(inner_matrix))) 
+        lvs.names <- rownames(inner_matrix)
+    if (!is.null(colnames(inner_matrix))) 
+        lvs.names <- colnames(inner_matrix)
     
     dimnames(IDM) = list(lvs.names, lvs.names)
     lvs = nrow(IDM)
@@ -324,7 +335,7 @@ matrixpls.plspm <- function(Data, inner_matrix, outer_list, modes = NULL, scheme
     
     names(innmod) <- lvs.names[endo != 0]
     
-    pls[["inner.mod"]] <- innmod
+    pls[["inner_matrix.mod"]] <- innmod
     
     # initialize
     efs.labs <- dir.efs <- ind.efs <- tot.efs <- NULL
@@ -349,17 +360,12 @@ matrixpls.plspm <- function(Data, inner_matrix, outer_list, modes = NULL, scheme
     
     # Composites scores
     
-    if (matrixData) {
-        pls[["latents"]] <- NA
-        pls[["scores"]] <- NA
-    } else {
         outer_matrix <- sapply(outer_list, function(x) match(1:mvs, x, nomatch = 0) > 0)
         composites <- x %*% outer_matrix
         dimnames(composites) = list(rownames(x), lvs.names)
         pls[["latents"]] <- composites
         pls[["scores"]] <- composites
         
-    }
     
     # ======================================================= Stage 3: Measurement loadings and communalities =======================================================
     
@@ -422,7 +428,7 @@ matrixpls.plspm <- function(Data, inner_matrix, outer_list, modes = NULL, scheme
     
     pls[["unidim"]] <- unidim
     
-    # ======================================================= Summary Inner model =======================================================
+    # ======================================================= Summary inner_matrix model =======================================================
     
     exo.endo = ifelse(rowSums(IDM) == 0, "Exogen", "Endogen")
     
@@ -441,12 +447,15 @@ matrixpls.plspm <- function(Data, inner_matrix, outer_list, modes = NULL, scheme
     names(ave) = lvs.names
     innsum = data.frame(LV.Type = exo.endo, Measure = Mode, MVs = blocks, R.square = pls[["r.sqr"]], Av.Commu = av.comu, Av.Redun = av.redu, AVE = ave)
     rownames(innsum) = lvs.names
-    pls[["inner.sum"]] <- innsum
+    pls[["inner_matrix.sum"]] <- innsum
     
     
     # ======================================================= GoF Index =======================================================
-    
+
+	# this is just to avoid compilation warnings. Needs to be fixed. 
+	R2 <- NULL
     # average of communalities
+
     R2.aux <- R2[endo == 1]
     comu.aux <- n.comu <- 0
     for (j in 1:lvs) {
@@ -460,17 +469,11 @@ matrixpls.plspm <- function(Data, inner_matrix, outer_list, modes = NULL, scheme
     
     # ======================================================= Results =======================================================
     
-    if (matrixData) 
-        obs <- NA else obs <- nrow(matrixData)
     
-    pls[["model"]] <- list(IDM = IDM, blocks = blocks, scheme = scheme, modes = modes, scaled = scaled, boot.val = boot.val, plsr = plsr, obs = obs, br = br, tol = tol, iter = iter, n.iter = NA, outer = outer)
+    pls[["model"]] <- list(IDM = IDM, blocks = blocks, scheme = scheme, modes = modes, scaled = scaled, boot.val = boot.val, plsr = plsr, obs = nrow(Data), br = br, tol = tol, iter = iter, n.iter = NA, outer = outer)
     # deliver dataset?
-    if (dataset && !matrixData) {
-        pls[["data"]] <- as.matrix(Data)
+    pls[["data"]] <- as.matrix(Data)
         
-    } else {
-        pls[["data"]] <- NULL
-    }
     # deliver bootstrap validation results?
     if (doBootstrap) {
         
