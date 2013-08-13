@@ -21,12 +21,6 @@ All simsem vignettes shoul work by just replacing the call to sim with a call to
 
 MatrixPLS uses test driven development with [Runit](http://cran.r-project.org/web/packages/RUnit/). This means that the tests are written first and then software is implemented to conform with the tests.
 
-Useful links:
-
-[http://www.r-bloggers.com/tips-for-r-package-creation/]
-[https://github.com/hadley/devtools/wiki]
-[http://stackoverflow.com/questions/7297458/how-to-develop-a-package-in-r]
-
 ## Requirements and Installation
 
 To install the latest development version of **MatrixPLS** from github (using the package "devtools"), run in your R console:
