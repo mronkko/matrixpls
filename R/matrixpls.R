@@ -45,8 +45,7 @@
 #'@param validateInput A boolean indicating whether the validity of the input matrix
 #'and the parameter values should be tested
 #'
-#'@return An object of class \code{"matrixpls.weights"}. 
-#'@return \item{weights}{Weight matrix where composites are on rows and indicators are on columns}
+#'@return An object of class \code{"matrixpls.weights"}, which is a matrix consisting of weights and the following attributes: 
 #'@return \item{iterations}{Number of iterations performed}
 #'@return \item{converged}{A boolean indicating if the algoritm converged}
 #'@export
@@ -134,8 +133,12 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 		
 		# Check convergence
 		
-		if(max(abs(W_new-W)) <= tol) return(list(weightMatrix = W, iterations = iteration,
-			converged = TRUE))
+		if(max(abs(W_new-W)) <= tol){
+			attr(W_new,"iterations") <- iteration
+			attr(W_new,"converged") <- TRUE
+			class(W_new) <-("matrixpls.weights")
+			return(W_new)			
+		} 
 		
 		# Prepare for the next round
 		
@@ -145,7 +148,10 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 	
 	# Reaching the end of the loop without convergence
 	
-	return(list(weightMatrix = W, iterations = iter, converged = FALSE))
+	attr(W,"iterations") <- iter
+	attr(W,"converged") <- FALSE
+	class(W) <-("matrixpls.weights")
+	return(W)
 }
 
 #'@title Basic results for Partial Least Squares Path Modeling as a vector
@@ -171,8 +177,9 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 #'@param Model There are four options for this argument: 1. SimSem object created by model
 #'command from simsem package, 2. lavaan script, lavaan parameter table, or a list that
 #'contains all argument that users use to run lavaan (including cfa, sem, lavaan), 3.
-#'MxModel object from the OpenMx package, or 4. A square matrix of ones and zeros 
-#'representing the free regression paths in the model.
+#'MxModel object from the OpenMx package, or 4. A list containing three matrices
+#'\code{inner}, \code{reflective}, and \code{formative} defining the free regression paths
+#'in the model.
 #'
 #'@param weightRelations real matrix representing the weight relations and starting weights
 #'(i.e. the how the indicators are combined to form the composite variables).
@@ -187,88 +194,89 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 #'@export
 
 
-matrixpls <- function(S, model, weightRelations, ..., validateInput = TRUE) {
+matrixpls <- function(S, model, weightRelations = NULL , parameterEstimator = matrixpls.parameterEstimator.regression, ..., validateInput = TRUE) {
 
-	stop("Not implemented")
+	# TODO: Validate input.
 	
-#	# =========== inputs setting ===========
-#	
-#	# Names of the composites
-#	lvs.names <- colnames(innerMatrix)
-#	mv.names <- colnames(S)
-#	
-#	# A binary vector showing which composites are endogenous
-#	endo <- rowSums(innerMatrix) > 0
-#	
-#	# The estimation uses the following matrices
-#	# 
-#	# innerMatrix: a p by p matrix specifying the inner model weightRelations: a n by p matrix specifying the outer model
-#	# 
-#	# S: n by n indicator covariance matrix
-#	# 
-#	# W: n by p matrix of outer weights C: is a p by p covariance matrix of composites E: is a p by p matrix of inner weights
-#	# 
-#	# where
-#	# 
-#	# n: number of indicators p: number of composites
-#	
-#	n <- nrow(S)
-#	p <- nrow(innerMatrix)
-#	
-#	weightRelations <- sapply(outer_list, function(x) match(1:n, x, nomatch = 0) > 0)
-#	
-#	S <- cov2cor(S)
-#	
-#	# =========== Stage 2: Path coefficients ===========
-#	
-#	
-#	if (unbiasedLoadings) {
-#	load.est <- matrix(0, nrow(S), ncol(inner))
-#	# Loop over the indicator blocks and perform EFAs
-#	
-#	for (col in 1:length(outer)) {
-#				load.est[outer[[col]], col] <- fa(S[outer[[col]], outer[[col]]])$loadings[, 1]
-#				
-#			}
-#	} else {
-#	load.est = W_unscaled
-#	}
-#	
-#	if (disattenuate) {
-#	
-#	if (unbiasedCompositeReliability) {
-#	# Calculate composite reliabilities
-#	# 
-#	# Aguirre-Urreta, M. I., Marakas, G. M., & Ellis, M. E. (in press). Measurement of Composite Reliability in Research Using Partial Least Squares: Some Issues and an Alternative Approach. The DATA BASE
-#	# for Advances in Information Systems.
-#	
-#	reliabilities <- colSums(W * load.est)^2
-#	disattenuationMatrix <- sqrt(reliabilities %o% reliabilities)
-#	diag(disattenuationMatrix) <- C <- C * disattenuationMatrix
-#	} else {
-#	stop("Disattennuation has been implemented only for unbiased composite reliability")
-#	}
-#	}
-#	
-#	# A p x p lower diagonal matrix of path estimates
-#	Path <- innerMatrix
-#	R2 <- rep(0, p)
-#	
-#	# Loop over the endogenous variables and do the regressions
-#	
-#	for (aux in which(endo)) {
-#	indeps <- which(innerMatrix[aux, ] == 1)
-#	coefs <- solve(C[indeps, indeps], C[indeps, aux])
-#	Path[aux, indeps] <- coefs
-#	}
-#	
-#	
-#	# =========== Results ===========
-#	
-#	
-#	return(c(W[which(weightRelations==1)], load.est[which(weightRelations==1)], Path[which(innerMatrix==1)], C[lower.tri(innerMatrix)]))
+	nativeModel <- parseModelToNativeFormat(model)
 	
+	if(is.null(weightRelations)) weightRelations <- defaultWeightRelationsWithModel(nativeModel)
+
+	# Calculate weights
+	W <- matrixpls.weights(S, nativeModel$inner, weightRelations, ..., validateInput)
+	
+	# Apply the parameter estimator and return the results
+	return(parameterEstimator(S, W, model))
 }
+
+# =========== Parameter estimators ===========
+
+#'@title PLS parameter estimation with separate regression analyses
+#'
+#'@description
+#'Estimates the model parameters with weighted composites using separate OLS regression and estimating
+#'measurement model and latent variable model separately. This is the standard way of estimation in the PLS literature.
+#'
+#'
+#'@details
+#'~~~ Explain how PLS estimates are calculated after weights have been ~~~
+#'
+#'@param S Covariance matrix of the data.
+#'
+#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'
+#'@param Model There are four options for this argument: 1. SimSem object created by model
+#'command from simsem package, 2. lavaan script, lavaan parameter table, or a list that
+#'contains all argument that users use to run lavaan (including cfa, sem, lavaan), 3.
+#'MxModel object from the OpenMx package, or 4. A list containing three matrices
+#'\code{inner}, \code{reflective}, and \code{formative} defining the free regression paths
+#'in the model.
+#'
+#'@return A named vector of parameter estimates
+#'
+#'@export
+
+matrixpls.parameterEstimator.regression <- function(S, W, model){
+
+	nativeModel <- parseModelToNativeFormat(model)
+	
+	# Create the composite covariance matrix
+	
+	C <- t(W) %*% S %*% W
+
+	innerRegressionIndices <- which(nativeModel$inner==1)
+	inner <- regressionsWithCovarianceMatrixAndModelPattern(C,nativeModel$inner)
+	
+	# Choose the specified values and add names
+	innerVect <- inner[innerRegressionIndices]
+	names(innerVect) <- paste(rownames(inner)[rows(inner)[innerRegressionIndices]],"~",
+														colnames(inner)[cols(inner)[innerRegressionIndices]])
+	
+	# Calculate the covariance matrix between indicators and composites
+	IC <- S %*% W
+	
+	reflectiveRegressionIndices <- which(nativeModel$reflective==1)
+	reflective <- regressionsWithCovarianceMatrixAndModelPattern(t(IC),nativeModel$reflective)
+	
+	
+	# Choose the specified values and add names
+	reflectiveVect <- reflective[reflectiveRegressionIndices]
+	names(reflectiveVect) <- paste(colnames(reflective)[cols(reflective)[reflectiveRegressionIndices]],"=~",
+														rownames(reflective)[rows(reflective)[reflectiveRegressionIndices]])
+	
+	
+	formativeRegressionIndices <- which(nativeModel$formative==1)
+	formative <- regressionsWithCovarianceMatrixAndModelPattern(IC,nativeModel$formative)
+	
+	# Choose the specified values and add names
+	formativeVect <- formative[formativeRegressionIndices]
+	names(formativeVect) <- paste(rownames(formative)[rows(formative)[formativeRegressionIndices]],"~",
+														colnames(formative)[cols(formative)[formativeRegressionIndices]])
+	
+	
+	return(c(innerVect, reflectiveVect, formativeVect))
+}
+
 
 # =========== Inner estimators ===========
 
@@ -322,23 +330,7 @@ matrixpls.innerEstimator.path <- function(S, W, innerMatrix){
 	# Start with the factor weights
 	E <- matrixpls.innerEstimator.factor(S, W, innerMatrix)
 	
-	# Loop over each row of innerMatrix
-	
-	for(row in 1:nrow(innerMatrix)){
-
-		# Which LVs does this LV depend on
-		
-		independents <- which(innerMatrix[row,]!=0)
-		
-		# If there are at least (regression with one independent equals correlation, which
-		# we already have from the factor weights)
-
-		if(length(independents)>1){
-			# Use the regression coefficients as weights
-			coefs <- solve(C[independents,independents],C[independents,row])
-			E[row,independents] <- coefs
-		}
-	}
+	E <- regressionsWithCovarianceMatrixAndModelPattern(S,E)
 	
 	return(E)
 }
@@ -471,25 +463,14 @@ matrixpls.outerEstimator.modeB <- function(S, W, E, weightRelations){
 	# Calculate the covariance matrix between indicators and composites
 	IC <- S %*% W %*% E
 	
-	W_new = matrix(0,nrow(weightRelations),ncol(weightRelations))
+	# Set up a weight pattern
+	W_new <- iflse(weightRelations==0,0,1)
 	
-	for(row in 1:nrow(weightRelations)){
-
-		# Which indicators contribute to this LV
-		
-		independents <- which(weightRelations[row,]!=0)
-		
-		# If there are at least (regression with one independent equals correlation, which
-		# we already have from the factor weights)
-
-		if(length(independents)>1){
-			# Use the regression coefficients as weights
-			coefs <- solve(IC[independents,independents],IC[independents,row])
-			W_new[row,independents] <- coefs
-		}
-	}
+	# Do the outer model regressions
+	W_new <- regressionsWithCovarianceMatrixAndModelPattern(IC,W_new)
 	
-	return(E)
+	return(W_new)
+	
 }
 
 #'@title PLS outer estimation with fixed weights
@@ -535,3 +516,123 @@ scaleWeights <- function(S, W){
 	return(W  %*% diag(x = 1/sqrt(var_C_unscaled)))
 }
 
+lavaanParTableToNativeFormat <- function(partable){
+	
+	factorLoadings <- partable[partable$op == "=~",]
+	regressions <- partable[partable$op == "~",]
+	
+	# Parse the variables
+	latentVariableNames <- sort(unique(factorLoadings$rhs))
+	observedVariableNames <- sort(setdiff(unique(c(partable$rhs,partable$lhs)), latentVariableNames))
+	
+	# Set up empty model tables
+	inner <- matrix(0,length(latentVariableNames),length(latentVariableNames))
+	colnames(inner)<-rownames(inner)<-latentVariableNames
+	
+	formative <- matrix(0,length(latentVariableNames),length(observedVariableNames))
+	colnames(formative) <- observedVariableNames
+	rownames(formative) <- latentVariableNames
+	
+	reflective <- t(formative)
+	
+	# Set the relationships in the tables
+	
+	reflective[match(factorLoadings$rhs, observedVariableNames),
+						 match(factorLoadings$lhs,latentVariableNames)] <- 1
+	
+	latentRegressions <- regressions[regressions$rhs %in% latentVariableNames & 
+																	 	regressions$lhs %in% latentVariableNames,]
+	
+	inner[match(regressions$lhs, latentVariableNames), match(regressions$rhs,latentVariableNames)] <- 1
+	
+	formativeRegressions <- regressions[regressions$rhs %in% observedVariableNames & 
+																	 	regressions$lhs %in% latentVariableNames,]
+
+	formative[match(formativeRegressions$lhs, latentVariableNames),
+						 match(formativeRegressions$rhs, observedVariableNames)] <- 1
+	
+	return(list(inner=inner, reflective=reflective, formative=formative))
+
+}
+
+parseModelToNativeFormat <- function(model){
+	
+	if(is.matrixpls.model(model)){
+		#Already in native format
+		return(model)
+	}
+	else if(is.character(model)) {
+		return(lavaanParTableToNativeFormat(lavaanify(model)))
+	} else if (is.partable(model)) {
+		return(lavaanParTableToNativeFormat(model))
+	} else if (is.lavaancall(model)) {
+		browser()
+	} else if (is(model, "lavaan")) {
+		return(lavaanParTableToNativeFormat(model@ParTable))
+	} else if (is(model, "MxModel")) {
+		browser()
+	} else if (is(model, "SimSem")) {
+		browser()
+	} else {
+		stop("Please specify an appropriate object for the 'model' argument: simsem model template, lavaan script, lavaan parameter table, list of options for the 'lavaan' function, or a list containing three matrices in the MatrixPLS native model format.")
+	}
+}
+
+#
+# Returns a matrix with composites on rows and observed on columns
+#
+
+defaultWeightRelationsWithModel <- function(model){
+		
+	nativeModel <- parseModelToNativeFormat(model)
+	weightRelations <- matrix(0,nrow(nativeModel$formative), ncol(nativeModel$formative))
+	weightRelations[nativeModel$formative!=0] <- 1 
+	weightRelations[t(nativeModel$reflective)!=0] <- 1 
+	
+	return(weightRelations)
+	
+}
+
+is.matrixpls.model <- function(object) {
+	return (is.list(object) &&
+		 	all(names(object) %in% c("inner","reflective","formative")) &&
+		 				"inner" %in% names(object) &&
+		 				("reflective" %in% names(object) || "formative" %in% names(object)) &&
+		 				all(lapply(object,is.matrix)))
+														
+}
+
+#
+# Runs regressions defined by model
+# using covariance matrix S and places the results in model
+#
+
+regressionsWithCovarianceMatrixAndModelPattern <- function(S,model){
+	
+	for(row in 1:nrow(model)){
+		
+		# Which indicators contribute to this LV
+		
+		independents <- which(model[row]!=0)
+		
+		if(length(independents)>0){
+			# Use the regression coefficients as weights
+			coefs <- solve(S[independents,independents],S[independents,row])
+			model[row,independents] <- coefs
+		}
+	}
+	
+	return(model)
+}
+
+#
+# Functions adapted from simsem
+#
+
+is.partable <- function(object) {
+	is.list(object) && all(names(object) %in% c("id", "lhs", "op", "rhs", "user", "group", "free", "ustart", "exo", "label", "eq.id", "unco"))
+}
+
+is.lavaancall <- function(object) {
+	is.list(object) && ("model" %in% names(object))
+}

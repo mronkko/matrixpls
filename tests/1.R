@@ -8,7 +8,7 @@ library(RUnit)
 
 test.simsem.Version03 <- function()
 {
-	execute.simsem.tests("../simsem/SupportingDocs/Examples/Version03")
+	execute.simsem.tests("simsem/SupportingDocs/Examples/Version03")
 }
 
 #
@@ -18,7 +18,7 @@ test.simsem.Version03 <- function()
 
 test.simsem.Version05 <- function()
 {
-	execute.simsem.tests("../simsem/SupportingDocs/Examples/Version05")
+	execute.simsem.tests("simsem/SupportingDocs/Examples/Version05")
 }
 
 #
@@ -28,15 +28,13 @@ test.simsem.Version05 <- function()
 
 test.simsem.Version05mx <- function()
 {
-	execute.simsem.tests("../simsem/SupportingDocs/Examples/Version05mx")
+	execute.simsem.tests("simsem/SupportingDocs/Examples/Version05mx")
 }
 #
 # A helper function to execute the SimSem tests
 #
 
 execute.simsem.tests <- function(directory){
-
-	DEACTIVATED('Not implemented')
 
 	library(gtools)
 	library(simsem)
@@ -46,9 +44,11 @@ execute.simsem.tests <- function(directory){
 	# Locate the vignette source files based on pattern
 	vignettes <- grep("(ex[0-9]+)/\\1.R", vignettes, perl = TRUE, value = TRUE)
 	
+	assert_is_non_empty(vignettes)
+	
 	vignettes <- mixedsort(vignettes)
 	
-	for(vignette in vignettes){
+	for(vignette in vignettes[1]){
 		fileName <- paste(directory,vignette,sep="/")
 		print(paste("Preparing vignette from file",fileName))
 
@@ -56,11 +56,11 @@ execute.simsem.tests <- function(directory){
 		
 		# Replace calls to sim to matrixpls.sim
 		
-		modifiedVignetteCode <- gsub("sim(","matrixpls.sim(",vignetteCode)
+		modifiedVignetteCode <- gsub("sim\\(","matrixpls.sim(",vignetteCode)
 		
 		# Run the code
+		checkException(eval(parse(text = modifiedVignetteCode)), msg = fileName);
 		
-		eval(parse(text = modifiedVignetteCode))
 	}
 }
 
