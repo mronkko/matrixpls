@@ -622,6 +622,10 @@ parseModelToNativeFormat <- function(model){
 		return(model)
 	}
 	else if(is.character(model)) {
+		
+		# Remove all multigroup specifications because we do not support multigroup analyses
+		model <- gsub("c\\(.+?\\)","NA",model)
+		
 		return(lavaanParTableToNativeFormat(lavaanify(model)))
 	} else if (is.partable(model)) {
 		return(lavaanParTableToNativeFormat(model))

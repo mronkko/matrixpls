@@ -1,6 +1,10 @@
-library('RUnit')
- 
-source('R/matrixpls.sim.R')
+library(RUnit)
+library(parallel)
+library(MatrixPLS)
+
+options(boot.ncpus = detectCores())
+options(boot.parallel = "multicore")
+
  
 test.suite <- defineTestSuite("matrixpls",
                               dirs = file.path("tests"),

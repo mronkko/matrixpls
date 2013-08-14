@@ -1,5 +1,7 @@
 library(assertive)
 library(RUnit)
+library(gtools)
+library(simsem)
 
 #
 # Tests that all the relevant vignettes in Version03 directory (matrix syntax) of SimSem
@@ -37,12 +39,6 @@ test.simsem.Version05mx <- function()
 #
 
 execute.simsem.tests <- function(directory){
-
-	options(boot.ncpus = detectCores())
-	options(boot.parallel = "multicore")
-	
-	library(gtools)
-	library(simsem)
 	
 	vignettes <- list.files(path=directory, recursive = TRUE)
 
@@ -53,7 +49,7 @@ execute.simsem.tests <- function(directory){
 	
 	vignettes <- mixedsort(vignettes)
 	
-	for(vignette in vignettes[1]){
+	for(vignette in vignettes){
 		fileName <- paste(directory,vignette,sep="/")
 		print(paste("Preparing vignette from file",fileName))
 
@@ -61,10 +57,21 @@ execute.simsem.tests <- function(directory){
 		
 		# Replace calls to sim to matrixpls.sim
 		
-		modifiedVignetteCode <- gsub("sim\\([0-9]+(.*))\n+?","matrixpls.sim(10\\1, stopOnError = TRUE, multicore = TRUE)\n",vignetteCode)
+		modifiedVignetteCode <- gsub("sim\\([0-9]+(.*))\n+?","matrixpls.sim(10\\1, stopOnError = TRUE)\n",vignetteCode)
+
+		cat(modifiedVignetteCode)
+		
+		print(paste("Running vignette from file",fileName))
+		
+		eval(parse(text = modifiedVignetteCode))
 		
 		# Run the code
-		checkException(eval(parse(text = modifiedVignetteCode)), msg = fileName);
+		tryCatch({
+			checkTrue(TRUE, msg = fileName)
+		}, error = function(e){
+			cat(modifiedVignetteCode)
+			checkTrue(FALSE, msg = fileName)
+		})
 		
 	}
 }
@@ -103,3 +110,5 @@ test.populationValues <- function()
 	DEACTIVATED('Not implemented')
 	#checkEquals()
 }
+
+test.simsem.Version05()

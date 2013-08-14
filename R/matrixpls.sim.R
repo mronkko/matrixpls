@@ -13,7 +13,7 @@ library(simsem)
 #'@export
 
 
-matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, generate = NULL, ..., cilevel = 0.95, citype=c("norm","basic", "stud", "perc", "bca"), bootstrap = 500){
+matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, generate = NULL, ..., rawData = NULL, cilevel = 0.95, citype=c("norm","basic", "stud", "perc", "bca"), bootstrap = 500){
 
 	# Basic verification of the arguments
 	assert_all_are_positive(bootstrap)	
@@ -23,7 +23,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, generate = NULL, 
 
 	# Beacuse we are using a custom estimator function, the generate model must be set.
 	
-	if(is.null(generate)) generate <- model
+	if(is.null(generate) && is.null(rawData)) generate <- model
 	
 	nativeModel <- parseModelToNativeFormat(model)	
 	weightRelations <- defaultWeightRelationsWithModel(model)
@@ -84,6 +84,6 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, generate = NULL, 
 	
 
 	
-	sim(nRep = nRep, model = model, n = n, generate = generate, ...)
+	sim(nRep = nRep, model = model, n = n, generate = generate, ..., rawData = rawData)
 }
  
