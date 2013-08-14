@@ -40,28 +40,50 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, generate = NULL, 
 
 	model  <- function(data){
 			
-			
-			boot.out <- boot(data, function(originalData,indices){
+
+		# Indices for parameters excluding weights
+		
+		parameterIndices <- 1:(sum(nativeModel$inner) + sum(nativeModel$reflective) + sum(nativeModel$formative))
+		
+		boot.out <- boot(data, function(originalData,indices){
 					S <- cor(originalData[indices,])
-					matrixpls(S, nativeModel, weightRelations)
+					tryCatch(
+						matrixpls(S, nativeModel, weightRelations), 
+						error = function(e){
+							print(e)
+							print(S)
+							print(nativeModel)
+							print(weightRelations)
+						})
 			}, bootstrap) 
 			
-			# Indices for parameters excluding weights
-			parameterIndices <- 1:(sum(nativeModel$inner) + sum(nativeModel$reflective) + sum(nativeModel$formative))
-			
-			boot.ci.out <- boot.ci(boot.out, conf = cilevel, type = citype)
-			cis <- boot.ci.out[[citype]]
-			cis <- cis[,ncol(cis)-1:0]
+		
+		cis <- sapply(parameterIndices, FUN = function(index) {
+			boot.ci.out <- boot.ci(boot.out, conf = cilevel, type = citype, index=index)
 
-			return(list(coef = boot.out$t0[parameterIndices],
-									se = apply(boot.out$t,2,sd,na.rm=TRUE),
-									converged = attr(boot.out$t0,"converged"),
-									cilower = cis[,1],
-									ciupper = cis[,2]))
+				# The cis start from the fourth slot and we only have one type of ci. 
+				# The list names do not match the type parameter exactly (e.g. "norm" vs. "normal")
+				
+			cis <- boot.ci.out[[4]]
+			cis[,ncol(cis)-1:0]
+		})
+		
+		ses <- apply(boot.out$t[,parameterIndices],2,sd,na.rm=TRUE)
+		names(ses) <- names(boot.out$t0[parameterIndices])
+		colnames(cis) <- names(boot.out$t0[parameterIndices])
+		
+		ret <- list(coef = boot.out$t0[parameterIndices],
+								se = ses,
+								converged = attr(boot.out$t0,"converged"),
+								cilower = cis[1,],
+								ciupper = cis[2,], 
+								fit = c(Random = runif(1)))
+		
+		return(ret)
 	}
 	
 
 	
-	sim(nRep = nRep, model = model, n = n, generate = generate)
+	sim(nRep = nRep, model = model, n = n, generate = generate, ...)
 }
  

@@ -8,6 +8,7 @@ library(RUnit)
 
 test.simsem.Version03 <- function()
 {
+	DEACTIVATED('Not implemented')
 	execute.simsem.tests("simsem/SupportingDocs/Examples/Version03")
 }
 
@@ -28,6 +29,7 @@ test.simsem.Version05 <- function()
 
 test.simsem.Version05mx <- function()
 {
+	DEACTIVATED('Not implemented')
 	execute.simsem.tests("simsem/SupportingDocs/Examples/Version05mx")
 }
 #
@@ -36,6 +38,9 @@ test.simsem.Version05mx <- function()
 
 execute.simsem.tests <- function(directory){
 
+	options(boot.ncpus = detectCores())
+	options(boot.parallel = "multicore")
+	
 	library(gtools)
 	library(simsem)
 	
@@ -56,7 +61,7 @@ execute.simsem.tests <- function(directory){
 		
 		# Replace calls to sim to matrixpls.sim
 		
-		modifiedVignetteCode <- gsub("sim\\(","matrixpls.sim(",vignetteCode)
+		modifiedVignetteCode <- gsub("sim\\([0-9]+(.*))\n+?","matrixpls.sim(10\\1, stopOnError = TRUE, multicore = TRUE)\n",vignetteCode)
 		
 		# Run the code
 		checkException(eval(parse(text = modifiedVignetteCode)), msg = fileName);
