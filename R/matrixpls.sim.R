@@ -1,4 +1,4 @@
-library(simsem)
+
 
 #'@title Monte Carlo simulations with MatrixPLS
 #'
@@ -15,6 +15,8 @@ library(simsem)
 
 matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, generate = NULL, ..., rawData = NULL, cilevel = 0.95, citype=c("norm","basic", "stud", "perc", "bca"), bootstrap = 500){
 
+	library(simsem)
+	
 	# Basic verification of the arguments
 	assert_all_are_positive(bootstrap)	
 	assert_all_are_positive(cilevel)
@@ -40,7 +42,8 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, generate = NULL, 
 
 	model  <- function(data){
 			
-
+		browser()
+		
 		# Indices for parameters excluding weights
 		
 		parameterIndices <- 1:(sum(nativeModel$inner) + sum(nativeModel$reflective) + sum(nativeModel$formative))

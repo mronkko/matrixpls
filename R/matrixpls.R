@@ -122,7 +122,7 @@ matrixpls <- function(S, model, weightRelations = NULL, parameterEstimator = mat
 
 matrixpls.weights <- function(S, innerMatrix, weightRelations,
 															outerEstimators = matrixpls.outerEstimator.modeA, 
-															innerEstimator = matrixpls.innerEstimator.centroid,
+															innerEstimator = matrixpls.innerEstimator.path,
 															tol = 1e-05, iter = 100, validateInput = TRUE) {
 	
 	if(validateInput){
@@ -566,12 +566,14 @@ scaleWeights <- function(S, W){
 
 lavaanParTableToNativeFormat <- function(partable){
 	
+	library(lavaan)
+	
 	factorLoadings <- partable[partable$op == "=~",]
 	regressions <- partable[partable$op == "~",]
 	
 	# Parse the variables
-	latentVariableNames <- sort(unique(factorLoadings$lhs))
-	observedVariableNames <- sort(setdiff(unique(c(partable$rhs,partable$lhs)), latentVariableNames))
+	latentVariableNames <- unique(factorLoadings$lhs)
+	observedVariableNames <- setdiff(unique(c(partable$rhs,partable$lhs)), latentVariableNames)
 	
 	# Set up empty model tables
 	
@@ -622,7 +624,7 @@ parseModelToNativeFormat <- function(model){
 		return(model)
 	}
 	else if(is.character(model)) {
-		
+
 		# Remove all multigroup specifications because we do not support multigroup analyses
 		model <- gsub("c\\(.+?\\)","NA",model)
 		
