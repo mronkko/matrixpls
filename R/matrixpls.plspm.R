@@ -337,14 +337,14 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 			return(t(IC_std[,vars]))
 		}, simplify= FALSE)
 		
-		> a$inner.sum
-		LV.Type Measure MVs  R.square  Av.Commu  Av.Redun       AVE
-		IMAG  Exogen   Rflct   5 0.0000000 0.5822708 0.0000000 0.5822708
-		EXPE Endogen   Rflct   5 0.3351926 0.6164204 0.2066196 0.6164204
-		QUAL Endogen   Rflct   5 0.7196882 0.6585720 0.4739665 0.6585720
-		VAL  Endogen   Rflct   4 0.5900843 0.6644158 0.3920613 0.6644158
-		SAT  Endogen   Rflct   4 0.7073207 0.7588907 0.5367791 0.7588907
-		LOY  Endogen   Rflct   4 0.5099190 0.6390545 0.3258660 0.6390545
+#		a$inner.sum
+#		LV.Type Measure MVs  R.square  Av.Commu  Av.Redun       AVE
+#		IMAG  Exogen   Rflct   5 0.0000000 0.5822708 0.0000000 0.5822708
+#		EXPE Endogen   Rflct   5 0.3351926 0.6164204 0.2066196 0.6164204
+#		QUAL Endogen   Rflct   5 0.7196882 0.6585720 0.4739665 0.6585720
+#		VAL  Endogen   Rflct   4 0.5900843 0.6644158 0.3920613 0.6644158
+#		SAT  Endogen   Rflct   4 0.7073207 0.7588907 0.5367791 0.7588907
+#		LOY  Endogen   Rflct   4 0.5099190 0.6390545 0.3258660 0.6390545
 		
 		res = list(outer.mod = outer.mod, 
 							 inner.mod = inner.mod, 
@@ -435,17 +435,9 @@ plsregressionsWithCovarianceMatrixAndModelPattern <- function(S,model){
 	
 }
 
-#' @title PLS regression for \code{MatrixPLS}
-#' 
-#' @description
-#' Internal function. \code{get_plsr1} is called by \code{MatrixPLS} to do PLS-R1. Ported from \code{plspm}
-#' 
-#' @param C covariance matrix of the pls composites. The first composite is regressed on the other composites
-#' @param nc number of components
-#' @param scaled logical indicating whether to scale the data
-#' @return A list with pls regression results
-#' @keywords internal
-#' @export
+#
+# Run PLS regression. Ported from PLSPM
+#
 
 get_plsr1 <-function(C, nc=NULL, scaled=TRUE)
 {
@@ -494,27 +486,10 @@ get_plsr1 <-function(C, nc=NULL, scaled=TRUE)
 	return(Br)
 }
 
-#' @title Check parameters for \code{plspm} and \code{plspm.fit}
-#' 
-#' @description
-#' Internal function. \code{get_params} is called by \code{plspm}.
-#'
-#' @param x numeric matrix or data frame containing the manifest variables.
-#' @param inner square (lower triangular) boolean matrix for inner model.
-#' @param outer List of vectors with column indices from \code{x} indicating 
-#' the sets of manifest variables asociated to the latent variables.
-#' @param modes character vector indicating the type of measurement.
-#' @param scheme string indicating the type of inner weighting scheme.
-#' @param scaled logical indicating whether scaling data is performed.
-#' @param boot.val logical indicating whether bootstrap validation is performed.
-#' @param br integer indicating the number bootstrap resamples.
-#' @param plsr logical indicating whether to use pls regression for path coefs.
-#' @param tol decimal value indicating the tolerance criterion for covergence.
-#' @param iter integer indicating the maximum number of iterations.
-#' @param dataset logical indicating whether the data matrix should be retrieved.
-#' @return list of validated parameters for \code{plspm} and \code{plspm.fit}.
-#' @keywords internal
-#' @export
+#
+# Validate parameters. Copied from PLSPM
+#
+
 get_params <-
 	function(x, inner, outer, modes=NULL, scheme="centroid", scaled=TRUE,
 					 boot.val=FALSE, br=NULL, plsr=FALSE, tol=0.00001, iter=100, dataset=TRUE)

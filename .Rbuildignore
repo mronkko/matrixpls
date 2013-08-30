@@ -8,3 +8,4 @@ tests
 .git
 run_tests.R
 README.md
+matrixpls.sempls.R

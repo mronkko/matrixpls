@@ -524,15 +524,6 @@ matrixpls.innerEstimator.identity <- function(S, W, innerMatrix){
 #'including also the relationships from composites toward indicators in the first step. The term component
 #'is used in a very generic way to refer to a variable that is a weighted composite of the raw data.
 #'
-#'In the first step (Hwang & Takane, 2004, eq. 4)
-#'
-#'\deqn{latex}{SS(\textbf{ZV}-\textbf{ZWA})}
-#'
-#'is minimized in respect to A. This A is then returned and used as fixed parameters the next estimation step.
-#'
-#'Here \eqn{latex}{\textbf{ZV}} denotes indicators and component that are regressed on components \textbf{ZW} and
-#'where \textbf{A} denotes the regression coefficients. 
-#'
 #'The implementation of GSCA in MatrixPLS differens from the Hwang & Takane (2004) version in that during the
 #'first step, only regressions between components are estimated. The reason for this is that the
 #'relationhips from the components to indicators are simple regressions that are simply the covariances between
@@ -553,15 +544,52 @@ matrixpls.innerEstimator.identity <- function(S, W, innerMatrix){
 #'
 #'@references
 #'Hwang, H., & Takane, Y. (2004). Generalized structured component analysis. Psychometrika, 69(1), 81–99. doi:10.1007/BF02295841
-
+#'
+#'@examples
+#'  
+#'  # Run the example from plspm package using GSCA estimation
+#'  
+#'  library(plspm)
+#'  
+#'  # load dataset satisfaction
+#'  data(satisfaction)
+#'  
+#'  # inner model matrix
+#'  IMAG = c(0,0,0,0,0,0)
+#'  EXPE = c(1,0,0,0,0,0)
+#'  QUAL = c(0,1,0,0,0,0)
+#'  VAL = c(0,1,1,0,0,0)
+#'  SAT = c(1,1,1,1,0,0)
+#'  LOY = c(1,0,0,0,1,0)
+#'  
+#'  inner = rbind(IMAG, EXPE, QUAL, VAL, SAT, LOY)
+#'  
+#'  # reflective relationships
+#'  reflective <- matrix(0, 27, 6)
+#'  for(lv in 1:6){
+#'  	reflective[list(1:5, 6:10, 11:15, 16:19, 20:23, 24:27)[[lv]],lv] <-1
+#'  }
+#'  # no formative relationships
+#'  formative <- matrix(0, 6, 27)
+#'  
+#'  model <- list(inner=inner, reflective=reflective, formative=formative)
+#'  
+#'  # apply MatrixPLS with GSCA estimators
+#'  
+#'  matrixpls(cor(satisfaction[,1:27]), model, 
+#'  					outerEstimators = matrixpls.outerEstimator.GSCA, 
+#'  					innerEstimator = matrixpls.innerEstimator.GSCA)
+#'
 #'@export
 
 matrixpls.innerEstimator.GSCA <- function(S, W, innerMatrix){
 		
-	# Start with the factor weights
-	E <- matrixpls.innerEstimator.factor(S, W, innerMatrix)
+	# Calculate the composite covariance matrix
+	C <- W %*% S %*% t(W)
+	
+	E <- regressionsWithCovarianceMatrixAndModelPattern(C,innerMatrix)
 		
-	E <- regressionsWithCovarianceMatrixAndModelPattern(S,E)
+	return(E)
 }
 	
 # =========== Outer estimators ===========
@@ -706,9 +734,46 @@ matrixpls.outerEstimator.fixedWeights <- function(S, W, E, weightRelations){
 #'@references
 #'Hwang, H., & Takane, Y. (2004). Generalized structured component analysis. Psychometrika, 69(1), 81–99. doi:10.1007/BF02295841
 #'
+#'@examples
+#'
+#'  # Run the example from plspm package using GSCA estimation
+#'  
+#'  library(plspm)
+#'  
+#'  # load dataset satisfaction
+#'  data(satisfaction)
+#'  
+#'  # inner model matrix
+#'  IMAG = c(0,0,0,0,0,0)
+#'  EXPE = c(1,0,0,0,0,0)
+#'  QUAL = c(0,1,0,0,0,0)
+#'  VAL = c(0,1,1,0,0,0)
+#'  SAT = c(1,1,1,1,0,0)
+#'  LOY = c(1,0,0,0,1,0)
+#'  
+#'  inner = rbind(IMAG, EXPE, QUAL, VAL, SAT, LOY)
+#'  
+#'  # reflective relationships
+#'  reflective <- matrix(0, 27, 6)
+#'  for(lv in 1:6){
+#'  	reflective[list(1:5, 6:10, 11:15, 16:19, 20:23, 24:27)[[lv]],lv] <-1
+#'  }
+#'  # no formative relationships
+#'  formative <- matrix(0, 6, 27)
+#'  
+#'  model <- list(inner=inner, reflective=reflective, formative=formative)
+#'  
+#'  # apply MatrixPLS with GSCA estimators
+#'  
+#'  matrixpls(cor(satisfaction[,1:27]), model, 
+#'  					outerEstimators = matrixpls.outerEstimator.GSCA, 
+#'  					innerEstimator = matrixpls.innerEstimator.GSCA)
+#'
+#'
 #'@export
 
 matrixpls.outerEstimator.GSCA <- function(S, W, E, weightRelations){
+	
 	
 	Wpattern <- weightRelations!=0
 	
@@ -717,7 +782,12 @@ matrixpls.outerEstimator.GSCA <- function(S, W, E, weightRelations){
 	ssFun <- function(Wvect){
 		
 		W[Wpattern] <- Wvect
-
+		
+		# Start by standardizing the weights because optim does not know that the
+		# weights must result in a composite with unit variance
+		
+		W <- scaleWeights(S, W)
+		
 		# Calculate the covariance matrix between indicators and composites
 		IC <- W %*% S
 
@@ -731,7 +801,7 @@ matrixpls.outerEstimator.GSCA <- function(S, W, E, weightRelations){
 		# we will take a sum of these 
 		
 		indicatorIndices <- col(weightRelations)[Wpattern]
-		ss_indicators <-sum (IC[Wpattern]-diag(S)[indicatorIndices])
+		ss_indicators <-sum (diag(S)[indicatorIndices]-IC[Wpattern])
 		
 		# Sum of squares from regressions between composites
 		
@@ -750,11 +820,16 @@ matrixpls.outerEstimator.GSCA <- function(S, W, E, weightRelations){
 		
 	# Then we will find the minimum using optim
 	
-	Wvect <- optim(start,)$par
+	Wvect <- optim(start, ssFun)$par
 	
 	# Update the weights based on the estimated parameters
 	
 	W[Wpattern] <- Wvect
+	
+	# Finally standardize the weights because optim does not know that the
+	# weights must result in a composite with unit variance
+	
+	W <- scaleWeights(S, W)
 	
 	return(W)
 }
