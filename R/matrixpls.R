@@ -429,10 +429,17 @@ matrixpls.innerEstimator.centroid <- function(S, W, innerMatrix){
 
 matrixpls.innerEstimator.path <- function(S, W, innerMatrix){
 	
-	# Start with the factor weights
-	E <- matrixpls.innerEstimator.factor(S, W, innerMatrix)
+	# Create the composite covariance matrix	
+	C <- W %*% S %*% t(W)
 	
-	E <- regressionsWithCovarianceMatrixAndModelPattern(S,E)
+	E <- regressionsWithCovarianceMatrixAndModelPattern(C, innerMatrix)
+	
+	# Use  correlations for inverse relationships for non-reciprocal paths
+	inverseRelationships <- t(innerMatrix) & ! innerMatrix
+	E[inverseRelationships] <- C[inverseRelationships]
+	
+	# If we have LVs that are not connected to any other LVs, use identity scheme as fallback
+	diag(E)[rowSums(E) == 0] <- 1
 	
 	return(E)
 }
@@ -500,10 +507,62 @@ matrixpls.innerEstimator.factor <- function(S, W, innerMatrix){
 
 
 
-matrixpls.innerEstimator.identity <- function(C, innerMatrix){
+matrixpls.innerEstimator.identity <- function(S, W, innerMatrix){
 	return(diag(nrow(innerMatrix)))
 }
 
+#'@title GSCA inner estimation
+#'
+#'@description
+#'
+#'This implements the first step of the GSCA estimation describe by Hwang & Takane (2004)
+#
+#'@details
+#'
+#'The first step of GSCA estimation method, as describe by Hwang & Takane (2004), involves estimating all model regressions,
+#'including also the relationships from composites toward indicators in the first step. The term component
+#'is used in a very generic way to refer to a variable that is a weighted composite of the raw data.
+#'
+#'In the first step (Hwang & Takane, 2004, eq. 4)
+#'
+#'\deqn{latex}{SS(\textbf{ZV}-\textbf{ZWA})}
+#'
+#'is minimized in respect to A. This A is then returned and used as fixed parameters the next estimation step.
+#'
+#'Here \eqn{latex}{\textbf{ZV}} denotes indicators and component that are regressed on components \textbf{ZW} and
+#'where \textbf{A} denotes the regression coefficients. 
+#'
+#'The implementation of GSCA in MatrixPLS differens from the Hwang & Takane (2004) version in that during the
+#'first step, only regressions between components are estimated. The reason for this is that the
+#'relationhips from the components to indicators are simple regressions that are simply the covariances between
+#'the indicators and components. Since these covariances need to be calculated in the second step, it is more
+#'efficient to not calculate them during the first step.
+#'
+#'This algorithm is therefore identical to the PLS path weighting scheme with the exception that correlations
+#'are not used for inverse relationships and there is no falling back to identity scheme for components
+#'that are not connected to other components
+#'
+#'@param S Covariance matrix of the data.
+#'
+#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'
+#'@param innerMatrix A square matrix specifying the relationships of the latent variables in the model
+#'
+#'@return A matrix of unscaled inner weights with the same dimesions as \code{innerMatrix}
+#'
+#'@references
+#'Hwang, H., & Takane, Y. (2004). Generalized structured component analysis. Psychometrika, 69(1), 81–99. doi:10.1007/BF02295841
+
+#'@export
+
+matrixpls.innerEstimator.GSCA <- function(S, W, innerMatrix){
+		
+	# Start with the factor weights
+	E <- matrixpls.innerEstimator.factor(S, W, innerMatrix)
+		
+	E <- regressionsWithCovarianceMatrixAndModelPattern(S,E)
+}
+	
 # =========== Outer estimators ===========
 
 #'@title PLS outer estimation with Mode A
@@ -601,6 +660,67 @@ matrixpls.outerEstimator.modeB <- function(S, W, E, weightRelations){
 #'@export
 
 matrixpls.outerEstimator.fixedWeights <- function(S, W, E, weightRelations){
+	return(weightRelations)
+}
+
+#'@title GSCA outer estimation
+#'
+#'@description
+#'
+#'This implements the second step of the GSCA estimation describe by Hwang & Takane (2004)
+#'
+#'@details
+#'
+#'The second step of GSCA estimation method, as describe by Hwang & Takane (2004), involves calculation of new
+#'weights given the regression estimates form the first step.The term component
+#'is used in a very generic way to refer to a variable that is a weighted composite of the raw data.
+#'
+#'In the first step (Hwang & Takane, 2004, eq. 7)
+#'
+#'\deqn{latex}{SS(\textbf{Z}[\textbf{V}-\textbf{\Lambda}])}
+#'
+#'Because \eqn{latex}{\textbf{\Lambda}} is defined as \eqn{latex}{\textbf{WA}}, the function to be minimized is
+#'identical to the first step function (Hwang & Takane, 2004, eq. 4)
+#'
+#'\deqn{latex}{SS(\textbf{ZV}-\textbf{ZWA})}
+#'
+#'In the second step, this function was minimized in respect to W and V, which are returned and used as fixed
+#'parameters the next estimation step. This involves estimating each regression ananalysis in the model including
+#'regressions between the components and from components to indicators and to minimize the sum of all OLS
+#'dicrepancy functions simultaneously. Because one weight can be included in many regressions, these equations
+#'must be estimated simultaneously.
+#'
+#'The second step of GSCA is implementedz in MatrixPLS by solving a system of simultaneous equations. This equation
+#'group can be derived from the raw data version of GSCA presented by Hwang & Takane. The regressions
+#'from components to indicators are given by
+#'
+#'\deqn{latex}{y=cov(\textbf{ZW},y)\textbf{Z}\hat{\textbf{W}} + e}
+#'
+#'where y are the reflective indicators in the model, \textbf{W} is the MatrixPLS weight matrix from earlier estimation
+#'round, \textbf{Z} is the raw data, and \hat{\textbf{W}} are the new weights that are optimized to minimize the variance
+#'of residuals e.
+#'
+#'The regressions between components can be writen as 
+#'
+#'\deqn{latex}{\textbf{Z}\hat{\textbf{W}} = \textbf{E}{\textbf{Z}\hat{\textbf{W}} + e}
+#'
+#'
+#'@param S Covariance matrix of the data.
+#'
+#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'
+#'@param E Inner weight matrix. A square matrix of inner estimates between the composites.
+#'
+#'@param weightRelations A matrix specifying the weight relationships and their starting values.
+#'
+#'@return A matrix of unscaled outer weights with the same dimesions as \code{weightRelations}
+#'
+#'@references
+#'Hwang, H., & Takane, Y. (2004). Generalized structured component analysis. Psychometrika, 69(1), 81–99. doi:10.1007/BF02295841
+#'
+#'@export
+
+matrixpls.outerEstimator.GSCA <- function(S, W, E, weightRelations){
 	return(weightRelations)
 }
 
