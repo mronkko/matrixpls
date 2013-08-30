@@ -1,3 +1,4 @@
+export(effects.matrixpls)
 export(matrixpls.innerEstimator.centroid)
 export(matrixpls.innerEstimator.factor)
 export(matrixpls.innerEstimator.GSCA)

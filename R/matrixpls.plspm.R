@@ -1,4 +1,5 @@
 library(plspm)
+library(psych)
 
 # =========== Main functions ===========
 
@@ -78,8 +79,6 @@ library(plspm)
 #'model. Only when \code{dataset=TRUE}}
 #'@return \item{boot}{List of bootstrapping results; only available when argument
 #'\code{boot.val=TRUE}}
-#'@author Mikko Rönkkö
-#'@author Gaston Sanchez
 #'
 #'@references Tenenhaus M., Esposito Vinzi V., Chatelin Y.M., and Lauro C.
 #'(2005) PLS path modeling. \emph{Computational Statistics & Data Analysis},
@@ -110,35 +109,36 @@ library(plspm)
 #'@examples
 #'
 #'  \dontrun{
-#'  ## typical example of PLS-PM in customer satisfaction analysis
-#'  ## model with six LVs and reflective indicators
-#'
+#'  library(plspm)
+#'  
+#'  # Run the example from plspm package
+#'  
 #'  # load dataset satisfaction
 #'  data(satisfaction)
-#'
-#'  # inner_matrix model matrix
+#'  # inner model matrix
 #'  IMAG = c(0,0,0,0,0,0)
 #'  EXPE = c(1,0,0,0,0,0)
 #'  QUAL = c(0,1,0,0,0,0)
 #'  VAL = c(0,1,1,0,0,0)
-#'  SAT = c(1,1,1,1,0,0) 
+#'  SAT = c(1,1,1,1,0,0)
 #'  LOY = c(1,0,0,0,1,0)
-#'  sat_inner_matrix = rbind(IMAG, EXPE, QUAL, VAL, SAT, LOY)
-#'
+#'  sat_inner = rbind(IMAG, EXPE, QUAL, VAL, SAT, LOY)
 #'  # outer model list
 #'  sat_outer = list(1:5, 6:10, 11:15, 16:19, 20:23, 24:27)
-#'
 #'  # vector of modes (reflective indicators)
 #'  sat_mod = rep("A", 6)
-#'
-#'  # apply plspm
-#'  satpls = matrixpls.plspm(satisfaction, sat_inner_matrix, sat_outer, sat_mod, scaled=FALSE, boot.val=TRUE)
 #'  
-#'  # summary of results
-#'  summary(satpls)
-#'
-#'  # default plot (inner_matrix model)
-#'  plot(satpls)
+#'  # apply plspm
+#'  plspm.res <- plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=FALSE)
+#'  
+#'  # apply MatrixPLS
+#'  matrixpls.res <- matrixpls.plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=FALSE)
+#'  
+#'  # plspm scales latent variable scores based on estimated population sd whereas matrixpls scales
+#'  # standardizes them in the sample. This creates small differences in some of the results.
+#'  
+#'  print(plspm.res)
+#'  print(matrixpls.res)
 #'  }
 #'
 
@@ -164,6 +164,7 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		# 
 		# Set up  matrixpls parameters
 		#
+		
 		lvNames <- rownames(params$inner)
 		reflective <- matrix(0, max(unlist(params$outer)),nrow(params$inner))
 		rownames(reflective) <- colnames(params$x)[1:nrow(reflective)]
@@ -209,7 +210,7 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		innerEstimator <- c(matrixpls.innerEstimator.centroid,
 												matrixpls.innerEstimator.factor,
 												matrixpls.innerEstimator.path)[[params$scheme]]
-		
+	
 		# Convergence is checked with the following function in plspm
 		
 		convergenceCheckFunction <- function(W,W_new){sum((abs(W_new) - abs(W))^2)} 
@@ -218,8 +219,14 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		# Perform estimation
 		# 
 
-		if(scaled) S <- cor(dataToUse)
-		else  S <- cov(dataToUse)
+		if(scaled){
+			S <- cor(dataToUse)
+			S_std <- S
+		}
+		else{
+			S <- cov(dataToUse)
+			S_std <- cov2cor(S)
+		} 
 				
 		
 		
@@ -273,6 +280,11 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		lvScoreFittedValues <- lvScores %*% t(beta)
 		intercepts <- apply(lvScores-lvScoreFittedValues,2,mean)
 		rownames(lvScores) <- 1:nrow(lvScores)
+		
+		
+		Modes <- ifelse(params$modes == "A", "Reflective","Formative")
+		
+		# Construct the objects that are returned
 		
 		outer.mod <- sapply(lvNames, function(lvName){
 			row <- which(lvNames == lvName)
@@ -337,14 +349,48 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 			return(t(IC_std[,vars]))
 		}, simplify= FALSE)
 		
-#		a$inner.sum
-#		LV.Type Measure MVs  R.square  Av.Commu  Av.Redun       AVE
-#		IMAG  Exogen   Rflct   5 0.0000000 0.5822708 0.0000000 0.5822708
-#		EXPE Endogen   Rflct   5 0.3351926 0.6164204 0.2066196 0.6164204
-#		QUAL Endogen   Rflct   5 0.7196882 0.6585720 0.4739665 0.6585720
-#		VAL  Endogen   Rflct   4 0.5900843 0.6644158 0.3920613 0.6644158
-#		SAT  Endogen   Rflct   4 0.7073207 0.7588907 0.5367791 0.7588907
-#		LOY  Endogen   Rflct   4 0.5099190 0.6390545 0.3258660 0.6390545
+		
+		inner.sum <- data.frame(LV.Type = ifelse(rowSums(nativeModel$inner) == 0,"Exogen","Endogen"),
+														Measure = abbreviate(Modes, 5),
+														MVs = blocks,
+														R.square = R2, 
+														Av.Commu = sapply(outer.mod,function(x){mean(x[,"communal"])}), 
+														Av.Redun = sapply(outer.mod,function(x){mean(x[,"redundan"])}), 
+														AVE = sapply(outer.mod,function(x){mean(x[,"std.loads"]^2)}))
+		
+		effs <- effects(matrixpls.res)
+		lt <- lower.tri(nativeModel$inner)
+		
+		effects <- data.frame(relationships = paste(colnames(nativeModel$inner)[col(nativeModel$inner)[lt]],"->",
+																								rownames(nativeModel$inner)[row(nativeModel$inner)[lt]], sep=""),
+														dir.effects = effs$Direct[lt[-1,]],
+													ind.effects = effs$Indirect[lt[-1,]], 
+													tot.effects = effs$Total[lt[-1,]])
+
+		unidim <- data.frame(Type.measure = Modes,
+												 MVs = blocks,
+												 C.alpha = sapply(params$outer,function(indices){
+												 		alpha(S[indices,indices])$total[[2]]
+												 		}, simplify = TRUE),
+												 DG.rho = sapply(1:nrow(IC_std),function(row){
+												 	std.loads <- IC_std[row,params$outer[[row]]]
+												 	
+												 	numer.rho <- sum(std.loads)^2
+												 	denum.rho <- numer.rho + (length(params$outer[[row]]) - sum(std.loads^2))
+												 	numer.rho / denum.rho
+												 }, simplify = TRUE),
+												 
+												 eig.1st = sapply(params$outer,function(indices){
+												 	 eigen(S_std[indices,indices])$values[1]
+												 }, simplify = TRUE),   
+												 eig.2nd = sapply(params$outer,function(indices){
+												 	eigen(S_std[indices,indices])$values[2]
+												 }, simplify = TRUE))
+		
+		# Goodness of Fit is square root of product of mean communality and mean R2
+		
+		gof <- sqrt(mean(IC_std[t(nativeModel$reflective)==1]^2) * 
+									mean(R2[rowSums(nativeModel$inner) > 0]))
 		
 		res = list(outer.mod = outer.mod, 
 							 inner.mod = inner.mod, 
@@ -355,10 +401,10 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 							 path.coefs = beta, 
 							 r.sqr = R2,
 							 outer.cor = outer.cor, 
-#							 inner.sum = inner.sum, 
-#							 effects = effects,
-#							 unidim = unidim, 
-#							 gof = gof, 
+							 inner.sum = inner.sum, 
+							 effects = effects,
+							 unidim = unidim, 
+							 gof = gof, 
 							 boot = boot, 
 							 data = data, 
 							 model = model)

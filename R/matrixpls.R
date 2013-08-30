@@ -71,6 +71,7 @@ matrixpls <- function(S, model, weightRelations = NULL, parameterEstimator = mat
 	}
 
 	attr(ret,"W") <- W
+	attr(ret,"model") <- nativeModel
 	
 	class(ret) <-("matrixpls")
 	
@@ -832,6 +833,59 @@ matrixpls.outerEstimator.GSCA <- function(S, W, E, weightRelations){
 	W <- scaleWeights(S, W)
 	
 	return(W)
+}
+
+# =========== Post estimation =============
+
+
+#'@title 	Total, Direct, and Indirect Effects for PLS latent variable model
+#'
+#'@description
+
+#'The \code{matrixpls} method for the standard generic function \code{effects} computes total, direct, 
+#'and indirect effects for a PLS latent variable model according to the method described in Fox (1980).
+#'
+#'Adapted from the \code{\link[sem]{effects}} function of the \code{sem} package
+#'
+#'@param object PLS estimation result object produced by the \code{\link{matrixpls}} function.
+#'
+#'@return A list with \code{Total}, \code{Direct}, and \code{Indirect} elements.
+#'
+#'@references
+#'
+#'Fox, J. (1980) Effect analysis in structural equation models: Extensions and simplified methods of computation. \emph{Sociological Methods and Research}
+#'\bold{9}, 3--28.
+#'
+#'@export
+
+effects.matrixpls <- function(object, ...) {
+	
+  A <- attr(object,"beta")
+  endog <- rowSums(attr(object,"model")$inner)!=0 
+  I <- diag(endog)
+	AA <- - A
+	diag(AA) <- 1
+	Total <- solve(AA) - I
+	Indirect <-  Total - A
+	result <- list(Total=Total[endog, ], Direct=A[endog, ], Indirect=Indirect[endog, ])
+	class(result) <- "matrixplseffects"
+	result
+}
+
+print.matrixplseffects <- function(x, digits=getOption("digits"), ...){
+	cat("\n Total Effects (column on row)\n")
+	Total <- x$Total
+	Direct <- x$Direct
+	Indirect <- x$Indirect
+	select <- !(apply(Total, 2, function(x) all( x == 0)) & 
+								apply(Direct, 2, function(x) all( x == 0)) & 
+								apply(Indirect, 2, function(x) all( x == 0)))
+	print(Total[, select], digits=digits)
+	cat("\n Direct Effects\n")
+	print(Direct[, select], digits=digits)
+	cat("\n Indirect Effects\n")
+	print(Indirect[, select], digits=digits)
+	invisible(x)
 }
 
 # =========== Utility functions ===========
