@@ -309,7 +309,7 @@ matrixpls.parameterEstimator.internal_generic <- function(S, W, model, pathEstim
 	
 	results <- c()
 	
-	# Create the composite covariance matrix
+	# Calculate the composite covariance matrix
 	C <- W %*% S %*% t(W)
 	
 	# Calculate the covariance matrix between indicators and composites
@@ -429,7 +429,7 @@ matrixpls.innerEstimator.centroid <- function(S, W, innerMatrix){
 
 matrixpls.innerEstimator.path <- function(S, W, innerMatrix){
 	
-	# Create the composite covariance matrix	
+	# Calculate the composite covariance matrix	
 	C <- W %*% S %*% t(W)
 	
 	E <- regressionsWithCovarianceMatrixAndModelPattern(C, innerMatrix)
@@ -464,7 +464,7 @@ matrixpls.innerEstimator.path <- function(S, W, innerMatrix){
 
 matrixpls.innerEstimator.factor <- function(S, W, innerMatrix){
 
-	# Create the composite covariance matrix
+	# Calculate the composite covariance matrix
 		
 	C <- W %*% S %*% t(W)
 
@@ -515,7 +515,8 @@ matrixpls.innerEstimator.identity <- function(S, W, innerMatrix){
 #'
 #'@description
 #'
-#'This implements the first step of the GSCA estimation describe by Hwang & Takane (2004)
+#'This implements the first step of the GSCA estimation describe by Hwang & Takane (2004). GSCA inner estimation should
+#'be used only with GSCA outer estimation. 
 #
 #'@details
 #'
@@ -667,7 +668,8 @@ matrixpls.outerEstimator.fixedWeights <- function(S, W, E, weightRelations){
 #'
 #'@description
 #'
-#'This implements the second step of the GSCA estimation describe by Hwang & Takane (2004)
+#'This implements the second step of the GSCA estimation describe by Hwang & Takane (2004). GSCA outer estimation should
+#'be used only with GSCA inner estimation. 
 #'
 #'@details
 #'
@@ -690,20 +692,6 @@ matrixpls.outerEstimator.fixedWeights <- function(S, W, E, weightRelations){
 #'dicrepancy functions simultaneously. Because one weight can be included in many regressions, these equations
 #'must be estimated simultaneously.
 #'
-#'The second step of GSCA is implementedz in MatrixPLS by solving a system of simultaneous equations. This equation
-#'group can be derived from the raw data version of GSCA presented by Hwang & Takane. The regressions
-#'from components to indicators are given by
-#'
-#'\deqn{latex}{y=cov(\textbf{ZW},y)\textbf{Z}\hat{\textbf{W}} + e}
-#'
-#'where y are the reflective indicators in the model, \textbf{W} is the MatrixPLS weight matrix from earlier estimation
-#'round, \textbf{Z} is the raw data, and \hat{\textbf{W}} are the new weights that are optimized to minimize the variance
-#'of residuals e.
-#'
-#'The regressions between components can be writen as 
-#'
-#'\deqn{latex}{\textbf{Z}\hat{\textbf{W}} = \textbf{E}{\textbf{Z}\hat{\textbf{W}} + e}
-#'
 #'
 #'@param S Covariance matrix of the data.
 #'
@@ -721,7 +709,54 @@ matrixpls.outerEstimator.fixedWeights <- function(S, W, E, weightRelations){
 #'@export
 
 matrixpls.outerEstimator.GSCA <- function(S, W, E, weightRelations){
-	return(weightRelations)
+	
+	Wpattern <- weightRelations!=0
+	
+	# We will start by creating a function that returns the sum of squares of all the regressions
+	
+	ssFun <- function(Wvect){
+		
+		W[Wpattern] <- Wvect
+
+		# Calculate the covariance matrix between indicators and composites
+		IC <- W %*% S
+
+		# Calculate the composite covariance matrix
+		C <- IC %*% t(W)
+		
+		# Sum of squares from regressions from composites to indicators
+		
+		# Sum of squares is the sum of residual variances. For indicators, residual variance is the
+		# difference between covariance between the composite and the indicator variances. 
+		# we will take a sum of these 
+		
+		indicatorIndices <- col(weightRelations)[Wpattern]
+		ss_indicators <-sum (IC[Wpattern]-diag(S)[indicatorIndices])
+		
+		# Sum of squares from regressions between composites
+		
+		# Sum of squares is the sum of residual variances. For composites, residual variance is 
+		# 1 - R2 and we will take a sum of these 
+		
+		R2 <- rowSums(E * C)
+		ss_composites <- sum(1-R2)
+		
+		return(ss_composites + ss_indicators)
+	}	
+	
+	# The previous weights are used as starting values
+		
+	start <- W[Wpattern]
+		
+	# Then we will find the minimum using optim
+	
+	Wvect <- optim(start,)$par
+	
+	# Update the weights based on the estimated parameters
+	
+	W[Wpattern] <- Wvect
+	
+	return(W)
 }
 
 # =========== Utility functions ===========
