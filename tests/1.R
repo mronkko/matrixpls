@@ -21,6 +21,7 @@ test.simsem.Version03 <- function()
 
 test.simsem.Version05 <- function()
 {
+	DEACTIVATED('Not currenly in use')
 	execute.simsem.tests("simsem/SupportingDocs/Examples/Version05")
 }
 
@@ -82,10 +83,44 @@ execute.simsem.tests <- function(directory){
 
 test.plspm <- function()
 {
-	DEACTIVATED('Not implemented')
+	
 	library(plspm)
 
-#	checkEquals()
+	# Run the example from plspm package
+	
+	# load dataset satisfaction
+	data(satisfaction)
+	# inner model matrix
+	IMAG = c(0,0,0,0,0,0)
+	EXPE = c(1,0,0,0,0,0)
+	QUAL = c(0,1,0,0,0,0)
+	VAL = c(0,1,1,0,0,0)
+	SAT = c(1,1,1,1,0,0)
+	LOY = c(1,0,0,0,1,0)
+	sat_inner = rbind(IMAG, EXPE, QUAL, VAL, SAT, LOY)
+	# outer model list
+	sat_outer = list(1:5, 6:10, 11:15, 16:19, 20:23, 24:27)
+	# vector of modes (reflective indicators)
+	sat_mod = rep("A", 6)
+
+	# apply plspm
+	satpls.plspm = plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=FALSE)
+	
+	# apply MatrixPLS
+	satpls.matrixpls = matrixpls.plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=FALSE)
+
+	checkEquals(satpls.matrixpls, satpls.plspm)
+
+	# Repeat with bootstrapping
+
+	# apply plspm
+	satpls.plspm = plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=TRUE)
+	
+	# apply MatrixPLS
+	satpls.matrixpls = matrixpls.plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=TRUE)
+	
+	checkEquals(satpls.matrixpls, satpls.plspm)
+	
 }
 
 #
@@ -111,4 +146,4 @@ test.populationValues <- function()
 	#checkEquals()
 }
 
-test.simsem.Version05()
+test.plspm()

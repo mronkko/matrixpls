@@ -57,12 +57,21 @@ matrixpls <- function(S, model, weightRelations = NULL, parameterEstimator = mat
 	# Construct the return vector by combining estimates with weights in a named vector
 	indices <- weightRelations!=0
 	WVect <- W[indices]
+	
 	names(WVect) <- paste(rownames(nativeModel$formative)[row(W)[indices]],"=+",colnames(nativeModel$formative)[col(W)[indices]], sep="")
 	
 	ret <- c(estimates,WVect)
 	
-	attr(ret,"iterations") <- attr(W,"iterations")
-	attr(ret,"converged") <- attr(W,"converged")
+	# Copy all non-standard attributes from the weight and estimation algorithms
+	
+	allAttributes <- c(attributes(W),attributes(estimates))
+	 
+	for(a in setdiff(names(allAttributes), c("dim", "dimnames", "class", "names"))){
+		attr(ret,a) <- allAttributes[[a]]
+	}
+
+	attr(ret,"W") <- W
+	
 	class(ret) <-("matrixpls")
 	
 	return(ret)
@@ -109,6 +118,9 @@ matrixpls <- function(S, model, weightRelations = NULL, parameterEstimator = mat
 #'@param tol Decimal value indicating the tolerance criterion for the
 #'iterations (\code{tol=0.00001} by default). Must be a positive number.
 #
+#'@param convergenceCheckFunction A function that takes the old and new weight matrices and
+#'returns a scalar that is compared against \code{tol} to check for convergence
+#'
 #'@param iter An integer indicating the maximum number of iterations
 #'(\code{iter=100} by default).
 #'
@@ -123,6 +135,7 @@ matrixpls <- function(S, model, weightRelations = NULL, parameterEstimator = mat
 matrixpls.weights <- function(S, innerMatrix, weightRelations,
 															outerEstimators = matrixpls.outerEstimator.modeA, 
 															innerEstimator = matrixpls.innerEstimator.path,
+															convergenceCheckFunction = function(W,W_new){max(abs(W_new) - abs(W))},
 															tol = 1e-05, iter = 100, validateInput = TRUE) {
 	
 	if(validateInput){
@@ -202,10 +215,11 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 		
 		# Check convergence
 		
-		if(max(abs(W_new-W)) <= tol){
+		if(convergenceCheckFunction(W,W_new) < tol){
 			attr(W_new,"iterations") <- iteration
 			attr(W_new,"converged") <- TRUE
 			class(W_new) <-("matrixpls.weights")
+			rownames(W_new) <- rownames(innerMatrix)
 			return(W_new)			
 		} 
 		
@@ -220,6 +234,8 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 	attr(W,"iterations") <- iter
 	attr(W,"converged") <- FALSE
 	class(W) <-("matrixpls.weights")
+	rownames(W) <- rownames(innerMatrix)
+	
 	return(W)
 }
 
@@ -252,13 +268,50 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 
 matrixpls.parameterEstimator.regression <- function(S, W, model){
 
+	return(matrixpls.parameterEstimator.internal_generic(S,W,model,
+																											 regressionsWithCovarianceMatrixAndModelPattern,
+																											 regressionsWithCovarianceMatrixAndModelPattern,
+																											 regressionsWithCovarianceMatrixAndModelPattern))
+}
+
+#'@title Generic parameter estimation that prepares the data and applies the estimation functions
+#'
+#'@description
+#'Estimates the model parameters with weighted composites using separate estimations for reflective, formative, and latent path relationships
+#'
+#'
+#'@details
+#'~~~ Explain how PLS estimates are calculated after weights have been ~~~
+#'
+#'@param S Covariance matrix of the data.
+#'
+#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'
+#'@param Model There are four options for this argument: 1. SimSem object created by model
+#'command from simsem package, 2. lavaan script, lavaan parameter table, or a list that
+#'contains all argument that users use to run lavaan (including cfa, sem, lavaan), 3.
+#'MxModel object from the OpenMx package, or 4. A list containing three matrices
+#'\code{inner}, \code{reflective}, and \code{formative} defining the free regression paths
+#'in the model.
+#'
+#'@param pathEstimator A function for estimating the path relationships
+#'
+#'@param formativeEstimator A function for estimating the formative relationships
+#'
+#'@param reflectiveEstimator A function for estimating the reflective relationships
+#'
+#'@return A named vector of parameter estimates
+#'
+
+matrixpls.parameterEstimator.internal_generic <- function(S, W, model, pathEstimator, formativeEstimator, reflectiveEstimator){
+	
 	nativeModel <- parseModelToNativeFormat(model)
 	
 	results <- c()
-
+	
 	# Create the composite covariance matrix
 	C <- W %*% S %*% t(W)
-
+	
 	# Calculate the covariance matrix between indicators and composites
 	IC <- W %*% S
 	
@@ -272,11 +325,11 @@ matrixpls.parameterEstimator.regression <- function(S, W, model){
 	
 	# Choose the specified values and add names
 	if(length(innerRegressionIndices)>0){
-				
-		inner <- regressionsWithCovarianceMatrixAndModelPattern(C,nativeModel$inner)
+		
+		inner <- pathEstimator(C,nativeModel$inner)
 		innerVect <- inner[innerRegressionIndices]
 		names(innerVect) <- paste(rownames(inner)[row(inner)[innerRegressionIndices]],"~",
-														colnames(inner)[col(inner)[innerRegressionIndices]], sep="")
+															colnames(inner)[col(inner)[innerRegressionIndices]], sep="")
 		
 		results <- c(results, innerVect)
 	}
@@ -288,14 +341,14 @@ matrixpls.parameterEstimator.regression <- function(S, W, model){
 		reflectiveModel <- rbind(matrix(0,nrow(C),ncol(IC_full)),
 														 cbind(nativeModel$reflective, matrix(0,nrow(S),ncol(S))))
 		
-		reflective <- regressionsWithCovarianceMatrixAndModelPattern(IC_full, reflectiveModel)
-
+		reflective <- reflectiveEstimator(IC_full, reflectiveModel)
+		
 		reflectiveRegressionIndices <- which(reflectiveModel==1)
 		
 		# Choose the specified values and add names
 		reflectiveVect <- reflective[reflectiveRegressionIndices]
 		names(reflectiveVect) <- paste(colnames(reflective)[col(reflective)[reflectiveRegressionIndices]],"=~",
-														rownames(reflective)[row(reflective)[reflectiveRegressionIndices]], sep="")
+																	 rownames(reflective)[row(reflective)[reflectiveRegressionIndices]], sep="")
 		
 		results <- c(results,reflectiveVect)
 	}
@@ -303,25 +356,29 @@ matrixpls.parameterEstimator.regression <- function(S, W, model){
 	formativeRegressionIndices <- which(nativeModel$formative==1)
 	
 	if(any(nativeModel$formative ==1)){
-
-		formativeModel <- rbind(cbind(matrix(0,nrow(C),ncol(C)), nativeModel$formative),
-														 cbind(matrix(0,nrow(S),ncol(IC_full))))
 		
-		formative <- regressionsWithCovarianceMatrixAndModelPattern(IC_full,formativeModel)
-	
+		formativeModel <- rbind(cbind(matrix(0,nrow(C),ncol(C)), nativeModel$formative),
+														cbind(matrix(0,nrow(S),ncol(IC_full))))
+		
+		formative <- formativeEstimator(IC_full,formativeModel)
+		
 		formativeRegressionIndices <- which(formativeModel==1)
 		
 		# Choose the specified values and add names
 		formativeVect <- formative[formativeRegressionIndices]
 		names(formativeVect) <- paste(rownames(formative)[row(formative)[formativeRegressionIndices]],"~",
-														colnames(formative)[col(formative)[formativeRegressionIndices]], sep="")
+																	colnames(formative)[col(formative)[formativeRegressionIndices]], sep="")
 		
 		results <- c(results,formativeVect)
 	}
 	
+	# Store these in the result object
+	attr(results,"C") <- C
+	attr(results,"IC") <- IC
+	attr(results,"beta") <- inner
+	
 	return(results)
 }
-
 
 # =========== Inner estimators ===========
 

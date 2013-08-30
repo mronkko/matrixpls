@@ -42,8 +42,6 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, generate = NULL, 
 
 	model  <- function(data){
 			
-		browser()
-		
 		# Indices for parameters excluding weights
 		
 		parameterIndices <- 1:(sum(nativeModel$inner) + sum(nativeModel$reflective) + sum(nativeModel$formative))
