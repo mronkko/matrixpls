@@ -50,7 +50,7 @@ matrixpls <- function(S, model, weightRelations = NULL, parameterEstimator = mat
 	
 	# Calculate weights
 	W <- matrixpls.weights(S, nativeModel$inner, weightRelations, ..., validateInput = validateInput)
-	
+		
 	# Apply the parameter estimator and return the results
 	estimates <- parameterEstimator(S, W, model)
 	
@@ -114,23 +114,35 @@ matrixpls <- function(S, model, weightRelations = NULL, parameterEstimator = mat
 #'@param outerEstimators A function or a list of functions used for outer estimation. If
 #'the value of this parameter is a function, the same function is applied to all
 #'composites. If the value of the parameter is a list, the composite \code{n} is estimated
-#'with the estimator in the \code{n}th position in the list.
-##
+#'with the estimator in the \code{n}th position in the list. Setting this argument to
+#'\code{null} will the starting weights specified in \code{weightRelations} instead of
+#'calculating weights. The default is \code{\link{matrixpls.outerEstimator.modeA}} 
+#'(PLS Mode A estimation).
+#'
+#'@param innerEstimator A function used for inner estimation. Setting this argument to
+#'\code{null} will use identity matrix as inner estimates and causes the algorithm to converge
+#'after the first iteration. This is useful when using 
+#'\code{\link{matrixpls.outerEstimator.fixedWeights}} or some other outer estimation function that
+#'does not use inner estimation results. The default is \code{\link{matrixpls.innerEstimator.path}}
+#'(PLS path weighting scheme).
+
+#'@param convergenceCheckFunction A function that takes the old and new weight matrices and
+#'returns a scalar that is compared against \code{tol} to check for convergence. The default
+#'function returns calculates the absolute values of old and new weights and returns the largest
+#'difference of these values.
+#'
 #'@param tol Decimal value indicating the tolerance criterion for the
 #'iterations (\code{tol=0.00001} by default). Must be a positive number.
-#
-#'@param convergenceCheckFunction A function that takes the old and new weight matrices and
-#'returns a scalar that is compared against \code{tol} to check for convergence
+#'
 #'
 #'@param iter An integer indicating the maximum number of iterations
 #'(\code{iter=100} by default).
 #'
-#'@param validateInput A boolean indicating whether the validity of the input matrix
-#'and the parameter values should be tested
+#'@param printProgress A boolean indicating whether the weights should be printed out after each iteration.
 #'
-#'@return An object of class \code{"matrixpls.weights"}, which is a matrix consisting of weights and the following attributes: 
+#'@return An object of class \code{"matrixpls.weights"}, which is a matrix caontaining the weights with the following attributes: 
 #'@return \item{iterations}{Number of iterations performed}
-#'@return \item{converged}{A boolean indicating if the algoritm converged}
+#'@return \item{converged}{A boolean indicating if the algorithm converged}
 #'@export
 
 matrixpls.weights <- function(S, innerMatrix, weightRelations,
@@ -172,19 +184,21 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 		
 		# outerEstimators must be a list of same length as number of rows in innerMatrix or
 		# a function
-		
-		if(is.list(outerEstimators)){
-			assert_is_identical_to_true(length(outerEstimators) == nrow(weightRelations))
-			for(outerEstimator in outerEstimators){
-				assert_is_function(outerEstimator)
+		if(! is.null(outerEstimators)){
+			if(is.list(outerEstimators)){
+				assert_is_identical_to_true(length(outerEstimators) == nrow(weightRelations))
+				for(outerEstimator in outerEstimators){
+					assert_is_function(outerEstimator)
+				}
 			}
 		}
 		else{
 			assert_is_function(outerEstimators)
 		}
 		
-		assert_is_function(innerEstimator)
-		
+		if(! is.null(innerEstimator)){
+			assert_is_function(innerEstimator)
+		}
 		# tol must be positive
 		assert_all_are_positive(tol)
 		
@@ -192,48 +206,86 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 		assert_all_are_positive(iter)
 	}
 	
-	# =========== Start of iterative procedure ===========
-	
 	# The weight matrix
 	
+	weightPattern <- weightRelations!=0
 	W <- scaleWeights(S, weightRelations)
+	iteration <- 0
 	
-	for (iteration in 1:iter) {
+	weightHistory <- matrix(NA,iter+1,sum(weightPattern))
+	weightHistory[1,] <- W[weightPattern]
+	rownames(weightHistory) <- c("start",1:100)
+	
+	
+	# If we are not using an outer estimator, do not perform iterative estimation
 		
-		# Get new inner weights from inner estimation
+	if(!is.null(outerEstimators)){
 		
-		E <- innerEstimator(S, W, innerMatrix)
-		
-		# Get new weights from outer estimation
+		# Set up outer estimators
 		
 		if(is.list(outerEstimators)){
-			stop("Using multiple outer estimators has not been implemented yet")
+			uniqueOuterEstimators <- unique(outerEstimators)
+			outerEstimatorIndices <- lapply(uniqueOuterEstimators, function(x){
+				sapply(outerEstimators, function(y){
+					identical(y,x)})
+			})
 		}
-		else{
-			W_new<-outerEstimators(S, W, E, weightRelations)
-			W_new <- scaleWeights(S, W_new)
-		}	
 		
-		# Check convergence
+		E <- NULL
 		
-		if(convergenceCheckFunction(W,W_new) < tol){
-			attr(W_new,"iterations") <- iteration
-			attr(W_new,"converged") <- TRUE
-			class(W_new) <-("matrixpls.weights")
-			rownames(W_new) <- rownames(innerMatrix)
-			return(W_new)			
-		} 
+		# =========== Start of iterative procedure ===========
 		
-		# Prepare for the next round
+		repeat {
 		
-		W <- W_new
+			# Get new inner weights from inner estimation
 		
+			if(! is.null(innerEstimator)){
+				E <- innerEstimator(S, W, innerMatrix)
+			}
+		
+			# Get new weights from outer estimation
+			
+			W_old <- W
+			if(is.list(outerEstimators)){
+				
+				# Run each estimator separately
+				
+				for(i in 1:length(uniqueOuterEstimators)){
+					weightRelationsForThisEstimator <- weightRelations
+					weightRelationsForThisEstimator[!outerEstimatorIndices[[i]],] <- 0
+					W[outerEstimatorIndices[[i]],] <- uniqueOuterEstimators[[i]](S, W_old, E, weightRelationsForThisEstimator)[outerEstimatorIndices[[i]]]
+				}
+			}
+			else{
+				W <- outerEstimators(S, W_old, E, weightRelations)
+			}	
+			
+			W <- scaleWeights(S, W)
+			
+			iteration <- iteration +1 
+			weightHistory[iteration+1,] <- W[weightPattern]
+			
+			# Check convergence. If we are not using inner estimator, converge to the first iteration
+		
+			if(is.null(innerEstimator) || convergenceCheckFunction(W,W_old) < tol){
+					converged <- TRUE
+					break;
+			}
+			else if(iteration == iter){
+					converged <- FALSE;
+					break;
+			}
+							
+		}
 	}
 	
-	# Reaching the end of the loop without convergence
+	# Mark the estimation as converged if not running iterations
 	
-	attr(W,"iterations") <- iter
-	attr(W,"converged") <- FALSE
+	else converged <- TRUE	
+	
+	attr(W,"iterations") <- iteration
+	attr(W,"converged") <- converged
+	attr(W,"history") <- weightHistory[1:iteration+1,]
 	class(W) <-("matrixpls.weights")
 	rownames(W) <- rownames(innerMatrix)
 	
@@ -326,7 +378,6 @@ matrixpls.parameterEstimator.internal_generic <- function(S, W, model, pathEstim
 	
 	# Choose the specified values and add names
 	if(length(innerRegressionIndices)>0){
-		
 		inner <- pathEstimator(C,nativeModel$inner)
 		innerVect <- inner[innerRegressionIndices]
 		names(innerVect) <- paste(rownames(inner)[row(inner)[innerRegressionIndices]],"~",
@@ -658,11 +709,15 @@ matrixpls.outerEstimator.modeB <- function(S, W, E, weightRelations){
 	IC <- E %*% W %*% S
 	
 	# Set up a weight pattern
-	W_new <- iflse(weightRelations==0,0,1)
+	W_new <- ifelse(weightRelations==0,0,1)
 	
 	# Do the outer model regressions
-	W_new <- regressionsWithCovarianceMatrixAndModelPattern(IC,W_new)
 	
+	for(row in which(rowSums(W_new)>0)){
+		indicatorIndices <- W_new[row,]==1
+		W_new[row,indicatorIndices] <- solve(S[indicatorIndices,indicatorIndices],IC[row,indicatorIndices])
+	}
+
 	return(W_new)
 	
 }
@@ -858,10 +913,17 @@ matrixpls.outerEstimator.GSCA <- function(S, W, E, weightRelations){
 #'
 #'@export
 
-effects.matrixpls <- function(object, ...) {
+effects.matrixpls <- function(object = NULL, beta = NULL, innerModel = NULL, ...) {
+
+	if(!is.null(object)){
+	  A <- attr(object,"beta")
+  	endog <- rowSums(attr(object,"model")$inner)!=0 
+	}
+	else{
+		A <- beta
+		endog <- rowSums(innerModel)!=0 		
+	}
 	
-  A <- attr(object,"beta")
-  endog <- rowSums(attr(object,"model")$inner)!=0 
   I <- diag(endog)
 	AA <- - A
 	diag(AA) <- 1

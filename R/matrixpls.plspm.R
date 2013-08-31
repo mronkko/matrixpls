@@ -1,5 +1,7 @@
 library(plspm)
 library(psych)
+library(boot)
+library(parallel)
 
 # =========== Main functions ===========
 
@@ -201,9 +203,9 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		if(max(modeA) == 0) outerEstimators <- matrixpls.outerEstimator.modeB	
 		else if(min(modeA) == 1) outerEstimators <- matrixpls.outerEstimator.modeA
 		else{
-			outerEstimators <- list(rep(NA,length(outerEstimators)))
-			outerEstimators[! modeA] <- matrixpls.outerEstimator.modeB 
-			outerEstimators[modeA] <- matrixpls.outerEstimator.modeA
+			outerEstimators <- list(rep(NA,length(modeA)))
+			outerEstimators[!modeA] <- list(matrixpls.outerEstimator.modeB)
+			outerEstimators[modeA] <- list(matrixpls.outerEstimator.modeA)
 		}
 		
 		
@@ -233,8 +235,17 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		if(params$boot.val){
 			
 			boot.res <- boot(dataToUse, function(originalData,indices){
-				S_boot <- cov(originalData[indices,])
-				if(scaled) S_boot <- cov2cor(S) 
+				
+				# plspm reports always standardized loadings even if the data were not standardized
+				# We mimic this by standardizing the data
+				
+				if(scaled){
+					S_boot <- cor(originalData[indices,])
+				}
+				else{
+					S_boot <- cov(originalData[indices,])
+				}
+				
 				tryCatch(
 					matrixpls(S_boot, model = nativeModel, weightRelations = weightRelations, parameterEstimator = parameterEstimator,
 										outerEstimators = outerEstimators, innerEstimator = innerEstimator,
@@ -249,7 +260,7 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 					})
 			}, params$br)
 			
-			matrixpls.res <- boot.out$t0
+			matrixpls.res <- boot.res$t0
 		}
 		else{
 			matrixpls.res <- matrixpls(S, model = nativeModel, weightRelations = weightRelations, parameterEstimator = parameterEstimator,
@@ -273,10 +284,14 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		# Inner model R2s
 		R2 <- rowSums(beta * C)
 		names(R2) <- lvNames
+
+		# PLSPM does LV score scaling differently, so we need a correction
 		
-		# Composite values, fitte values, and intercepts
+		sdv = sqrt(nrow(dataToUse)/(nrow(dataToUse)-1))   
 		
-		lvScores <- dataToUse %*% t(W)
+		# Composite values, fittes values, and intercepts
+		
+		lvScores <- dataToUse %*% t(W) * sdv
 		lvScoreFittedValues <- lvScores %*% t(beta)
 		intercepts <- apply(lvScores-lvScoreFittedValues,2,mean)
 		rownames(lvScores) <- 1:nrow(lvScores)
@@ -284,11 +299,11 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		
 		Modes <- ifelse(params$modes == "A", "Reflective","Formative")
 		
-		# Construct the objects that are returned
-		
+		exogenousLVs <- rowSums(nativeModel$inner) == 0
+				
 		outer.mod <- sapply(lvNames, function(lvName){
 			row <- which(lvNames == lvName)
-			weights <- W[row,params$outer[[row]]]
+			weights <- W[row,params$outer[[row]]]*sdv
 			std.loads <- IC_std[row,params$outer[[row]]]
 			communal <- std.loads^2
 			redundan <- communal * R2[row]
@@ -299,7 +314,7 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 			return(ret)
 		}, simplify= FALSE)
 		
-		inner.mod <- sapply(lvNames[rowSums(nativeModel$inner) > 0], function(lvName){
+		inner.mod <- sapply(lvNames[!exogenousLVs], function(lvName){
 			row <- which(lvNames == lvName)
 			regressors <- beta[row,]!=0
 			ret <- data.frame(concept =c ("R2","Intercept",paste("path_",lvNames[regressors],sep="")),
@@ -307,8 +322,69 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 			return(ret)
 		}, simplify= FALSE)
 		
+		pathIndices <- lower.tri(nativeModel$inner)
+		
+		pathLabels <- paste(colnames(nativeModel$inner)[col(nativeModel$inner)[pathIndices]],"->",
+												rownames(nativeModel$inner)[row(nativeModel$inner)[pathIndices]], sep="")
+		
 		if(params$boot.val){
-			stop("Bootstrapping not implemented")
+			
+			pathCount <- sum(nativeModel$inner)
+			weightCount <- sum(weightRelations)
+			bootPathIndices <- 1:pathCount
+			bootLoadingIndices <- 1:weightCount + pathCount
+		  bootWeightIndices <- bootLoadingIndices + weightCount
+			
+			bootIndices <- boot.array(boot.res, indices = TRUE)
+						
+			boot <- list(weights = get_bootDataFrame(boot.res$t0[bootWeightIndices]*sdv, boot.res$t[,bootWeightIndices]*sdv, rownames(S)),
+									 loadings = get_bootDataFrame(IC_std[weightRelations == 1], 
+									 														 t(mcmapply(function(x){
+									 														 	
+									 														 	# Recover the data that were used in the bootrap replications and calculate indicator variances
+									 														 	sdX <- apply(dataToUse[bootIndices[x,],],2,sd)
+									 														 	boot.res$t[x,bootLoadingIndices] / sdX									 														 	
+									 														 },1:params$br)),
+									 														 rownames(S)),
+									 paths = get_bootDataFrame(boot.res$t0[bootPathIndices], boot.res$t[,bootPathIndices], 
+									 													pathLabels[nativeModel$inner[lower.tri(nativeModel$inner)]==1]),
+									 
+									 # Use parallel processing because of the large number of elements
+									 
+									 rsq = get_bootDataFrame(R2[!exogenousLVs],
+									 												t(mcmapply(function(x){
+									 	 
+									 	 # Recover the data that were used in the bootrap replication
+									 												if(scaled)
+																					   S <- co(dataToUse[bootIndices[x,],])
+									 												else
+									 													S <- cov(dataToUse[bootIndices[x,],])
+									   
+									   # Reconstruct the matrices
+									   W <- matrix(0,nrow(weightRelations),ncol(weightRelations))
+									   W[weightRelations==1] <- boot.res$t[x,bootWeightIndices]
+									   C <- W %*% S %*% t(W)
+									   beta <- matrix(0,nrow(nativeModel$inner),ncol(nativeModel$inner))
+										 beta[nativeModel$inner == 1] <- boot.res$t[x,bootPathIndices]
+									   
+									   # Calculate R2 values
+									   rowSums(beta[!exogenousLVs,]*C[!exogenousLVs,])
+									   	
+									 },1:params$br)),
+									 												lvNames[!exogenousLVs]),
+									 
+									 # Again, parellel proceesing
+									 
+									 total.efs = get_bootDataFrame(effects(matrixpls.res)$Total[pathIndices[-1,]],
+									 																t(mcmapply(function(x){
+									 	
+									 	beta <- matrix(0,nrow(nativeModel$inner),ncol(nativeModel$inner))
+									 	beta[nativeModel$inner == 1] <- boot.res$t[x,bootPathIndices]
+									 	
+									 	effects.matrixpls(beta = beta, innerModel = nativeModel$inner)$Total[pathIndices[-1,]]
+									 	
+									 },1:params$br)),
+									 															pathLabels))
 		}
 		else{
 			boot = FALSE
@@ -332,11 +408,11 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 			data <- FALSE
 		}
 		
-		lvScores_std <- apply(lvScores,2,scale)
+		lvScores_std <- apply(lvScores, 2, scale) * sdv
 		rownames(lvScores_std) <- 1:nrow(lvScores_std)
-		
+				
 		Windices <-W!=0
-		out.weights <- W[Windices]
+		out.weights <- W[Windices] * sdv
 		names(out.weights) <- colnames(W)[col(W)[Windices]]
 
 		# Weight and loading pattern is always identical in plspm
@@ -350,35 +426,39 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		}, simplify= FALSE)
 		
 		
-		inner.sum <- data.frame(LV.Type = ifelse(rowSums(nativeModel$inner) == 0,"Exogen","Endogen"),
+		inner.sum <- data.frame(LV.Type = ifelse(exogenousLVs,"Exogen","Endogen"),
 														Measure = abbreviate(Modes, 5),
 														MVs = blocks,
 														R.square = R2, 
 														Av.Commu = sapply(outer.mod,function(x){mean(x[,"communal"])}), 
 														Av.Redun = sapply(outer.mod,function(x){mean(x[,"redundan"])}), 
-														AVE = sapply(outer.mod,function(x){mean(x[,"std.loads"]^2)}))
+														AVE = ifelse(params$modes == "A",
+																				 sapply(outer.mod,function(x){mean(x[,"std.loads"]^2)}),
+																				 0))
 		
 		effs <- effects(matrixpls.res)
-		lt <- lower.tri(nativeModel$inner)
-		
-		effects <- data.frame(relationships = paste(colnames(nativeModel$inner)[col(nativeModel$inner)[lt]],"->",
-																								rownames(nativeModel$inner)[row(nativeModel$inner)[lt]], sep=""),
-														dir.effects = effs$Direct[lt[-1,]],
-													ind.effects = effs$Indirect[lt[-1,]], 
-													tot.effects = effs$Total[lt[-1,]])
+				
+		effects <- data.frame(relationships = pathLabels,
+														dir.effects = effs$Direct[pathIndices[-1,]],
+													ind.effects = effs$Indirect[pathIndices[-1,]], 
+													tot.effects = effs$Total[pathIndices[-1,]])
 
 		unidim <- data.frame(Type.measure = Modes,
 												 MVs = blocks,
-												 C.alpha = sapply(params$outer,function(indices){
-												 		alpha(S[indices,indices])$total[[2]]
-												 		}, simplify = TRUE),
-												 DG.rho = sapply(1:nrow(IC_std),function(row){
-												 	std.loads <- IC_std[row,params$outer[[row]]]
-												 	
-												 	numer.rho <- sum(std.loads)^2
-												 	denum.rho <- numer.rho + (length(params$outer[[row]]) - sum(std.loads^2))
-												 	numer.rho / denum.rho
-												 }, simplify = TRUE),
+												 C.alpha = ifelse(params$modes == "A",
+												 								 sapply(params$outer,function(indices){
+												 								 	alpha(S[indices,indices])$total[[2]]
+												 								 	}, simplify = TRUE),
+												 								 0),
+												 DG.rho = ifelse(params$modes == "A",
+												 								sapply(params$outer,function(indices){
+												 									pc <- principal(S[indices,indices])
+												 									std.loads <- pc$loadings
+												 									numer.rho <- sum(std.loads)^2
+												 									denom.rho <- numer.rho + (length(indices) - sum(std.loads^2))
+												 									numer.rho / denom.rho
+												 									}, simplify = TRUE),
+												 								0),
 												 
 												 eig.1st = sapply(params$outer,function(indices){
 												 	 eigen(S_std[indices,indices])$values[1]
@@ -390,7 +470,7 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		# Goodness of Fit is square root of product of mean communality and mean R2
 		
 		gof <- sqrt(mean(IC_std[t(nativeModel$reflective)==1]^2) * 
-									mean(R2[rowSums(nativeModel$inner) > 0]))
+									mean(R2[!exogenousLVs]))
 		
 		res = list(outer.mod = outer.mod, 
 							 inner.mod = inner.mod, 
@@ -639,4 +719,16 @@ get_params <-
 		res
 }
 
+get_bootDataFrame <- function(t0, t, rownames){
+	
+	ret <- data.frame(Original = t0, 
+										Mean.Boot = apply(t, 2, mean), 
+										Std.Error = apply(t, 2, sd), 
+										perc.025 = apply(t, 2, quantile, 0.025),
+										perc.975 = apply(t, 2, quantile, 0.975))
+	
+	rownames(ret) <- rownames
+	
+	return(ret)
+}
  
