@@ -46,18 +46,9 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, generate = NULL, 
 		
 		parameterIndices <- 1:(sum(nativeModel$inner) + sum(nativeModel$reflective) + sum(nativeModel$formative))
 		
-		boot.out <- boot(data, function(originalData,indices){
-					S <- cor(originalData[indices,])
-					tryCatch(
-						matrixpls(S, nativeModel, weightRelations), 
-						error = function(e){
-							print(e)
-							print(S)
-							print(nativeModel)
-							print(weightRelations)
-						})
-			}, bootstrap) 
-			
+		# Convert the data to matrix for efficiency
+		
+		boot.out <- matrixpls.boot(data, bootstrap, model = nativeModel, weightRelations = weightRelations)
 		
 		cis <- sapply(parameterIndices, FUN = function(index) {
 			boot.ci.out <- boot.ci(boot.out, conf = cilevel, type = citype, index=index)

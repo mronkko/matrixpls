@@ -34,9 +34,9 @@
 #'
 #'@param validateInput A boolean indicating whether the validity of the input matrix
 #'and the parameter values should be tested
-#
 # 
-#'@return A named vector of class \code{matrixpls} containing parameter estimates followed by weights
+#'@return A named vector of class \code{matrixpls} containing parameter estimates followed by weights.
+#
 #'@export
 
 
@@ -78,7 +78,7 @@ matrixpls <- function(S, model, weightRelations = NULL, parameterEstimator = mat
 	return(ret)
 }
 
-#'@title Basic results for Partial Least Squares Path Modeling as a vector
+#'@title Partial Least Squares weights
 #'
 #'@description
 #'Estimates a weight matrix using the PLS algorithm
@@ -292,6 +292,76 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 	return(W)
 }
 
+#'@title Bootstrapping of MatrixPLS function
+#'
+#'@description
+#' Add here
+#
+#'@details
+#'
+#' Add here
+#'
+#'@param data Matrix or data frame containing the raw data
+#'
+#'@param R Number of bootstrap samples to draw
+#'
+#'@param ... All other parameters are passed through to \code{matrixpls}
+#'
+#'@return An object of class \code{boot}.
+#
+#'@export
+#'
+
+matrixpls.boot <- function(data, R = 500, ..., parallel = c("no", "multicore", "snow"), ncpus = getOption("boot.ncpus", 1L)){
+	
+	#
+	# The precalculation of the covariance matrix products is not  efficient if implemented with R code
+	# This is left here to save the logic if this is ever implemented in C code
+	#
+	
+	PRECALCULATE <- FALSE
+	
+	data <- as.matrix(data)
+	
+	if(PRECALCULATE){
+  	# Precalculate the products used in forming the covariance matrix 
+	
+	  data.centered <- apply(data, 2, scale, scale=FALSE, center = TRUE)
+	
+	  zeroMatrix <- matrix(0,ncol(data),ncol(data))
+	  lt <- which(lower.tri(zeroMatrix, diag = TRUE), useNames = FALSE)
+    ut <- matrix(1:ncol(data)^2,ncol(data),ncol(data), byrow = TRUE)[lower.tri(zeroMatrix, diag = TRUE)]
+		
+	  rows <- row(zeroMatrix)[lt]
+	  cols <- col(zeroMatrix)[lt]
+	
+	  # The rows are observations and columns are the elements in the covariance matrix 
+	
+	  products <- mcmapply(function(row,col){
+  		data.centered[,row]*data.centered[,col]/(nrow(data)-1)
+  	}, rows, cols)
+  }
+	
+	boot(data,
+			 function(data, indices){
+			 	
+			 		if(PRECALCULATE){
+  			 		covs <- apply(products[indices,],2,sum)
+	  		 		S <- matrix(0,ncol(data),ncol(data))
+		  	 		S[lt] <- covs
+			   		S[ut] <- covs
+			 		}
+			 		else{
+			 			S <- cov(data[indices,])
+			 		}
+			 		
+			 		tryCatch(
+				 		matrixpls(S, ...)
+			 		)
+			 },
+			 R, parallel = parallel, ncpus = ncpus)
+}
+
 # =========== Parameter estimators ===========
 
 #'@title PLS parameter estimation with separate regression analyses
@@ -322,8 +392,6 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 matrixpls.parameterEstimator.regression <- function(S, W, model){
 
 	return(matrixpls.parameterEstimator.internal_generic(S,W,model,
-																											 regressionsWithCovarianceMatrixAndModelPattern,
-																											 regressionsWithCovarianceMatrixAndModelPattern,
 																											 regressionsWithCovarianceMatrixAndModelPattern))
 }
 
@@ -356,7 +424,7 @@ matrixpls.parameterEstimator.regression <- function(S, W, model){
 #'@return A named vector of parameter estimates
 #'
 
-matrixpls.parameterEstimator.internal_generic <- function(S, W, model, pathEstimator, formativeEstimator, reflectiveEstimator){
+matrixpls.parameterEstimator.internal_generic <- function(S, W, model, pathEstimator){
 	
 	nativeModel <- parseModelToNativeFormat(model)
 	
@@ -368,12 +436,7 @@ matrixpls.parameterEstimator.internal_generic <- function(S, W, model, pathEstim
 	# Calculate the covariance matrix between indicators and composites
 	IC <- W %*% S
 	
-	# Join these to form the covariance matrix of indicators and composites
-	
-	IC_full <- rbind(cbind(C,IC),
-									 cbind(t(IC),S))
-	
-	innerRegressionIndices <- which(nativeModel$inner==1)
+	innerRegressionIndices <- which(nativeModel$inner==1, useNames = FALSE)
 	
 	
 	# Choose the specified values and add names
@@ -386,48 +449,63 @@ matrixpls.parameterEstimator.internal_generic <- function(S, W, model, pathEstim
 		results <- c(results, innerVect)
 	}
 	
-	
-	
-	if(any(nativeModel$reflective ==1)){
-		
-		reflectiveModel <- rbind(matrix(0,nrow(C),ncol(IC_full)),
-														 cbind(nativeModel$reflective, matrix(0,nrow(S),ncol(S))))
-		
-		reflective <- reflectiveEstimator(IC_full, reflectiveModel)
-		
-		reflectiveRegressionIndices <- which(reflectiveModel==1)
-		
-		# Choose the specified values and add names
-		reflectiveVect <- reflective[reflectiveRegressionIndices]
-		names(reflectiveVect) <- paste(colnames(reflective)[col(reflective)[reflectiveRegressionIndices]],"=~",
-																	 rownames(reflective)[row(reflective)[reflectiveRegressionIndices]], sep="")
-		
-		results <- c(results,reflectiveVect)
-	}
-	
-	formativeRegressionIndices <- which(nativeModel$formative==1)
-	
-	if(any(nativeModel$formative ==1)){
-		
-		formativeModel <- rbind(cbind(matrix(0,nrow(C),ncol(C)), nativeModel$formative),
-														cbind(matrix(0,nrow(S),ncol(IC_full))))
-		
-		formative <- formativeEstimator(IC_full,formativeModel)
-		
-		formativeRegressionIndices <- which(formativeModel==1)
-		
-		# Choose the specified values and add names
-		formativeVect <- formative[formativeRegressionIndices]
-		names(formativeVect) <- paste(rownames(formative)[row(formative)[formativeRegressionIndices]],"~",
-																	colnames(formative)[col(formative)[formativeRegressionIndices]], sep="")
-		
-		results <- c(results,formativeVect)
-	}
+	results <- c(results, matrixpls.parameterEstimator.internal_reflective(C, IC, nativeModel))
+	results <- c(results,	matrixpls.parameterEstimator.internal_formative(S, IC, nativeModel))
 	
 	# Store these in the result object
 	attr(results,"C") <- C
 	attr(results,"IC") <- IC
 	attr(results,"beta") <- inner
+	
+	return(results)
+}
+
+matrixpls.parameterEstimator.internal_formative <- function(S, IC, nativeModel){
+	
+	results <-c()
+
+	for(row in 1:nrow(nativeModel$formative)){
+		
+		independents <- which(nativeModel$formative[row,]!=0, useNames = FALSE)
+		
+		if(length(independents)>0){
+			if(length(independents)==1){
+				# Simple regresion is the covariance divided by the variance of the predictor, which are standardized
+				results <- c(results, IC[row,independents])
+			}
+			else{
+				coefs <- solve(S[independents,independents],IC[row,independents])
+				results <- c(results,coefs)
+			}
+			names(results)[length(results)] <- paste(rownames(nativeModel$formative)[row], "~",
+																							 colnames(nativeModel$formative)[independents], sep = "")
+		}
+	}
+	
+	return(results)
+}
+
+matrixpls.parameterEstimator.internal_reflective <- function(C, IC, nativeModel){	
+	
+	results <-c()
+	
+	for(row in 1:nrow(nativeModel$reflective)){
+		
+		independents <- which(nativeModel$reflective[row,]!=0, useNames = FALSE)
+		
+		if(length(independents)>0){
+			if(length(independents)==1){
+				# Simple regresion is the covariance divided by the variance of the predictor, which are standardized
+				results <- c(results, IC[independents,row])
+			}
+			else{
+				coefs <- solve(C[independents,independents],IC[independents,row])
+				results <- c(results,coefs)
+			}
+			names(results)[length(results)] <- paste(colnames(nativeModel$reflective)[independents], "=~",
+																							 rownames(nativeModel$reflective)[row], sep = "")
+		}
+	}
 	
 	return(results)
 }
@@ -713,7 +791,7 @@ matrixpls.outerEstimator.modeB <- function(S, W, E, weightRelations){
 	
 	# Do the outer model regressions
 	
-	for(row in which(rowSums(W_new)>0)){
+	for(row in which(rowSums(W_new)>0, useNames = FALSE)){
 		indicatorIndices <- W_new[row,]==1
 		W_new[row,indicatorIndices] <- solve(S[indicatorIndices,indicatorIndices],IC[row,indicatorIndices])
 	}
@@ -1075,14 +1153,16 @@ is.matrixpls.model <- function(model) {
 #
 
 regressionsWithCovarianceMatrixAndModelPattern <- function(S,model){
-
-	assert_is_symmetric_matrix(S)
-	
+		
 	for(row in 1:nrow(model)){
 		
-		independents <- which(model[row,]!=0)
+		independents <- which(model[row,]!=0, useNames = FALSE)
 		
-		if(length(independents)>0){
+		if(length(independents)==1){
+			# Simple regresion is the covariance divided by the variance of the predictor
+			model[row,independents] <- S[row,independents]/S[independents,independents]
+		}
+		if(length(independents)>1){
 			coefs <- solve(S[independents,independents],S[row,independents])
 			model[row,independents] <- coefs
 		}
