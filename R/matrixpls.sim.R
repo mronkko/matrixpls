@@ -1,5 +1,3 @@
-
-
 #'@title Monte Carlo simulations with MatrixPLS
 #'
 #'@description
@@ -9,16 +7,27 @@
 #' This funtion calls the \code{\link[simsem]{sim}} function from the \code{simsem} package to perform Monte
 #' Carlo simulations with MatrixPLS. The function parses the model parameter and replaces it with
 #' a function call that estimates the same model with MatrixPLS.
-#' 
+#'
+#'@usage sim(nRep, model, ..., boot.R = 500)
+#'
+#'@param nRep Number of replications. If any of the \code{n}, \code{pmMCAR}, or \code{pmMAR} arguments are specified as lists, the number of replications will default to the length of the list(s), and \code{nRep} need not be specified.
+#'
+#'@param model \code{lavaan} script or \code{lavaan} parameter table. If the \code{generate} argument is not specified, then the object in the \code{model} argument will be used for both data generation and analysis. If \code{generate} is specified, then the \code{model} argument will be used for data analysis only. 
+#'
+#'@param ... All other parameters are passed through to \code{\link[simsem]{sim}}
+#'
+#'@param boot.R Number of bootstrap replications to use to estimate standard errors
+#'
 #'@export
 
 
-matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, generate = NULL, ..., rawData = NULL, cilevel = 0.95, citype=c("norm","basic", "stud", "perc", "bca"), bootstrap = 500){
+matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, generate = NULL, ..., rawData = NULL, cilevel = 0.95, citype=c("norm","basic", "stud", "perc", "bca"), boot.R = 500, stopOnError = FALSE){
 
 	library(simsem)
+	library(assertive)
 	
 	# Basic verification of the arguments
-	assert_all_are_positive(bootstrap)	
+	assert_all_are_positive(boot.R)	
 	assert_all_are_positive(cilevel)
 	assert_all_are_true(cilevel<1)
 	citype <- match.arg(citype)
@@ -48,7 +57,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, generate = NULL, 
 		
 		# Convert the data to matrix for efficiency
 		
-		boot.out <- matrixpls.boot(data, bootstrap, model = nativeModel, weightRelations = weightRelations)
+		boot.out <- matrixpls.boot(data, boot.R, model = nativeModel, weightRelations = weightRelations)
 		
 		cis <- sapply(parameterIndices, FUN = function(index) {
 			boot.ci.out <- boot.ci(boot.out, conf = cilevel, type = citype, index=index)
@@ -69,13 +78,13 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, generate = NULL, 
 								converged = attr(boot.out$t0,"converged"),
 								cilower = cis[1,],
 								ciupper = cis[2,], 
-								fit = c(Random = runif(1)))
+								fit = unlist(fitSummary(boot.out$t0)))
 		
 		return(ret)
 	}
 	
 
 	
-	sim(nRep = nRep, model = model, n = n, generate = generate, ..., rawData = rawData)
+	sim(nRep = nRep, model = model, n = n, generate = generate, ..., rawData = rawData, stopOnError = stopOnError)
 }
  

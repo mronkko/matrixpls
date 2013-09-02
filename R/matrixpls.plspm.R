@@ -1,14 +1,11 @@
-library(plspm)
-library(psych)
-library(boot)
-library(parallel)
-
 # =========== Main functions ===========
 
-#'@title A PLS-PM compatibility wrapper for MatrixPLS
+#'@title A plspm compatibility wrapper for matrixpls
 #'
 #'@description
-#'Estimate path models with latent variables by partial least squares approach
+#'\code{matrixpls.plspm} mimics \code{\link[plspm]{plspm}} function of the \code{plspm} package.
+#'The arguments and their default and the output of the function are identical with \code{\link[plspm]{plspm}},
+#'but internally the function uses the more efficient matrixpls estimation.
 #'
 #'@details
 #'The function \code{matrixpls.plspm} estimates a path model by partial least squares
@@ -82,79 +79,21 @@ library(parallel)
 #'@return \item{boot}{List of bootstrapping results; only available when argument
 #'\code{boot.val=TRUE}}
 #'
-#'@references Tenenhaus M., Esposito Vinzi V., Chatelin Y.M., and Lauro C.
-#'(2005) PLS path modeling. \emph{Computational Statistics & Data Analysis},
-#'\bold{48}, pp. 159-205.
+#'@references Sanchez, G. (2013). \emph{PLS Path Modeling with R.} Retrieved from http://www.gastonsanchez.com/PLS Path Modeling with R.pdf
 #'
-#'Tenenhaus M., Pages J. (2001) Multiple factor analysis combined with
-#'PLS path modelling. Application to the analysis of relationships between
-#'physicochemical variables, sensory profiles and hedonic judgements.
-#'\emph{Chemometrics and Intelligent Laboratory Systems}, \bold{58}, pp.
-#'261-273.
-#'
-#'Tenenhaus M., Hanafi M. (2010) A bridge between PLS path modeling and
-#'multi-block data analysis. \emph{Handbook on Partial Least Squares (PLS):
-#'Concepts, methods, and applications.} Springer.
-#'
-#'Lohmoller J.-B. (1989) \emph{Latent variables path modelin with partial
-#'least squares.} Heidelberg: Physica-Verlag.
-#'
-#'Wold H. (1985) Partial Least Squares. In: Kotz, S., Johnson, N.L. (Eds.),
-#'\emph{Encyclopedia of Statistical Sciences}, Vol. 6. Wiley, New York, pp.
-#'581-591.
-#'
-#'Wold H. (1982) Soft modeling: the basic design and some extensions. In: K.G.
-#'Joreskog & H. Wold (Eds.), \emph{Systems under indirect observations:
-#'Causality, structure, prediction}, Part 2, pp. 1-54. Amsterdam: Holland.
-#'@seealso \code{\link[plspm]{plspm}}, \code{\link[plspm]{plspm.fit}}, \code{\link[plspm]{plot.plspm}}
 #'@export
-#'@examples
-#'
-#'  \dontrun{
-#'  library(plspm)
-#'  
-#'  # Run the example from plspm package
-#'  
-#'  # load dataset satisfaction
-#'  data(satisfaction)
-#'  # inner model matrix
-#'  IMAG = c(0,0,0,0,0,0)
-#'  EXPE = c(1,0,0,0,0,0)
-#'  QUAL = c(0,1,0,0,0,0)
-#'  VAL = c(0,1,1,0,0,0)
-#'  SAT = c(1,1,1,1,0,0)
-#'  LOY = c(1,0,0,0,1,0)
-#'  sat_inner = rbind(IMAG, EXPE, QUAL, VAL, SAT, LOY)
-#'  # outer model list
-#'  sat_outer = list(1:5, 6:10, 11:15, 16:19, 20:23, 24:27)
-#'  # vector of modes (reflective indicators)
-#'  sat_mod = rep("A", 6)
-#'  
-#'  # apply plspm
-#'  plspm.res <- plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=FALSE)
-#'  
-#'  # apply MatrixPLS
-#'  matrixpls.res <- matrixpls.plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=FALSE)
-#'  
-#'  # plspm scales latent variable scores based on estimated population sd whereas matrixpls scales
-#'  # standardizes them in the sample. This creates small differences in some of the results.
-#'  
-#'  print(plspm.res)
-#'  print(plspm.res)
-#'  
-#'  # If RUnit is installed check that the results are identical
-#'  
-#'  if(is.element("RUnit", installed.packages()[,1])){
-#'  	library(RUnit)
-#'  	checkEquals(plspm.res, plspm.res, tol = 0.0001)
-#'  }
-#'}
+#'@example example/matrixpls.plspm-example.R
 
 matrixpls.plspm <-
 function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid", 
          scaled = TRUE, tol = 0.00001, iter = 100, boot.val = FALSE, 
          br = NULL, plsr = FALSE, dataset = TRUE){
     
+		library(plspm)
+		library(psych)
+		library(boot)
+		library(parallel)
+		
 		# =======================================================
 		# checking arguments
 		# =======================================================
@@ -292,8 +231,7 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		colnames(IC_std) <- colnames(IC)
 		
 		# Inner model R2s
-		R2 <- rowSums(beta * C)
-		names(R2) <- lvNames
+		R2 <- r2(matrixpls.res)
 
 		# PLSPM does LV score scaling differently, so we need a correction
 		
@@ -479,8 +417,7 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		
 		# Goodness of Fit is square root of product of mean communality and mean R2
 		
-		gof <- sqrt(mean(IC_std[t(nativeModel$reflective)==1]^2) * 
-									mean(R2[!exogenousLVs]))
+		gof <- gof(matrixpls.res)
 		
 		res = list(outer.mod = outer.mod, 
 							 inner.mod = inner.mod, 

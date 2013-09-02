@@ -20,10 +20,8 @@
 #'
 #'@param S Covariance matrix of the data.
 #
-#'@param Model There are four options for this argument: 1. SimSem object created by model
-#'command from simsem package, 2. lavaan script, lavaan parameter table, or a list that
-#'contains all argument that users use to run lavaan (including cfa, sem, lavaan), 3.
-#'MxModel object from the OpenMx package, or 4. A list containing three matrices
+#'@param Model There are two options for this argument: 1. lavaan script or lavaan parameter
+#'table, or 2. A list containing three matrices
 #'\code{inner}, \code{reflective}, and \code{formative} defining the free regression paths
 #'in the model.
 #'
@@ -77,6 +75,58 @@ matrixpls <- function(S, model, weightRelations = NULL, parameterEstimator = mat
 	
 	return(ret)
 }
+
+#'@S3method print matrixpls
+
+print.matrixpls <- function(object, digits=getOption("digits"), ...){
+	
+	cat("\n matrixpls parameter estimates\n")
+	
+	indices <- ! grepl("=+", names(object), fixed=TRUE)
+	toPrint <- object[indices]
+	
+	estimates <- data.frame(Estimate = toPrint)
+	
+	boot.out <- attr(object,"boot.out")
+	if(! is.null(boot.out)){
+		estimates$Std.Err. <- apply(boot.out$t[,indices],2,sd)
+	}
+	
+	print(estimates, digits = digits)
+	
+	if(! is.null(boot.out)){
+		cat("\n Standard errors based on",boot.out$R,"bootstrap replications\n")
+	}
+	
+	print(attr(object,"W"))
+	
+}
+
+#'@S3method summary matrixpls
+
+summary.matrixpls <- function(object, ..., digits = max(3, getOption("digits")-3)){
+	
+	ret <- list(estimates = object,
+							effects = effects(object),
+							R2 = r2(object),
+							residuals = residuals(object),
+							gof = gof(object),
+							CR = cr(object),
+							AVE = ave(object))
+	
+	class(ret) <-("matrixplssummary")
+
+	return(ret)
+}
+
+#'@S3method print matrixplssummary
+
+print.matrixplssummary <- function(object, digits=getOption("digits"), ...){
+	for(element in object){
+		print(element, digits = digits)
+	}
+}
+
 
 #'@title Partial Least Squares weights
 #'
@@ -283,84 +333,25 @@ matrixpls.weights <- function(S, innerMatrix, weightRelations,
 	
 	else converged <- TRUE	
 	
+	attr(W,"S") <- S
 	attr(W,"iterations") <- iteration
 	attr(W,"converged") <- converged
 	attr(W,"history") <- weightHistory[1:iteration+1,]
-	class(W) <-("matrixpls.weights")
+	class(W) <-("matrixplsweights")
 	rownames(W) <- rownames(innerMatrix)
 	
 	return(W)
 }
 
-#'@title Bootstrapping of MatrixPLS function
-#'
-#'@description
-#' Add here
-#
-#'@details
-#'
-#' Add here
-#'
-#'@param data Matrix or data frame containing the raw data
-#'
-#'@param R Number of bootstrap samples to draw
-#'
-#'@param ... All other parameters are passed through to \code{matrixpls}
-#'
-#'@return An object of class \code{boot}.
-#
-#'@export
-#'
+#'@S3method print matrixplsweights
 
-matrixpls.boot <- function(data, R = 500, ..., parallel = c("no", "multicore", "snow"), ncpus = getOption("boot.ncpus", 1L)){
-	
-	#
-	# The precalculation of the covariance matrix products is not  efficient if implemented with R code
-	# This is left here to save the logic if this is ever implemented in C code
-	#
-	
-	PRECALCULATE <- FALSE
-	
-	data <- as.matrix(data)
-	
-	if(PRECALCULATE){
-  	# Precalculate the products used in forming the covariance matrix 
-	
-	  data.centered <- apply(data, 2, scale, scale=FALSE, center = TRUE)
-	
-	  zeroMatrix <- matrix(0,ncol(data),ncol(data))
-	  lt <- which(lower.tri(zeroMatrix, diag = TRUE), useNames = FALSE)
-    ut <- matrix(1:ncol(data)^2,ncol(data),ncol(data), byrow = TRUE)[lower.tri(zeroMatrix, diag = TRUE)]
-		
-	  rows <- row(zeroMatrix)[lt]
-	  cols <- col(zeroMatrix)[lt]
-	
-	  # The rows are observations and columns are the elements in the covariance matrix 
-	
-	  products <- mcmapply(function(row,col){
-  		data.centered[,row]*data.centered[,col]/(nrow(data)-1)
-  	}, rows, cols)
-  }
-	
-	boot(data,
-			 function(data, indices){
-			 	
-			 		if(PRECALCULATE){
-  			 		covs <- apply(products[indices,],2,sum)
-	  		 		S <- matrix(0,ncol(data),ncol(data))
-		  	 		S[lt] <- covs
-			   		S[ut] <- covs
-			 		}
-			 		else{
-			 			S <- cov(data[indices,])
-			 		}
-			 		
-			 		tryCatch(
-				 		matrixpls(S, ...)
-			 		)
-			 },
-			 R, parallel = parallel, ncpus = ncpus)
+print.matrixplsweights <- function(object, digits=getOption("digits"), ...){
+	cat("\n matrixpls weights\n")
+	print.table(object, digits)
+	cat("\nWeight algorithm",ifelse(attr(object,"converged"),"converged","did not converge"),"in",attr(object,"iterations"),"iterations.\n")
 }
+
+
 
 # =========== Parameter estimators ===========
 
@@ -675,41 +666,8 @@ matrixpls.innerEstimator.identity <- function(S, W, innerMatrix){
 #'@references
 #'Hwang, H., & Takane, Y. (2004). Generalized structured component analysis. Psychometrika, 69(1), 81–99. doi:10.1007/BF02295841
 #'
-#'@examples
+#'@example example/gsca-example.R
 #'  
-#'  # Run the example from plspm package using GSCA estimation
-#'  
-#'  library(plspm)
-#'  
-#'  # load dataset satisfaction
-#'  data(satisfaction)
-#'  
-#'  # inner model matrix
-#'  IMAG = c(0,0,0,0,0,0)
-#'  EXPE = c(1,0,0,0,0,0)
-#'  QUAL = c(0,1,0,0,0,0)
-#'  VAL = c(0,1,1,0,0,0)
-#'  SAT = c(1,1,1,1,0,0)
-#'  LOY = c(1,0,0,0,1,0)
-#'  
-#'  inner = rbind(IMAG, EXPE, QUAL, VAL, SAT, LOY)
-#'  
-#'  # reflective relationships
-#'  reflective <- matrix(0, 27, 6)
-#'  for(lv in 1:6){
-#'  	reflective[list(1:5, 6:10, 11:15, 16:19, 20:23, 24:27)[[lv]],lv] <-1
-#'  }
-#'  # no formative relationships
-#'  formative <- matrix(0, 6, 27)
-#'  
-#'  model <- list(inner=inner, reflective=reflective, formative=formative)
-#'  
-#'  # apply MatrixPLS with GSCA estimators
-#'  
-#'  matrixpls(cor(satisfaction[,1:27]), model, 
-#'  					outerEstimators = matrixpls.outerEstimator.GSCA, 
-#'  					innerEstimator = matrixpls.innerEstimator.GSCA)
-#'
 #'@export
 
 matrixpls.innerEstimator.GSCA <- function(S, W, innerMatrix){
@@ -868,41 +826,7 @@ matrixpls.outerEstimator.fixedWeights <- function(S, W, E, weightRelations){
 #'@references
 #'Hwang, H., & Takane, Y. (2004). Generalized structured component analysis. Psychometrika, 69(1), 81–99. doi:10.1007/BF02295841
 #'
-#'@examples
-#'
-#'  # Run the example from plspm package using GSCA estimation
-#'  
-#'  library(plspm)
-#'  
-#'  # load dataset satisfaction
-#'  data(satisfaction)
-#'  
-#'  # inner model matrix
-#'  IMAG = c(0,0,0,0,0,0)
-#'  EXPE = c(1,0,0,0,0,0)
-#'  QUAL = c(0,1,0,0,0,0)
-#'  VAL = c(0,1,1,0,0,0)
-#'  SAT = c(1,1,1,1,0,0)
-#'  LOY = c(1,0,0,0,1,0)
-#'  
-#'  inner = rbind(IMAG, EXPE, QUAL, VAL, SAT, LOY)
-#'  
-#'  # reflective relationships
-#'  reflective <- matrix(0, 27, 6)
-#'  for(lv in 1:6){
-#'  	reflective[list(1:5, 6:10, 11:15, 16:19, 20:23, 24:27)[[lv]],lv] <-1
-#'  }
-#'  # no formative relationships
-#'  formative <- matrix(0, 6, 27)
-#'  
-#'  model <- list(inner=inner, reflective=reflective, formative=formative)
-#'  
-#'  # apply MatrixPLS with GSCA estimators
-#'  
-#'  matrixpls(cor(satisfaction[,1:27]), model, 
-#'  					outerEstimators = matrixpls.outerEstimator.GSCA, 
-#'  					innerEstimator = matrixpls.innerEstimator.GSCA)
-#'
+#'@example example/gsca-example.R
 #'
 #'@export
 
@@ -966,66 +890,6 @@ matrixpls.outerEstimator.GSCA <- function(S, W, E, weightRelations){
 	W <- scaleWeights(S, W)
 	
 	return(W)
-}
-
-# =========== Post estimation =============
-
-
-#'@title 	Total, Direct, and Indirect Effects for PLS latent variable model
-#'
-#'@description
-
-#'The \code{matrixpls} method for the standard generic function \code{effects} computes total, direct, 
-#'and indirect effects for a PLS latent variable model according to the method described in Fox (1980).
-#'
-#'Adapted from the \code{\link[sem]{effects}} function of the \code{sem} package
-#'
-#'@param object PLS estimation result object produced by the \code{\link{matrixpls}} function.
-#'
-#'@return A list with \code{Total}, \code{Direct}, and \code{Indirect} elements.
-#'
-#'@references
-#'
-#'Fox, J. (1980) Effect analysis in structural equation models: Extensions and simplified methods of computation. \emph{Sociological Methods and Research}
-#'\bold{9}, 3--28.
-#'
-#'@export
-
-effects.matrixpls <- function(object = NULL, beta = NULL, innerModel = NULL, ...) {
-
-	if(!is.null(object)){
-	  A <- attr(object,"beta")
-  	endog <- rowSums(attr(object,"model")$inner)!=0 
-	}
-	else{
-		A <- beta
-		endog <- rowSums(innerModel)!=0 		
-	}
-	
-  I <- diag(endog)
-	AA <- - A
-	diag(AA) <- 1
-	Total <- solve(AA) - I
-	Indirect <-  Total - A
-	result <- list(Total=Total[endog, ], Direct=A[endog, ], Indirect=Indirect[endog, ])
-	class(result) <- "matrixplseffects"
-	result
-}
-
-print.matrixplseffects <- function(x, digits=getOption("digits"), ...){
-	cat("\n Total Effects (column on row)\n")
-	Total <- x$Total
-	Direct <- x$Direct
-	Indirect <- x$Indirect
-	select <- !(apply(Total, 2, function(x) all( x == 0)) & 
-								apply(Direct, 2, function(x) all( x == 0)) & 
-								apply(Indirect, 2, function(x) all( x == 0)))
-	print(Total[, select], digits=digits)
-	cat("\n Direct Effects\n")
-	print(Direct[, select], digits=digits)
-	cat("\n Indirect Effects\n")
-	print(Indirect[, select], digits=digits)
-	invisible(x)
 }
 
 # =========== Utility functions ===========
@@ -1116,10 +980,10 @@ parseModelToNativeFormat <- function(model){
 		browser()
 	} else if (is(model, "lavaan")) {
 		return(lavaanParTableToNativeFormat(model@ParTable))
-	} else if (is(model, "MxModel")) {
-		browser()
-	} else if (is(model, "SimSem")) {
-		browser()
+#	} else if (is(model, "MxModel")) {
+#		browser()
+#	} else if (is(model, "SimSem")) {
+#		browser()
 	} else {
 		stop("Please specify an appropriate object for the 'model' argument: simsem model template, lavaan script, lavaan parameter table, list of options for the 'lavaan' function, or a list containing three matrices in the MatrixPLS native model format.")
 	}

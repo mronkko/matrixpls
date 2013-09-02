@@ -1,0 +1,18 @@
+citHeader("To cite matrixpls in publications use:")
+
+year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date, perl = TRUE)
+vers <- paste("R package version", meta$Version)
+
+citEntry(entry = "Manual",
+  title        = "matrixpls: Matrix-based Partial Least Squares Estimation",
+  author       = as.person("Mikko R\\\"onkk\\\"o"),
+  year         = year,
+	note         = vers,  
+  url          = "https://github.com/mronkko/matrixpls",
+  year         =  year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date, perl = TRUE),
+  
+   textVersion =
+              paste0("Rönkkö, Mikko (",
+                     year,
+                     "). matrixpls: Matrix-based Partial Least Squares Estimation. ",
+                     vers, "."))

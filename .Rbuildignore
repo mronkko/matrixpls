@@ -9,3 +9,4 @@ tests
 run_tests.R
 README.md
 matrixpls.sempls.R
+dev/

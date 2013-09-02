@@ -2,6 +2,7 @@ library(assertive)
 library(RUnit)
 library(gtools)
 library(simsem)
+library(matrixpls)
 
 #
 # Tests that all the relevant vignettes in Version03 directory (matrix syntax) of SimSem
@@ -109,17 +110,7 @@ test.plspm <- function()
 	# apply MatrixPLS
 	satpls.matrixpls = matrixpls.plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=FALSE)
 
-	checkEquals(satpls.matrixpls, satpls.plspm)
-
-	# Repeat with bootstrapping
-
-	# apply plspm
-	satpls.plspm = plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=TRUE)
-	
-	# apply MatrixPLS
-	satpls.matrixpls = matrixpls.plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=TRUE)
-	
-	checkEquals(satpls.matrixpls, satpls.plspm)
+	checkEquals(satpls.matrixpls, satpls.plspm, tol = 0.001)
 	
 }
 
