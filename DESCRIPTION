@@ -15,8 +15,6 @@ Description: matrixpls is implements Partial Least Squares Path Modeling
    perform simple Monte Carlo simulations.
 URL: https://github.com/mronkko/matrixpls
 ByteCompile: TRUE
-Depends:
-    R (>= 3.0.0),
 Suggests: plspm, simsem, boot, psych, lavaan, assertive, matrixcalc
 License: GPL-3
 LazyLoad: yes
