@@ -18,10 +18,12 @@
 #'
 #'@param boot.R Number of bootstrap replications to use to estimate standard errors
 #'
+#'@param fitIndicesFunction A function that returns a list of fit indices for the model. Setting this argument to \code{NULL} disables fit indices.
+#'
 #'@export
 
 
-matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, generate = NULL, ..., rawData = NULL, cilevel = 0.95, citype=c("norm","basic", "stud", "perc", "bca"), boot.R = 500, stopOnError = FALSE){
+matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, generate = NULL, ..., rawData = NULL, cilevel = 0.95, citype=c("norm","basic", "stud", "perc", "bca"), boot.R = 500, fitIndicesFunction = fitSummary, stopOnError = FALSE){
 
 	library(simsem)
 	library(assertive)
@@ -73,18 +75,24 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, generate = NULL, 
 		names(ses) <- names(boot.out$t0[parameterIndices])
 		colnames(cis) <- names(boot.out$t0[parameterIndices])
 		
+		
+		
 		ret <- list(coef = boot.out$t0[parameterIndices],
 								se = ses,
 								converged = attr(boot.out$t0,"converged"),
 								cilower = cis[1,],
-								ciupper = cis[2,], 
-								fit = unlist(fitSummary(boot.out$t0)))
+								ciupper = cis[2,])
+
+		if(! is.null(fitIndicesFunction)){
+			assert_is_function(fitIndicesFunction)
+			fitlist <- unlist(fitIndicesFunction(boot.out$t0))
+			ret$fit <- fitlist
+		}
 		
 		return(ret)
 	}
 	
 
 	
-	sim(nRep = nRep, model = model, n = n, generate = generate, ..., rawData = rawData, stopOnError = stopOnError)
+	simsem::sim(nRep = nRep, model = model, n = n, generate = generate, ..., rawData = rawData, stopOnError = stopOnError)
 }
- 
