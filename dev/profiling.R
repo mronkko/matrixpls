@@ -5,7 +5,7 @@ library(RCurl)
 eval( expr = 
 				parse( text = getURL("https://raw.github.com/noamross/noamtools/master/R/proftable.R")))
 
-# Prpfile MatrixPLS with 1000 bootstrap samples using the customer satisfaction example
+# Prpfile matrixpls with 1000 bootstrap samples using the customer satisfaction example
 
 # load dataset satisfaction
 data(satisfaction)
@@ -48,7 +48,7 @@ convergenceCheckFunction <- function(W,W_new){sum((abs(W_new) - abs(W))^2)}
 
 Rprof(line.profiling=TRUE)
 b <- matrixpls.boot(satisfaction[,1:27], 5000, model = nativeModel, weightRelations = weightRelations,
-															 						innerEstimator = matrixpls.innerEstimator.centroid,
+															 						innerEstimator = matrixpls.inner.centroid,
 															 						tol = 0.00001, iter = 100, convergenceCheckFunction = convergenceCheckFunction,
 															 						validateInput = FALSE, parallel ="no")
 Rprof(NULL)

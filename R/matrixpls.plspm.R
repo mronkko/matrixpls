@@ -4,82 +4,29 @@
 #'
 #'@description
 #'\code{matrixpls.plspm} mimics \code{\link[plspm]{plspm}} function of the \code{plspm} package.
-#'The arguments and their default and the output of the function are identical with \code{\link[plspm]{plspm}},
-#'but internally the function uses the more efficient matrixpls estimation.
+#'The arguments and their default values and the output of the function are identical with \code{\link[plspm]{plspm}} function,
+#'but internally the function uses matrixpls estimation.
 #'
 #'@details
-#'The function \code{matrixpls.plspm} estimates a path model by partial least squares
-#'approach providing the full set of results. \cr
+#'The function \code{matrixpls.plspm} calculates indicator weights and estimates a model
+#'identically to the  \code{\link[plspm]{plspm}} function. In contrast to the \code{\link{matrixpls}} function
+#'that provides only weights and parameter estimates, this function also reports multiple post-estimation
+#'statistics. Because of this \code{matrixpls.plspm} is substantially less efficient than the \code{\link{matrixpls}}
+#'function.
 #'
 #'The argument \code{inner_matrix} is a matrix of zeros and ones that indicates
-#'the structural relationships between latent variables. This must be a lower
+#'the structural relationships between composites. This must be a lower
 #'triangular matrix. \code{inner_matrix} will contain a 1 when column \code{j}
 #'affects row \code{i}, 0 otherwise. \cr
 #'
-#'@param Data A numeric matrix or data frame containing the manifest variables.
-#'@param inner_matrix A square (lower triangular) boolean matrix representing the
-#'inner_matrix model (i.e. the path relationships betwenn latent variables).
-#'@param outer_list List of vectors with column indices from \code{x} indicating 
-#'the sets of manifest variables asociated to the latent variables
-#'(i.e. which manifest variables correspond to the latent variables).
-#'Length of \code{outer_list} must be equal to the number of rows of \code{inner_matrix}.
-#'@param modes A character vector indicating the type of measurement for each
-#'latent variable. \code{"A"} for reflective measurement or \code{"B"} for
-#'formative measurement (\code{NULL} by default). The length of \code{modes}
-#'must be equal to the length of \code{outer_list}).
-#'@param scheme A string of characters indicating the type of inner_matrix weighting
-#'scheme. Possible values are \code{"centroid"}, \code{"factor"}, or
-#'\code{"path"}.
-#'@param scaled A logical value indicating whether scaling data is performed
-#'When (\code{TRUE} data is scaled to standardized values (mean=0 and variance=1)
-#'The variance is calculated dividing by \code{N} instead of \code{N-1}).
-#'@param tol Decimal value indicating the tolerance criterion for the
-#'iterations (\code{tol=0.00001}). Can be specified between 0 and 0.001.
-#'@param iter An integer indicating the maximum number of iterations
-#'(\code{iter=100} by default). The minimum value of \code{iter} is 100.
-#'@param boot.val A logical value indicating whether bootstrap validation is
-#'performed (\code{FALSE} by default). 
-#'@param br An integer indicating the number bootstrap resamples. Used only
-#'when \code{boot.val=TRUE}. When \code{boot.val=TRUE}, the default number of 
-#'re-samples is 100, but it can be specified in a range from 100 to 1000.
-#'@param plsr A logical value indicating whether pls regression is applied
-#'to calculate path coefficients (\code{FALSE} by default).
-#'@param dataset A logical value indicating whether the data matrix should be
-#'retrieved (\code{TRUE} by default).
-#'@return An object of class \code{"plspm"}. 
-#'@return \item{outer.mod}{Results of the outer (measurement) model. Includes:
-#'outer weights, standardized loadings, communalities, and redundancies}
-#'@return \item{inner_matrix.mod}{Results of the inner_matrix (structural) model. Includes: path
-#'coefficients and R-squared for each endogenous latent variable}
-#'@return \item{latents}{Matrix of standardized latent variables (variance=1
-#'calculated divided by \code{N}) obtained from centered data (mean=0)}
-#'@return \item{scores}{Matrix of latent variables used to estimate the inner_matrix
-#'model. If \code{scaled=FALSE} then \code{scores} are latent variables
-#'calculated with the original data (non-stardardized). If \code{scaled=TRUE}
-#'then \code{scores} and \code{latents} have the same values}
-#'@return \item{out.weights}{Vector of outer weights}
-#'@return \item{loadings}{Vector of standardized loadings (i.e. correlations with
-#'LVs)}
-#'@return \item{path.coefs}{Matrix of path coefficients (this matrix has a similar
-#'form as \code{inner_matrix})}
-#'@return \item{r.sqr}{Vector of R-squared coefficients}
-#'@return \item{outer.cor}{Correlations between the latent variables and the
-#'manifest variables (also called crossloadings)}
-#'@return \item{inner_matrix.sum}{Summarized results by latent variable of the inner_matrix
-#'model. Includes: type of LV, type of measurement, number of indicators,
-#'R-squared, average communality, average redundancy, and average variance
-#'extracted}
-#'@return \item{effects}{Path effects of the structural relationships. Includes:
-#'direct, indirect, and total effects}
-#'@return \item{unidim}{Results for checking the unidimensionality of blocks
-#'(These results are only meaningful for reflective blocks)}
-#'@return \item{gof}{Goodness-of-Fit index}
-#'@return \item{data}{Data matrix containing the manifest variables used in the
-#'model. Only when \code{dataset=TRUE}}
-#'@return \item{boot}{List of bootstrapping results; only available when argument
-#'\code{boot.val=TRUE}}
+#'@inheritParams plspm::plspm
+#'
+#'@return An object of class \code{\link[plspm]{plspm}}. 
 #'
 #'@references Sanchez, G. (2013). \emph{PLS Path Modeling with R.} Retrieved from http://www.gastonsanchez.com/PLS Path Modeling with R.pdf
+#'
+#'@seealso
+#'\code{\link[plspm]{plspm}}
 #'
 #'@export
 #'@example example/matrixpls.plspm-example.R
@@ -138,29 +85,29 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 												reflective=reflective, 
 												formative=formative) 
 
-		weightRelations <- t(reflective)
+		W.mod <- t(reflective)
 
-		if(params$plsr) parameterEstimator <- matrixpls.parameterEstimator.plsregression
-		else parameterEstimator <- matrixpls.parameterEstimator.regression
+		if(params$plsr) parameterEstimator <- params.plsregression
+		else parameterEstimator <- params.regression
 
 		modeA <- params$modes == "A"
 		
-		if(max(modeA) == 0) outerEstimators <- matrixpls.outerEstimator.modeB	
-		else if(min(modeA) == 1) outerEstimators <- matrixpls.outerEstimator.modeA
+		if(max(modeA) == 0) outerEstimators <- outer.modeB	
+		else if(min(modeA) == 1) outerEstimators <- outer.modeA
 		else{
 			outerEstimators <- list(rep(NA,length(modeA)))
-			outerEstimators[!modeA] <- list(matrixpls.outerEstimator.modeB)
-			outerEstimators[modeA] <- list(matrixpls.outerEstimator.modeA)
+			outerEstimators[!modeA] <- list(outer.modeB)
+			outerEstimators[modeA] <- list(outer.modeA)
 		}
 		
 		
-		innerEstimator <- c(matrixpls.innerEstimator.centroid,
-												matrixpls.innerEstimator.factor,
-												matrixpls.innerEstimator.path)[[params$scheme]]
+		innerEstimator <- c(inner.centroid,
+												inner.factor,
+												inner.path)[[params$scheme]]
 	
 		# Convergence is checked with the following function in plspm
 		
-		convergenceCheckFunction <- function(W,W_new){sum((abs(W_new) - abs(W))^2)} 
+		convCheck <- function(W,W_new){sum((abs(W_new) - abs(W))^2)} 
 		
 		#
 		# Perform estimation
@@ -196,25 +143,25 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 				}
 				
 				tryCatch(
-					matrixpls(S_boot, model = nativeModel, weightRelations = weightRelations, parameterEstimator = parameterEstimator,
+					matrixpls(S_boot, model = nativeModel, W.mod = W.mod, parameterEstimator = parameterEstimator,
 										outerEstimators = outerEstimators, innerEstimator = innerEstimator,
-										tol = params$tol, iter = params$iter, convergenceCheckFunction = convergenceCheckFunction,
+										tol = params$tol, iter = params$iter, convCheck = convCheck,
 										validateInput = FALSE), 
 					
 					error = function(e){
 						print(e)
 						print(S)
 						print(nativeModel)
-						print(weightRelations)
+						print(W.mod)
 					})
 			}, params$br)
 			
 			matrixpls.res <- boot.res$t0
 		}
 		else{
-			matrixpls.res <- matrixpls(S, model = nativeModel, weightRelations = weightRelations, parameterEstimator = parameterEstimator,
+			matrixpls.res <- matrixpls(S, model = nativeModel, W.mod = W.mod, parameterEstimator = parameterEstimator,
 																 outerEstimators = outerEstimators, innerEstimator = innerEstimator,
-																 tol = params$tol, iter = params$iter, convergenceCheckFunction = convergenceCheckFunction,
+																 tol = params$tol, iter = params$iter, convCheck = convCheck,
 																 validateInput = FALSE)
 		}
 		
@@ -231,8 +178,9 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		colnames(IC_std) <- colnames(IC)
 		
 		# Inner model R2s
-		R2 <- r2(matrixpls.res)
-
+		R2 <- R2(matrixpls.res)
+		class(R2) <- "numeric"
+		
 		# PLSPM does LV score scaling differently, so we need a correction
 		
 		sdv = sqrt(nrow(dataToUse)/(nrow(dataToUse)-1))   
@@ -258,7 +206,7 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 			
 			ret <- cbind(weights, std.loads, communal, redundan)
 			rownames(ret) <- gsub(paste(lvName,"=+",sep=""),"",names(weights), fixed=TRUE)
-
+			
 			return(ret)
 		}, simplify= FALSE)
 		
@@ -267,6 +215,9 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 			regressors <- beta[row,]!=0
 			ret <- data.frame(concept =c ("R2","Intercept",paste("path_",lvNames[regressors],sep="")),
 												 value = c(R2[row],intercepts[row],beta[row,regressors]))
+			
+			rownames(ret) <- NULL
+			
 			return(ret)
 		}, simplify= FALSE)
 		
@@ -278,7 +229,7 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		if(params$boot.val){
 			
 			pathCount <- sum(nativeModel$inner)
-			weightCount <- sum(weightRelations)
+			weightCount <- sum(W.mod)
 			bootPathIndices <- 1:pathCount
 			bootLoadingIndices <- 1:weightCount + pathCount
 		  bootWeightIndices <- bootLoadingIndices + weightCount
@@ -286,7 +237,7 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 			bootIndices <- boot.array(boot.res, indices = TRUE)
 						
 			boot <- list(weights = get_bootDataFrame(boot.res$t0[bootWeightIndices]*sdv, boot.res$t[,bootWeightIndices]*sdv, rownames(S)),
-									 loadings = get_bootDataFrame(IC_std[weightRelations == 1], 
+									 loadings = get_bootDataFrame(IC_std[W.mod == 1], 
 									 														 t(mcmapply(function(x){
 									 														 	
 									 														 	# Recover the data that were used in the bootrap replications and calculate indicator variances
@@ -304,13 +255,13 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 									 	 
 									 	 # Recover the data that were used in the bootrap replication
 									 												if(scaled)
-																					   S <- co(dataToUse[bootIndices[x,],])
+																					   S <- cor(dataToUse[bootIndices[x,],])
 									 												else
 									 													S <- cov(dataToUse[bootIndices[x,],])
 									   
 									   # Reconstruct the matrices
-									   W <- matrix(0,nrow(weightRelations),ncol(weightRelations))
-									   W[weightRelations==1] <- boot.res$t[x,bootWeightIndices]
+									   W <- matrix(0,nrow(W.mod),ncol(W.mod))
+									   W[W.mod==1] <- boot.res$t[x,bootWeightIndices]
 									   C <- W %*% S %*% t(W)
 									   beta <- matrix(0,nrow(nativeModel$inner),ncol(nativeModel$inner))
 										 beta[nativeModel$inner == 1] <- boot.res$t[x,bootPathIndices]
@@ -321,7 +272,7 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 									 },1:params$br)),
 									 												lvNames[!exogenousLVs]),
 									 
-									 # Again, parellel proceesing
+									 # Again, parellel processing
 									 
 									 total.efs = get_bootDataFrame(effects(matrixpls.res)$Total[pathIndices[-1,]],
 									 																t(mcmapply(function(x){
@@ -329,7 +280,12 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 									 	beta <- matrix(0,nrow(nativeModel$inner),ncol(nativeModel$inner))
 									 	beta[nativeModel$inner == 1] <- boot.res$t[x,bootPathIndices]
 									 	
-									 	effects.matrixpls(beta = beta, innerModel = nativeModel$inner)$Total[pathIndices[-1,]]
+									 	obj <- c()
+									 	class(obj) <- "matrixpls"
+									 	attr(obj,"beta") <- beta
+									 	attr(obj,"model") <- nativeModel$inner
+									 	
+									 	effects.matrixpls(obj)$Total[pathIndices[-1,]]
 									 	
 									 },1:params$br)),
 									 															pathLabels))
@@ -417,7 +373,8 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		
 		# Goodness of Fit is square root of product of mean communality and mean R2
 		
-		gof <- gof(matrixpls.res)
+		gof <- GoF(matrixpls.res)
+		class(gof) <- "numeric"
 		
 		res = list(outer.mod = outer.mod, 
 							 inner.mod = inner.mod, 
@@ -448,39 +405,41 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 
 # =========== Parameter estimators ===========
 
-#'@title PLS parameter estimation with separatePLS regression analyses
+#'@title Parameter estimation with PLS regression
 #'
 #'@description
-#'Estimates the model parameters with weighted composites using separate PLS regression and estimating
-#'measurement model and latent variable model separately.
-#'
+#'Estimates the model parameters with weighted composites using separate OLS regressions for outer
+#'model and separate PLS regressions for inner model.
 #'
 #'@details
-#'The implementation of PLS regression is ported from the raw data version included in plspm
 #'
-#'~~~ Explain how this works ~~~
+#'\code{params.plsregression} estimates the model parameters similarly to \code{\link{params.regression}}
+#'with the exception that instead of separate OLS regressions the \code{inner} part of
+#'the model is estimated with separate PLS regressions using the PLS1 algorithm with two rounds
+#'of estimation.
 #'
-#'@param S Covariance matrix of the data.
+#'The implementation of PLS regression is ported from the raw data version implemented in \code{\link[plspm]{get_plsr1}}
+#'funtion of the \code{plspm} package.
 #'
-#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'@inheritParams params.regression
+#'@inheritParams matrixpls
+#
+#'@return A named vector of parameter estimates.
 #'
-#'@param model There are four options for this argument: 1. SimSem object created by model
-#'command from simsem package, 2. lavaan script, lavaan parameter table, or a list that
-#'contains all argument that users use to run lavaan (including cfa, sem, lavaan), 3.
-#'MxModel object from the OpenMx package, or 4. A list containing three matrices
-#'\code{inner}, \code{reflective}, and \code{formative} defining the free regression paths
-#'in the model.
+#'@family parameter estimators
 #'
-#'@param nc number of components
-#'@param scaled logical indicating whether to scale the data
 #'
-#'@return A named vector of parameter estimates
+#'@references
 #'
+#'Sanchez, G. (2013). \emph{PLS Path Modeling with R.} Retrieved from http://www.gastonsanchez.com/PLS Path Modeling with R.pdf
+#'
+#'Bjørn-Helge Mevik, & Ron Wehrens. (2007). The pls Package:  Principal Component and Partial Least Squares Regression in R. \emph{Journal of Statistical Software}, 18. Retrieved from http://www.jstatsoft.org/v18/i02/paper
+
 #'@export
 
-matrixpls.parameterEstimator.plsregression <- function(S, W, model, nc=2, scaled = TRUE){
+params.plsregression <- function(S, W, model){
 	
-	return(matrixpls.parameterEstimator.internal_generic(S,W,model,
+	return(params.internal_generic(S,W,model,
 																											 plsregressionsWithCovarianceMatrixAndModelPattern))
 	
 }
@@ -513,7 +472,7 @@ plsregressionsWithCovarianceMatrixAndModelPattern <- function(S,model){
 get_plsr1 <-function(C, nc=NULL, scaled=TRUE)
 {
 	# ============ checking arguments ============
-	p <- ncol(X)
+	p <- ncol(C)
 	if (is.null(nc))
 		nc <- p
 	# ============ setting inputs ==============

@@ -1,6 +1,6 @@
 library(RUnit)
 library(parallel)
-library(MatrixPLS)
+library(matrixpls)
 
 options(boot.ncpus = detectCores())
 options(boot.parallel = "multicore")

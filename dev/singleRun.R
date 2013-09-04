@@ -1,6 +1,6 @@
 library(plspm)
 
-# Do a single run the performance of plspm and MatrixPLS with 1000 bootstrap samples using the customer satisfaction example
+# Do a single run the performance of plspm and matrixpls with 1000 bootstrap samples using the customer satisfaction example
 
 # load dataset satisfaction
 data(satisfaction)
@@ -43,7 +43,7 @@ convergenceCheckFunction <- function(W,W_new){sum((abs(W_new) - abs(W))^2)}
 
 						S <- cov(satisfaction[,1:27])
 						m <- matrixpls(S, model = nativeModel, weightRelations = weightRelations,
-											innerEstimator = matrixpls.innerEstimator.centroid,
+											innerEstimator = matrixpls.inner.centroid,
 											tol = 0.00001, iter = 100, convergenceCheckFunction = convergenceCheckFunction,
 											validateInput = FALSE)
 

@@ -2,16 +2,18 @@
 # Various post-estimation functions
 #
 
-#'@title 	Total, Direct, and Indirect Effects for PLS latent variable model
+#'@title 	Total, Direct, and Indirect Effects for PLS model
 #'
 #'@description
 #'
 #'The \code{matrixpls} method for the standard generic function \code{effects} computes total, direct, 
-#'and indirect effects for a PLS latent variable model according to the method described in Fox (1980).
+#'and indirect effects for a PLS model according to the method described in Fox (1980).
 #'
 #'Adapted from the \code{\link[sem]{effects}} function of the \code{sem} package
 #'
 #'@param object PLS estimation result object produced by the \code{\link{matrixpls}} function.
+#'
+#'@param ... All other arguments are ignored.
 #'
 #'@return A list with \code{Total}, \code{Direct}, and \code{Indirect} elements.
 #'
@@ -20,25 +22,18 @@
 #'Fox, J. (1980) Effect analysis in structural equation models: Extensions and simplified methods of computation. \emph{Sociological Methods and Research}
 #'9, 3--28.
 #'
+#'@family post-estimation functions
 #'
-#'@export
-
-effects <- function(x, ...){
-	UseMethod("effects")
-}
-
+#'@importFrom stats effects
+#'
+#'@method effects matrixpls
+#'
 #'@S3method effects matrixpls
 
-effects.matrixpls <- function(object = NULL, beta = NULL, innerModel = NULL, ...) {
+effects.matrixpls <- function(object = NULL,  ...) {
 	
-	if(!is.null(object)){
-		A <- attr(object,"beta")
-		endog <- rowSums(attr(object,"model")$inner)!=0 
-	}
-	else{
-		A <- beta
-		endog <- rowSums(innerModel)!=0 		
-	}
+	A <- attr(object,"beta")
+	endog <- rowSums(attr(object,"model")$inner)!=0 
 	
 	I <- diag(endog)
 	AA <- - A
@@ -52,7 +47,7 @@ effects.matrixpls <- function(object = NULL, beta = NULL, innerModel = NULL, ...
 
 #'@S3method print matrixplseffects
 
-print.matrixplseffects <- function(x, digits=getOption("digits"), ...){
+print.matrixplseffects <- function(x, ...){
 	cat("\n Total Effects (column on row)\n")
 	Total <- x$Total
 	Direct <- x$Direct
@@ -60,31 +55,40 @@ print.matrixplseffects <- function(x, digits=getOption("digits"), ...){
 	select <- !(apply(Total, 2, function(x) all( x == 0)) & 
 								apply(Direct, 2, function(x) all( x == 0)) & 
 								apply(Indirect, 2, function(x) all( x == 0)))
-	print(Total[, select], digits=digits)
+	print(Total[, select], ...)
 	cat("\n Direct Effects\n")
-	print(Direct[, select], digits=digits)
+	print(Direct[, select], ...)
 	cat("\n Indirect Effects\n")
-	print(Indirect[, select], digits=digits)
+	print(Indirect[, select], ...)
 	invisible(x)
 }
 
-#'@title Residual diagnostics for PLS latent variable model
+#'@title Residual diagnostics for PLS model
 #'
 #'@description
 #'
 #'The \code{matrixpls} method for generic function \code{residuals} computes the residual
-#'covariance matrix and various fit indices presented by Lohm\\"oller (1989, ch 2.4).
+#'covariance matrix and various fit indices presented by Lohmöller (1989, ch 2.4).
 #''
 #'@param object PLS estimation result object produced by the \code{\link{matrixpls}} function.
 #'
-#'@return A list with \code{Total}, \code{Direct}, and \code{Indirect} elements.
+#'@param ... All other arguments are ignored.
+#'
+#'@return A list with three elements: \code{inner}, \code{outer}, and \code{indices} elements
+#' containing the residual covariance matrix of regressions of composites on other composites,
+#' the residual covariance matrix of indicators on composites, and various fit indices
+#' calculated based on the residuals.
 #'
 #'@references
 #'
-#'Lohm\\"oller J.-B. (1989) \emph{Latent variables path modelin with partial
+#'Lohmöller J.-B. (1989) \emph{Latent variable path modeling with partial
 #'least squares.} Heidelberg: Physica-Verlag.
 #'
 #'@export
+#'
+#'@family post-estimation functions
+#'
+#'@method residuals matrixpls
 #'
 #'@S3method residuals matrixpls
 
@@ -132,7 +136,7 @@ residuals.matrixpls <- function(object, ...) {
 	
 	F2 <- (I * F) %*% ginv(I * S) # eq 2.105
 	
-	R2 <- r2(object)
+	R2 <- R2(object)
 	
 	# C in Lohmoller 1989 is different from the matrixpls C
 	# residual covariance matrix of indicators
@@ -158,37 +162,40 @@ residuals.matrixpls <- function(object, ...) {
 
 #'@S3method print matrixplsresiduals
 
-print.matrixplsresiduals <- function(x, digits=getOption("digits"), ...){
-	cat("\n Inner model (latent variable) residual covariance matrix\n")
-	print(x$inner, digits = digits)
+print.matrixplsresiduals <- function(x, ...){
+	cat("\n Inner model (composite) residual covariance matrix\n")
+	print(x$inner, ...)
 	cat("\n Outer model (indicator) residual covariance matrix\n")
-	print(x$outer, digits = digits)
+	print(x$outer, ...)
 	cat("\n Residual-based fit indices\n")
-	print(data.frame(Value = unlist(x$indices)))
+	print(data.frame(Value = unlist(x$indices)), ...)
 }
 
-#'@title R2	for PLS latent variable model
+#'@title R2	for PLS model
 #'
 #'@description
 #'
-#'The \code{matrixpls} method for the generic function \code{r2} computes the squared multiple correlation (R2)
-#'for latent variables predicted by other latent variables in the model
+#'The \code{matrixpls} method for the generic function \code{R2} computes the squared multiple correlation (R2)
+#'for composites predicted by other composites in the model.
 #'
 #'@param object PLS estimation result object produced by the \code{\link{matrixpls}} function.
 #'
-#'@return A named numberic vector
+#'@param ... All other arguments are ignored.
 #'
+#'@return A named numberic vector containing the R2 values.
+#'
+#'@family post-estimation functions
 #'
 #'@export
 #'
 
-r2 <- function(x, ...){
-	UseMethod("r2")
+R2 <- function(object, ...){
+	UseMethod("R2")
 }
 
-#'@S3method r2 matrixpls
+#'@S3method R2 matrixpls
 
-r2.matrixpls <- function(object, ...){
+R2.matrixpls <- function(object, ...){
 	
 	R2 <- rowSums(attr(object,"beta") * attr(object,"C"))
 	names(R2) <- colnames(attr(object,"model")$inner)
@@ -198,35 +205,40 @@ r2.matrixpls <- function(object, ...){
 
 #'@S3method print matrixplsr2
 
-print.matrixplsr2 <- function(x, digits=getOption("digits"), ...){
+print.matrixplsr2 <- function(x, ...){
 	cat("\n Inner model squared multiple correlations (R2)\n")
-	print.table(x, digits = digits)
+	print.table(x, ...)
 }
 
-#'@title Goodness of Fit indices for PLS latent variable model
+#'@title Goodness of Fit indices for PLS model
 #'
 #'@description
 #'
-#'The \code{matrixpls} method for the generic function \code{gof} computes Goodness of Fit 
+#'The \code{matrixpls} method for the generic function \code{GoF} computes the Goodness of Fit index for PLS model.
 #'
 #'@param object PLS estimation result object produced by the \code{\link{matrixpls}} function.
+#'
+#'@param ... All other arguments are ignored.
 #'
 #'@return A list with \code{Total}, \code{Direct}, and \code{Indirect} elements.
 #'
 #'@references
 #'
 #'Henseler, J., & Sarstedt, M. (2013). Goodness-of-fit indices for partial least squares path modeling. \emph{Computational Statistics}, 28(2), 565–580. doi:10.1007/s00180-012-0317-1
-
+#'
+#'
+#'@family post-estimation functions
+#'
 #'@export
 #'
 
-gof <- function(x, ...){
-	UseMethod("gof")
+GoF <- function(object, ...){
+	UseMethod("GoF")
 }
 
-#'@S3method gof matrixpls
+#'@S3method GoF matrixpls
 
-gof.matrixpls <- function(object, ...) {
+GoF.matrixpls <- function(object, ...) {
 	
 	nativeModel <- attr(object,"model")
 	IC <- attr(object,"IC")
@@ -238,7 +250,7 @@ gof.matrixpls <- function(object, ...) {
 	IC_std <- IC %*% (diag(1/sqrt(diag(S))))
 	
 	result <- sqrt(mean(IC_std[t(nativeModel$reflective)==1]^2) * 
-			 	mean(r2(object)[!exogenousLVs]))
+			 	mean(R2(object)[!exogenousLVs]))
 	class(result) <- "matrixplsgof"
 	result
 }
@@ -250,32 +262,33 @@ print.matrixplsgof <- function(x, digits=getOption("digits"), ...){
 	cat("\n")
 }
 
-#'@title Factor loading matrix from PLS latent variable model
+#'@title Factor loadings matrix from PLS model
 #'
 #'@description
 #'
-#'The \code{matrixpls} method for the generic function \code{loading} computes standardized factor loading matrix
+#'The \code{matrixpls} method for the generic function \code{loadings} computes standardized factor loading matrix
 #'from the model results.
 #'
-#'@param standarized logical indicating whether the factor loadings should be standardized
+#'@param x An object of class \code{matrixpls}
 #'
-#'@return A matrix of factor loadings
+#'@param ... All other arguments are ignored.
+#'
+#'@return A matrix of factor loadings.
+#'
+#'@family post-estimation functions
+#'
+#'@importFrom stats loadings
 #'
 #'@export
 #
-loadings <- function(x, ...){
-	UseMethod("loadings")
-}
-
 #'@S3method loadings matrixpls
 
-loadings.matrixpls <- function(object, ...) {
-
-	nativeModel <- attr(object,"model")
-	IC <- attr(object,"IC")
+loadings.matrixpls <- function(x, ...) {
+	nativeModel <- attr(x,"model")
+	IC <- attr(x,"IC")
 	
 	#Standardize
-	S <- attr(object,"S")
+	S <- attr(x,"S")
 	IC_std <- IC %*% (diag(1/sqrt(diag(S))))
 	
 	res <- nativeModel$reflective
@@ -283,33 +296,37 @@ loadings.matrixpls <- function(object, ...) {
 	res
 }
 
-#'@title Composite Reliability indices for PLS latent variable model
+#'@title Composite Reliability indices for PLS model
 #'
 #'@description
 #'
-#'The \code{matrixpls} method for the generic function \code{cr} computes Composite Reliability 
-#'indices for the model
+#'The \code{matrixpls} method for the generic function \code{CR} computes Composite Reliability 
+#'indices for the model using the formula presented by Fornell and Larcker (1981).
 #'
 #'@param object PLS estimation result object produced by the \code{\link{matrixpls}} function.
 #'
-#'@return A named numeric vector containing the Composite Reliability indices
+#'@param ... All other arguments are ignored.
+#'
+#'@return A named numeric vector containing the Composite Reliability indices.
 #'
 #'@references
 #'
 #'Fornell, C., & Larcker, D. F. (1981). Evaluating structural equation models with unobservable variables and measurement error. \emph{Journal of marketing research}, 18(1), 39–50.
 #'
+#'@family post-estimation functions
+#'
 #'@export
 #'
 
-cr <- function(x, ...){
-	UseMethod("cr")
+CR <- function(object, ...){
+	UseMethod("CR")
 }
 
-#'@S3method cr matrixpls
+#'@S3method CR matrixpls
 
-cr.matrixpls <- function(object, ...) {
-	
-	loadings <- loadings(object)
+CR.matrixpls <- function(object, ...) {
+
+	loadings <- loadings.matrixpls(object)
 	reflectiveModel <- attr(object, "model")$reflective
 	
 	result <- unlist(lapply(1:ncol(loadings), function(col){	
@@ -327,41 +344,45 @@ cr.matrixpls <- function(object, ...) {
 
 #'@S3method print matrixplscr
 
-print.matrixplscr <- function(x, digits=getOption("digits"), ...){
+print.matrixplscr <- function(x, ...){
 	cat("\n Composite Reliability indices\n")
-	print.table(x, digits = digits)
+	print.table(x, ...)
 }
 
 
-#'@title Average Variance Extracted indices for PLS latent variable model
+#'@title Average Variance Extracted indices for PLS model
 #'
 #'@description
 #'
-#'The \code{matrixpls} method for the generic function \code{cr} computes Average Variance Extracted 
-#'indices for the model
+#'The \code{matrixpls} method for the generic function \code{AVE} computes Average Variance Extracted 
+#'indices for the model using the formula presented by Fornell and Larcker (1981).
 #'
 #'@param object PLS estimation result object produced by the \code{\link{matrixpls}} function.
 #'
-#'@return A list containing the Average Variance Extracted indices in first position and the differences
-#'between AVEs and largest correlations with other latent variables in the second position
+#'@param ... All other arguments are ignored.
+#'
+#'@return A list containing the Average Variance Extracted indices in the first position and the differences
+#'between AVEs and largest squared correlations with other composites in the second position.
 #'
 #'@references
 #'
 #'Fornell, C., & Larcker, D. F. (1981). Evaluating structural equation models with unobservable variables and measurement error. \emph{Journal of marketing research}, 18(1), 39–50.
 #'
+#'@family post-estimation functions
+#'
 #'@export
 #'
 
-ave <- function(x, ...){
-	UseMethod("ave")
+AVE <- function(object, ...){
+	UseMethod("AVE")
 }
 
 
-#'@S3method ave matrixpls
+#'@S3method AVE matrixpls
 
-ave.matrixpls <- function(object, ...) {
+AVE.matrixpls <- function(object, ...) {
 	
-	loadings <- loadings(object, standardized = TRUE)
+	loadings <- loadings.matrixpls(object, standardized = TRUE)
 	reflectiveModel <- attr(object, "model")$reflective
 	
 	aves <- unlist(lapply(1:ncol(loadings), function(col){
@@ -395,50 +416,10 @@ ave.matrixpls <- function(object, ...) {
 
 #'@S3method print matrixplsave
 
-print.matrixplsave <- function(x, digits=getOption("digits"), ...){
+print.matrixplsave <- function(x, ...){
 	cat("\n Average Variance Extracted indices\n")
-	print.table(x$AVE, digits = digits)
+	print.table(x$AVE, ...)
 	cat("\n AVE - largest squared correlation\n")
-	print.table(x$AVE_correlation, digits = digits)
+	print.table(x$AVE_correlation, ...)
 }
 
-#'@title Summary of model fit of PLS latent variable model
-#'
-#'@description
-#'
-#'The \code{matrixpls} method for the generic function \code{fitSummary} computes a list of statistics
-#'that can be used to access the overall fit of the model.
-#'
-#'@param object PLS estimation result object produced by the \code{\link{matrixpls}} function.
-#'
-#'@return A list containing a selection of fit indices
-#'
-#'@export
-#'
-
-fitSummary <- function(x, ...){
-	UseMethod("fitSummary")
-}
-
-#'@S3method fitSummary matrixpls
-
-fitSummary.matrixpls <- function(x, ...){
-
-	
-	
-	ret <- list("Min CR" = min(cr(x)),
-							"Min AVE" = min(ave(x)$AVE),
-							"Min AVE - sq. cor" = min(ave(x)$AVE_correlation),
-							"Goodness of Fit" = gof(x),
-							SRMR = residuals(x)$indices$SRMR)
-	
-	class(ret) <- "matrixplfitsummary"
-	ret
-}
-
-#'@S3method print matrixplfitsummary
-
-print.matrixplfitsummary <- function(x, digits=getOption("digits"), ...){
-	cat("\n Summary indices of model fit\n")
-	print(data.frame(Value = unlist(x)))
-}

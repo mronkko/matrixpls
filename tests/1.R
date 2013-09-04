@@ -107,7 +107,7 @@ test.plspm <- function()
 	# apply plspm
 	satpls.plspm = plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=FALSE)
 	
-	# apply MatrixPLS
+	# apply matrixpls
 	satpls.matrixpls = matrixpls.plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=FALSE)
 
 	checkEquals(satpls.matrixpls, satpls.plspm, tol = 0.001)
@@ -136,5 +136,3 @@ test.populationValues <- function()
 	DEACTIVATED('Not implemented')
 	#checkEquals()
 }
-
-test.plspm()
