@@ -25,8 +25,8 @@ formative <- matrix(0, 6, 27)
 
 model <- list(inner=inner, reflective=reflective, formative=formative)
 
-# apply MatrixPLS with GSCA estimators
+# apply matrixpls with GSCA estimators
 
 matrixpls(cor(satisfaction[,1:27]), model, 
-					outerEstimators = matrixpls.outerEstimator.GSCA, 
-					innerEstimator = matrixpls.innerEstimator.GSCA)
+					outerEstimators = outer.GSCA, 
+					innerEstimator = inner.GSCA)
