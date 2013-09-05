@@ -9,3 +9,5 @@
 ^run_tests.R
 ^README.md
 ^dev
+^example
+^[^/]+.R$

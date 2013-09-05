@@ -18,10 +18,12 @@ sat_outer = list(1:5, 6:10, 11:15, 16:19, 20:23, 24:27)
 sat_mod = rep("A", 6)
 
 # apply plspm
-plspm.res <- plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=FALSE)
+plspm.res <- plspm(satisfaction, sat_inner, sat_outer, sat_mod,
+									 scaled=FALSE, boot.val=FALSE)
 
 # apply matrixpls
-matrixpls.res <- matrixpls.plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val=FALSE)
+matrixpls.res <- matrixpls.plspm(satisfaction, sat_inner, sat_outer, sat_mod,
+																 scaled=FALSE, boot.val=FALSE)
 
 # print the resuls
 
