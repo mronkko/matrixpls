@@ -11,8 +11,7 @@ Maintainer: Mikko Rönkkö <mikko.ronkko@aalto.fi>
 Description: matrixpls is implements Partial Least Squares Path Modeling algorithm and related algorithms. The algorithm implementations aim for computational efficiency using matrix algebra and covariance data. The package is designed toward Monte Carlo simulations and includes functions to perform simple Monte Carlo simulations.
 URL: https://github.com/mronkko/matrixpls
 ByteCompile: TRUE
-Depends: assertive, matrixcalc
-Suggests: plspm, simsem, boot, psych, lavaan,
+Suggests: assertive, matrixcalc, plspm, simsem, boot, psych, lavaan,
         MASS, RUnit, parallel
 License: GPL-3
 LazyLoad: yes
