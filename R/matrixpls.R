@@ -436,7 +436,6 @@ params.regression <- function(S, W, model){
 																											 regressionsWithCovarianceMatrixAndModelPattern))
 }
 
-
 params.internal_generic <- function(S, W, model, pathEstimator){
 	
 	nativeModel <- parseModelToNativeFormat(model)
@@ -524,6 +523,7 @@ params.internal_reflective <- function(C, IC, nativeModel){
 	
 	return(results)
 }
+
 
 # =========== Inner estimators ===========
 

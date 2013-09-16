@@ -5,9 +5,161 @@
 # (Doctoral dissertation). University of California, Los Angeles.
 #
 
-# =========== matrixpls specific changes ===========
+# =========== Parameter estimators ===========
 
+#'@title Parameter estimation with an adaptation of PLSc algorithm
+#'
+#'@description
+#'Estimates the model parameters with an adapted version of Dijkstra's (2011) PLSc. The 
+#'parameters between latent variables are estimated using two-stages least squares
+#'estimation using a composite covariance matrix that has been disattenuated with estimated
+#'composite reliabilities.
+#'
+#'@details
+#'\code{params.regression} estimates the statistical model described by \code{model} with the
+#'following steps. If \code{model} is not in the antive format, it is converted to the native
+#'format containing matrices \code{inner}, \code{reflective}, and \code{formative}. The
+#'weights \code{W} and the data covariance matrix \code{S} are used to calculate the composite
+#'covariance matrix \code{C} and the indicator-composite covariance matrix \code{IC}. These
+#'are used to estimate multiple OLS regression models.
+#'
+#'The OLS regressions are estimated separately for each of the three model parts \code{inner},
+#'\code{reflective}, and \code{formative}. These matrices are analyzed one row at a time
+#'so that the row specifies the index of the dependent variable in the OLS regression and 
+#'the non-zero elements on the row specify the indices of the independent variables.
+#'
+#'This approach of estimating the inner and outer models separately with separate 
+#'OLS regression analyses is the standard way of estimation in the PLS literature.
+#'
+#'@param S Covariance matrix of the data.
+#'
+#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'
+#'@inheritParams matrixpls
+#'
+#'@return A named vector of parameter estimates.
+#'
+#'@family parameter estimators
+#'
+#'@export
 
+params.plsc <- function(S, W, model, fm = NULL){
+	
+	nativeModel <- parseModelToNativeFormat(model)
+	
+	# TODO: Check assumptions about model structure
+	# - no formative indicators
+	# - weight model must be identical to the measurement model
+	
+	ab <- nrow(W) #number of blocks
+	ai <- ncol(W) #total number of indicators
+	p <- apply(W,1,function(x){which(x!=0)}) # indicator indices
+	
+	# Calculation of the correlations between the PLS mode A proxies, C:
+	C <- W %*% S %*% t(W)	
+	
+	# If factor analysis estimator is not specified, use Dijkstra's correction
+	
+	if(is.null(fm)){
+		
+		# Determination of the correction factors, based on (11) of Dijkstra, April 7, 2011.
+		c2 <- rep(1,ab)
+		for (i in 1:ab) {
+			idx <- p[[i]]
+			if (length(idx) > 1) { # only for latent factors, no need to correct for the single indicator for the phantom LV
+				c2[i] <- t(W[i,idx])%*%(S[idx,idx]-diag(diag(S[idx,idx])))%*%W[i,idx]
+				c2[i] <- c2[i]/(t(W[i,idx])%*%(W[i,idx]%*%t(W[i,idx])-diag(diag(W[i,idx]%*%t(W[i,idx]))))%*%W[i,idx])
+			}
+		}
+		c <- sqrt(c2)
+		
+		# Determination of consistent estimates of the loadings, see (13) of Dijkstra, April 7, 2011.
+		L <- matrix(0,ai,ab)
+		
+		for (i in 1:ab) {
+			idx <- p[[i]]
+			L[idx,i] <- c[i]*W[i,idx]
+		}
+		
+		# Determination of the quality of the proxies, see (15) of Dijkstra, April 7, 2011.
+		Q <- c2
+		for (i in 1:ab) {
+			idx <- p[[i]]
+			Q[i] <- c2[i]*(t(W[i,idx])%*%W[i,idx])^2
+		}
+	}
+	
+	# Else use factor analysis
+	
+	else{
+		L <- matrix(0,ab,ai)
+		Q <- rep(1,ab)
+		for (i in 1:ab) {
+			idx <- p[[i]]
+			L[idx,i] <- fa(S[idx,idx], fm = fm)$loadings
+			Q[i] <- sum(L[idx,i] * W[i,idx])^2
+		}
+	}
+	
+	# Determination of consistent estimates for the correlation between the
+	# latent variables, see (15) and (16) of Dijkstra, April 7, 2011.
+	R <- C * sqrt(Q) %*% t(sqrt(Q))
+	diag(R) <- 1
+
+	
+	# Get the 2SLS estimates
+
+	# Exogenous are first, then endogenous.
+	endog <- rowSums(nativeModel$inner)!=0
+	swapindex <- c(which(!endog), which(endog))
+	
+	# All exogenous can be correlated
+	IB <- matrix(1,2,2)
+	diag(IB)<-0
+	
+	
+	TSLS_result <- TSLS_general(R[swapindex,swapindex],IB,IC) 
+	
+	return(params.internal_generic(S,W,model,
+																 regressionsWithCovarianceMatrixAndModelPattern))
+}
+
+#'@title Parameter estimation with PLSe2
+#'
+#'@description
+#'Estimates the model parameters with weighted least squares estimator using the weight matrix
+#'\code{W} as the WLS weights.
+#'
+#'@details
+#'\code{params.PLSe2} estimates the statistical model described by \code{model} using the PLSe2
+#'algorithm. This algorithm is simply WLS estimation with the weights \code{W}. The model is 
+#'estimated with \code{\link[lavaan]{lavaan}}.
+#'
+#'@param model Lavaan script or lavaan parameter table defining the model.
+#'
+#'@inheritParams params.regression
+#'@inheritParams matrixpls
+#'
+#'@references
+#' Bentler, P. M., & Huang, W. (submitted). On Components, Latent Variables, PLS and Simple Methods:
+#' Reactions to Ridgon’s Rethinking of PLS. \emph{Long Range Planning}.
+#'
+#'@return A named vector of parameter estimates.
+#'
+#'@family parameter estimators
+#'
+#'@export
+#'
+
+params.PSLe2 <- function(S, W, model){
+	
+	W.vect <- apply(W,2,function(x){
+		mean(x[x!=0])
+	})
+	
+	lavaan.out = lavaan(model, sample.cov = S, estimator = "GLS", WLS.V = diag(W.vect))	
+	browser()
+}
 
 # =========== Original code by Huang ===========
 
@@ -113,7 +265,8 @@ PLSc <- function(S,p,tol=1e-6,tmax=500) {
     }
   }
   c <- sqrt(c2)
-
+  
+  
   # Determination of consistent estimates of the loadings, see (13) of Dijkstra, April 7, 2011.
   L <- wdak
   for (i in 1:ab) {
