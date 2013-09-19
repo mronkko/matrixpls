@@ -124,6 +124,38 @@ params.plsc <- function(S, W, model, fm = NULL){
 																 regressionsWithCovarianceMatrixAndModelPattern))
 }
 
+#
+# The first stage of two stage least squares. 
+#
+# C covariance matrix between the composites
+# inner model matrix
+#
+# Returns a covariance matrix where the endogenous variables in C have been replaced with 
+# instruments
+
+
+tsls1 <- function(C, inner){
+	
+	endog <- rowSums(inner)!=0 
+	endog_indices <- which(endog)
+	exog_indices <- which(!endog)
+	
+	# coefs is coefficient matrix that is used to form instrument covariance matrix H.
+	# Each exogenous variable is included as is in H. The diagonal for these variables is 
+	# one and zero otherwise.
+	
+	coefs <- diag(! endog)
+
+	# Loop over the endogenous variables and regress each endogenous on all exogenous
+	# variables and the 
+	
+	for(i in endog_indices){
+		coefs[i,exog_indices] <- solve(C[exog_indices,exog_indices],C[i,exog_indices])
+	}
+	
+	return(H)
+}
+
 #'@title Parameter estimation with PLSe2
 #'
 #'@description
@@ -306,6 +338,10 @@ TSLS_findindex <- function(v) {
   }
   return(I)
 }
+
+# R is the covariance matrix of composites
+# IB is the model 
+#
 
 TSLS_general <- function(R,IB,IC) {
   n <- nrow(IB) # number of etas
