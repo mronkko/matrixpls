@@ -109,19 +109,55 @@ params.plsc <- function(S, W, model, fm = NULL){
 	
 	# Get the 2SLS estimates
 
-	# Exogenous are first, then endogenous.
-	endog <- rowSums(nativeModel$inner)!=0
-	swapindex <- c(which(!endog), which(endog))
+	inner <- nativeModel$inner
 	
-	# All exogenous can be correlated
-	IB <- matrix(1,2,2)
-	diag(IB)<-0
+	stage1 <- tsls1(R, inner)
+	H <- stage1$H
+	CH <- stage1$CH
+	
+	# Loop over the endogenous variables and run the second stage regressions
+	
+	model <- matrix(0, nrow(inner),ncol(inner)) 
+
+	for(row in 1:nrow(inner)){
+		
+		independents <- which(inner[row,]!=0, useNames = FALSE)
+		
+		if(length(independents)==1){
+			# Simple regresion is the covariance divided by the variance of the predictor
+			model[row,independents] <- CH[row,independents]/H[independents,independents]
+		}
+		if(length(independents)>1){
+			coefs <- solve(H[independents,independents],CH[row,independents])
+			model[row,independents] <- coefs
+		}
+	}
+
+	# Construct the result object
+	
+	innerRegressionIndices <- which(inner==1, useNames = FALSE)
+	innerVect <- model[innerRegressionIndices]
+	names(innerVect) <- paste(rownames(inner)[row(inner)[innerRegressionIndices]],"~",
+															colnames(inner)[col(inner)[innerRegressionIndices]], sep="")
+		
+	
+	reflective <- nativeModel$reflective
+	
+	loadingIndices <- which(W!=0)
+	loadingsVect <- L[loadingIndices]
+	names(loadingsVect) <- paste(colnames(reflective)[col(reflective)[loadingIndices]], "=~",
+															 rownames(reflective)[row(reflective)[loadingIndices]], sep = "")
 	
 	
-	TSLS_result <- TSLS_general(R[swapindex,swapindex],IB,IC) 
+	results <- c(innerVect, loadingVect)
 	
-	return(params.internal_generic(S,W,model,
-																 regressionsWithCovarianceMatrixAndModelPattern))
+	# Store these in the result object
+	attr(results,"C") <- C
+	attr(results,"IC") <- IC
+	attr(results,"beta") <- inner
+	
+	return(results)
+
 }
 
 #
@@ -146,14 +182,32 @@ tsls1 <- function(C, inner){
 	
 	coefs <- diag(! endog)
 
-	# Loop over the endogenous variables and regress each endogenous on all exogenous
-	# variables and the 
+	# Calculate a matrix that indicates which total (direct or indicerct) effects we have in the model
+	
+	inner.total <- inner
+	diag(inner.total) <- 1
+	inner.total <- solve(inner.total) !=0
+	
+	# Loop over the endogenous variables and regress each endogenous on all 
+	# 1) Exogenous variables
+	# 2) Endogenous variables that are uncorrelated with the distrubance term
 	
 	for(i in endog_indices){
-		coefs[i,exog_indices] <- solve(C[exog_indices,exog_indices],C[i,exog_indices])
+		# Which variables do not depend on this variable
+		instrument_indices <- inner.total[,i]==0
+		coefs[i,exog_indices] <- solve(C[instrument_indices,instrument_indices],C[i,instrument_indices])
 	}
 	
-	return(H)
+	# H is calculated analoguous to C
+	
+	H <- coefs %*% C %*% t(coefs)
+	
+	# CH is the covariances between the instruments and the original variables. Original 
+	# variables are on rows
+	
+	CH <- coefs %*% C
+		
+	return(list(H=H, CH = CH))
 }
 
 #'@title Parameter estimation with PLSe2
