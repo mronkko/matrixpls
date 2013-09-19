@@ -1,6 +1,6 @@
 #
 # This R code is contributed to matrixpls by Huang. It is a part of her dissertation.
-##
+#
 # Huang, W. (2013). PLSe: Efficient Estimators and Tests for Partial Least Squares
 # (Doctoral dissertation). University of California, Los Angeles.
 #
@@ -53,7 +53,7 @@ params.plsc <- function(S, W, model, fm = NULL){
 	
 	ab <- nrow(W) #number of blocks
 	ai <- ncol(W) #total number of indicators
-	p <- apply(W,1,function(x){which(x!=0)}) # indicator indices
+	p <- lapply(1:nrow(W),function(x){which(W[x,]!=0)}) # indicator indices
 	
 	# Calculation of the correlations between the PLS mode A proxies, C:
 	C <- W %*% S %*% t(W)	
@@ -143,18 +143,21 @@ params.plsc <- function(S, W, model, fm = NULL){
 	
 	reflective <- nativeModel$reflective
 	
-	loadingIndices <- which(W!=0)
-	loadingsVect <- L[loadingIndices]
-	names(loadingsVect) <- paste(colnames(reflective)[col(reflective)[loadingIndices]], "=~",
+	loadingIndices <- which(t(W)!=0)
+	loadingVect <- L[loadingIndices]
+	names(loadingVect) <- paste(colnames(reflective)[col(reflective)[loadingIndices]], "=~",
 															 rownames(reflective)[row(reflective)[loadingIndices]], sep = "")
 	
 	
 	results <- c(innerVect, loadingVect)
 	
 	# Store these in the result object
-	attr(results,"C") <- C
-	attr(results,"IC") <- IC
-	attr(results,"beta") <- inner
+	attr(results,"C") <- R
+	# TODO: Estimate crossloadings
+	attr(results,"IC") <- L
+	attr(results,"beta") <- model
+	
+	browser()
 	
 	return(results)
 
@@ -174,7 +177,6 @@ tsls1 <- function(C, inner){
 	
 	endog <- rowSums(inner)!=0 
 	endog_indices <- which(endog)
-	exog_indices <- which(!endog)
 	
 	# coefs is coefficient matrix that is used to form instrument covariance matrix H.
 	# Each exogenous variable is included as is in H. The diagonal for these variables is 
@@ -195,18 +197,18 @@ tsls1 <- function(C, inner){
 	for(i in endog_indices){
 		# Which variables do not depend on this variable
 		instrument_indices <- inner.total[,i]==0
-		coefs[i,exog_indices] <- solve(C[instrument_indices,instrument_indices],C[i,instrument_indices])
+		coefs[i,instrument_indices] <- solve(C[instrument_indices,instrument_indices],C[i,instrument_indices])
 	}
 	
 	# H is calculated analoguous to C
 	
 	H <- coefs %*% C %*% t(coefs)
-	
+	browser()
 	# CH is the covariances between the instruments and the original variables. Original 
 	# variables are on rows
 	
 	CH <- coefs %*% C
-		
+	
 	return(list(H=H, CH = CH))
 }
 
@@ -237,14 +239,16 @@ tsls1 <- function(C, inner){
 #'@export
 #'
 
-params.PSLe2 <- function(S, W, model){
+params.plse2 <- function(S, W, model){
+	
+	stop("Not implemented")
 	
 	W.vect <- apply(W,2,function(x){
 		mean(x[x!=0])
 	})
 	
 	lavaan.out = lavaan(model, sample.cov = S, estimator = "GLS", WLS.V = diag(W.vect))	
-	browser()
+
 }
 
 # =========== Original code by Huang ===========
