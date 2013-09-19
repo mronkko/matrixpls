@@ -116,7 +116,8 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
 								se = ses,
 								converged = attr(boot.out$t0,"converged"),
 								cilower = cis[1,],
-								ciupper = cis[2,])
+								ciupper = cis[2,],
+								extra = boot.out)
 
 		if(! is.null(fitIndices)){
 			assert_is_function(fitIndices)
