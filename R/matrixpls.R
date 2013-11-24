@@ -91,7 +91,7 @@ matrixpls <- function(S, model, W.mod = NULL, parameterEstimator = params.regres
 	
 	# Calculate weights
 	W <- matrixpls.weights(S, nativeModel$inner, W.mod, ..., validateInput = validateInput)
-		
+	
 	# Apply the parameter estimator and return the results
 	estimates <- parameterEstimator(S, W, model)
 	
@@ -106,11 +106,11 @@ matrixpls <- function(S, model, W.mod = NULL, parameterEstimator = params.regres
 	# Copy all non-standard attributes from the weight and estimation algorithms
 	
 	allAttributes <- c(attributes(W),attributes(estimates))
-	 
+	
 	for(a in setdiff(names(allAttributes), c("dim", "dimnames", "class", "names"))){
 		attr(ret,a) <- allAttributes[[a]]
 	}
-
+	
 	attr(ret,"W") <- W
 	attr(ret,"model") <- nativeModel
 	
@@ -158,7 +158,7 @@ summary.matrixpls <- function(object, ...){
 							AVE = AVE(object))
 	
 	class(ret) <-("matrixplssummary")
-
+	
 	return(ret)
 }
 
@@ -265,7 +265,7 @@ matrixpls.weights <- function(S, inner.mod, W.mod,
 		# linked to at least one composite and each composite at least to one indicator
 		assert_is_matrix(W.mod)
 		assert_all_are_real(W.mod)
-
+		
 		if(! apply(W.mod!=0,1,any)){
 			print(W.mod)	
 			stop("All constructs must have at least one indicator")	
@@ -274,7 +274,7 @@ matrixpls.weights <- function(S, inner.mod, W.mod,
 			print(W.mod)	
 			stop("All indicators must be linked to at least one construct")	
 		}
-				
+		
 		# the number of rows in W.mod must match the dimensions of other matrices
 		assert_is_identical_to_true(nrow(inner.mod)==nrow(W.mod))
 		assert_is_identical_to_true(ncol(S)==ncol(W.mod))
@@ -304,7 +304,7 @@ matrixpls.weights <- function(S, inner.mod, W.mod,
 	}
 	
 	# Done checking arguments
-	 
+	
 	# The initial weight matrix
 	
 	weightPattern <- W.mod!=0
@@ -317,7 +317,7 @@ matrixpls.weights <- function(S, inner.mod, W.mod,
 	
 	
 	# If we are not using an outer estimator, do not perform iterative estimation
-		
+	
 	if(!is.null(outerEstimators)){
 		
 		# Set up outer estimators
@@ -335,13 +335,13 @@ matrixpls.weights <- function(S, inner.mod, W.mod,
 		# =========== Start of iterative procedure ===========
 		
 		repeat {
-		
+			
 			# Get new inner weights from inner estimation
-		
+			
 			if(! is.null(innerEstimator)){
 				E <- innerEstimator(S, W, inner.mod)
 			}
-		
+			
 			# Get new weights from outer estimation
 			
 			W_old <- W
@@ -365,16 +365,16 @@ matrixpls.weights <- function(S, inner.mod, W.mod,
 			weightHistory[iteration+1,] <- W[weightPattern]
 			
 			# Check convergence. If we are not using inner estimator, converge to the first iteration
-		
+			
 			if(is.null(innerEstimator) || convCheck(W,W_old) < tol){
-					converged <- TRUE
-					break;
+				converged <- TRUE
+				break;
 			}
 			else if(iteration == iter){
-					converged <- FALSE;
-					break;
+				converged <- FALSE;
+				break;
 			}
-							
+			
 		}
 	}
 	
@@ -438,9 +438,9 @@ print.matrixplsweights <- function(x, ...){
 #'@export
 
 params.regression <- function(S, W, model){
-
+	
 	return(params.internal_generic(S,W,model,
-																											 regressionsWithCovarianceMatrixAndModelPattern))
+																 regressionsWithCovarianceMatrixAndModelPattern))
 }
 
 params.internal_generic <- function(S, W, model, pathEstimator){
@@ -538,7 +538,7 @@ params.disattenuated <- function(S, W, model){
 	R <- C * sqrt(Q) %*% t(sqrt(Q))
 	
 	diag(R) <- 1
-
+	
 	print(Q)
 	print(C)
 	print(R)
@@ -608,7 +608,7 @@ params.internal_generic <- function(S, W, model, pathEstimator){
 params.internal_formative <- function(S, IC, nativeModel){
 	
 	results <-c()
-
+	
 	for(row in 1:nrow(nativeModel$formative)){
 		
 		independents <- which(nativeModel$formative[row,]!=0, useNames = FALSE)
@@ -686,7 +686,7 @@ params.internal_reflective <- function(C, IC, nativeModel){
 #'@export
 
 inner.centroid <- function(S, W, inner.mod){
-
+	
 	# Centroid is just the sign of factor weighting
 	
 	E <- sign(inner.factor(S, W, inner.mod))
@@ -767,11 +767,11 @@ inner.path <- function(S, W, inner.mod){
 #'@export
 
 inner.factor <- function(S, W, inner.mod){
-
+	
 	# Calculate the composite covariance matrix
-		
+	
 	C <- W %*% S %*% t(W)
-
+	
 	# Calculate unscaled inner weights using the centroid weighting scheme
 	
 	E <- C * (inner.mod | t(inner.mod))
@@ -860,15 +860,15 @@ inner.identity <- function(S, W, inner.mod){
 #'@export
 
 inner.GSCA <- function(S, W, inner.mod){
-		
+	
 	# Calculate the composite covariance matrix
 	C <- W %*% S %*% t(W)
 	
 	E <- regressionsWithCovarianceMatrixAndModelPattern(C,inner.mod)
-		
+	
 	return(E)
 }
-	
+
 # =========== Outer estimators ===========
 
 #'@title PLS outer estimation with Mode A
@@ -894,10 +894,10 @@ inner.GSCA <- function(S, W, inner.mod){
 
 
 outer.modeA <- function(S, W, E, W.mod){
-
+	
 	# Calculate the covariance matrix between indicators and composites
 	W_new <- E %*% W %*% S
-
+	
 	# Set the non-existing weight relations to zero
 	W_new[W.mod == 0] <- 0
 	
@@ -926,7 +926,7 @@ outer.modeA <- function(S, W, E, W.mod){
 
 
 outer.modeB <- function(S, W, E, W.mod){
-
+	
 	# Calculate the covariance matrix between indicators and composites
 	IC <- E %*% W %*% S
 	
@@ -939,7 +939,7 @@ outer.modeB <- function(S, W, E, W.mod){
 		indicatorIndices <- W_new[row,]==1
 		W_new[row,indicatorIndices] <- solve(S[indicatorIndices,indicatorIndices],IC[row,indicatorIndices])
 	}
-
+	
 	return(W_new)
 	
 }
@@ -1037,7 +1037,7 @@ outer.GSCA <- function(S, W, E, W.mod){
 		
 		# Calculate the covariance matrix between indicators and composites
 		IC <- W %*% S
-
+		
 		# Calculate the composite covariance matrix
 		C <- IC %*% t(W)
 		
@@ -1062,9 +1062,9 @@ outer.GSCA <- function(S, W, E, W.mod){
 	}	
 	
 	# The previous weights are used as starting values
-		
+	
 	start <- W[Wpattern]
-		
+	
 	# Then we will find the minimum using optim
 	
 	Wvect <- optim(start, ssFun)$par
@@ -1090,11 +1090,11 @@ outer.GSCA <- function(S, W, E, W.mod){
 scaleWeights <- function(S, W){
 	
 	# Calculate the variances of the unscaled composites
-		
+	
 	var_C_unscaled <- diag(W %*% S %*% t(W))
-		
+	
 	# Scaling the unscaled weights and return
-		
+	
 	return(diag(x = 1/sqrt(var_C_unscaled)) %*% W)
 }
 
@@ -1104,9 +1104,10 @@ lavaanParTableToNativeFormat <- function(partable){
 	
 	factorLoadings <- partable[partable$op == "=~",]
 	regressions <- partable[partable$op == "~",]
+	formativeLoadings <- partable[partable$op == "<~",]
 	
 	# Parse the variables
-	latentVariableNames <- unique(factorLoadings$lhs)
+	latentVariableNames <- unique(c(factorLoadings$lhs, formativeLoadings$lhs))
 	observedVariableNames <- setdiff(unique(c(partable$rhs,partable$lhs)), latentVariableNames)
 	
 	# Set up empty model tables
@@ -1121,7 +1122,7 @@ lavaanParTableToNativeFormat <- function(partable){
 	reflective <- t(formative)
 	
 	# Set the relationships in the tables
-
+	
 	rows <- match(factorLoadings$rhs, observedVariableNames)
 	cols <- match(factorLoadings$lhs,latentVariableNames)
 	indices <- rows + (cols-1)*nrow(reflective) 
@@ -1134,19 +1135,19 @@ lavaanParTableToNativeFormat <- function(partable){
 	rows <- match(regressions$lhs, latentVariableNames)
 	cols <- match(regressions$rhs,latentVariableNames)
 	indices <- rows + (cols-1)*nrow(inner) 
-		
+	
 	inner[indices] <- 1
 	
-	formativeRegressions <- regressions[regressions$rhs %in% observedVariableNames & 
-																	 	regressions$lhs %in% latentVariableNames,]
-
-
+	formativeRegressions <- rbind(regressions[regressions$rhs %in% observedVariableNames & 
+																				regressions$lhs %in% latentVariableNames,],
+																formativeLoadings)
+	
+	
 	rows <- match(formativeRegressions$lhs, latentVariableNames)
 	cols <- match(formativeRegressions$rhs, observedVariableNames)
 	indices <- rows + (cols-1)*nrow(formative) 
 	
 	formative[indices] <- 1
-	
 	
 	return(list(inner=inner, reflective=reflective, formative=formative))
 }
@@ -1158,7 +1159,6 @@ parseModelToNativeFormat <- function(model){
 		return(model)
 	}
 	else if(is.character(model)) {
-
 		# Remove all multigroup specifications because we do not support multigroup analyses
 		model <- gsub("c\\(.+?\\)","NA",model)
 		
@@ -1169,10 +1169,10 @@ parseModelToNativeFormat <- function(model){
 		browser()
 	} else if (is(model, "lavaan")) {
 		return(lavaanParTableToNativeFormat(model@ParTable))
-#	} else if (is(model, "MxModel")) {
-#		browser()
-#	} else if (is(model, "SimSem")) {
-#		browser()
+		#	} else if (is(model, "MxModel")) {
+		#		browser()
+		#	} else if (is(model, "SimSem")) {
+		#		browser()
 	} else {
 		stop("Please specify an appropriate object for the 'model' argument: simsem model template, lavaan script, lavaan parameter table, list of options for the 'lavaan' function, or a list containing three matrices in the matrixpls native model format.")
 	}
@@ -1183,12 +1183,11 @@ parseModelToNativeFormat <- function(model){
 #
 
 defaultWeightModelWithModel <- function(model){
-		
+	
 	nativeModel <- parseModelToNativeFormat(model)
 	W.mod <- matrix(0,nrow(nativeModel$formative), ncol(nativeModel$formative))
 	W.mod[nativeModel$formative!=0] <- 1 
 	W.mod[t(nativeModel$reflective)!=0] <- 1 
-
 	return(W.mod)
 	
 }
@@ -1196,8 +1195,8 @@ defaultWeightModelWithModel <- function(model){
 is.matrixpls.model <- function(model) {
 	return (is.list(model) &&
 						setequal(names(model),c("inner","reflective","formative")) &&
-		 				all(sapply(model,is.matrix)))
-														
+						all(sapply(model,is.matrix)))
+	
 }
 
 #
@@ -1206,7 +1205,7 @@ is.matrixpls.model <- function(model) {
 #
 
 regressionsWithCovarianceMatrixAndModelPattern <- function(S,model){
-		
+	
 	for(row in 1:nrow(model)){
 		
 		independents <- which(model[row,]!=0, useNames = FALSE)
