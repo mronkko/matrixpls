@@ -266,11 +266,11 @@ matrixpls.weights <- function(S, inner.mod, W.mod,
 		assert_is_matrix(W.mod)
 		assert_all_are_real(W.mod)
 		
-		if(! apply(W.mod!=0,1,any)){
+		if(! all(apply(W.mod!=0,1,any))){
 			print(W.mod)	
 			stop("All constructs must have at least one indicator")	
 		}
-		if(! apply(W.mod!=0,2,any)){
+		if(! all(apply(W.mod!=0,2,any))){
 			print(W.mod)	
 			stop("All indicators must be linked to at least one construct")	
 		}
