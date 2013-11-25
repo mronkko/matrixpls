@@ -81,16 +81,36 @@
 #'@export
 
 
-matrixpls <- function(S, model, W.mod = NULL, parameterEstimator = params.regression, ..., validateInput = TRUE) {
+matrixpls <- function(S, model, W.mod = NULL, parameterEstimator = params.regression, ..., outerEstimators = NULL, validateInput = TRUE) {
 	
 	# TODO: Validate input.
 	
 	nativeModel <- parseModelToNativeFormat(model)
 	
+	# If the weight model is not defined, calculate it based on the model.
 	if(is.null(W.mod)) W.mod <- defaultWeightModelWithModel(nativeModel)
 	
+	# If the outer estimators (tpyically Mode A and Mode B) are not defined, default to using
+	# Mode A for reflective constructs and Mode B for formative constructs
+	
+	if(is.null(outerEstimators)){
+		hasFormativeIndicators <- any(model$formative == 1)
+		hasReflectiveIndicators <- any(model$reflective == 1)
+		
+		if(! hasFormativeIndicators) outerEstimators = outer.modeA
+		else if (! hasReflectiveIndicators) outerEstimators = outer.modeB
+		else{
+			# Constructs with at least one reflective indicator are ModeA and others are ModeB
+			outerEstimators <- list()
+			for(construct in 1:ncol(model$reflective)){
+				if(any(model$reflective[,construct] == 1)) outerEstimators[[construct]] <- outer.modeA
+				else outerEstimators[[construct]] <- outer.modeB
+			}
+		}
+	}
+	
 	# Calculate weights
-	W <- matrixpls.weights(S, nativeModel$inner, W.mod, ..., validateInput = validateInput)
+	W <- matrixpls.weights(S, nativeModel$inner, W.mod, outerEstimators, ... , validateInput = validateInput)
 	
 	# Apply the parameter estimator and return the results
 	estimates <- parameterEstimator(S, W, model)
