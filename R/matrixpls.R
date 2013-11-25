@@ -87,8 +87,36 @@ matrixpls <- function(S, model, W.mod = NULL, parameterEstimator = params.regres
 	
 	nativeModel <- parseModelToNativeFormat(model)
 	
+	lvNames <- colnames(nativeModel$inner)
+
+	if(lvNames != rownames(nativeModel$inner) ||
+		 	lvNames != colnames(nativeModel$reflective) ||
+		 	lvNames != rownames(nativeModel$formative)){
+			print(nativeModel)
+			stop("Names of composites are inconsistent between inner, reflective, and formative models.")
+	}
+
+	if(! identical(rownames(nativeModel$reflective), colnames(nativeModel$formative))){
+		print(nativeModel)
+		stop("Names of observed variables are inconsistent between inner, reflective, and formative models.")
+	}
+	
+	if(! identical(colnames(S), rownames(S))) stop("S must have identical row and column names.")
+	
+	if(! identical(colnames(S), colnames(nativeModel$formative))){
+		# Do all variables of the model exists in S
+		d <- setdiff(colnames(nativeModel$formative), colnames(S))
+		if(length(d)>0) stop(paste("Variable(s)",paste(d,collapse=", "),"are not included in S."))
+		
+		# Choose the subset that we uses. This also guarantees the correct order.
+		S <- S[colnames(nativeModel$formative), colnames(nativeModel$formative)]
+	}
+	
 	# If the weight model is not defined, calculate it based on the model.
 	if(is.null(W.mod)) W.mod <- defaultWeightModelWithModel(nativeModel)
+	
+	if(! identical(colnames(W.mod), colnames(S))) stop("Column names of W.mod do not match the variable names")
+	if(! identical(rownames(W.mod), lvNames)) stop("Row names of W.mod do not match the latent variable names")
 	
 	# If the outer estimators (tpyically Mode A and Mode B) are not defined, default to using
 	# Mode A for reflective constructs and Mode B for formative constructs
@@ -559,9 +587,9 @@ params.disattenuated <- function(S, W, model){
 	
 	diag(R) <- 1
 	
-	print(Q)
-	print(C)
-	print(R)
+# 	print(Q)
+# 	print(C)
+# 	print(R)
 	
 	innerRegressionIndices <- which(nativeModel$inner==1, useNames = FALSE)
 	
@@ -1206,6 +1234,10 @@ defaultWeightModelWithModel <- function(model){
 	
 	nativeModel <- parseModelToNativeFormat(model)
 	W.mod <- matrix(0,nrow(nativeModel$formative), ncol(nativeModel$formative))
+
+	colnames(W.mod) <- colnames(nativeModel$formative)
+	rownames(W.mod) <- rownames(nativeModel$formative)
+	
 	W.mod[nativeModel$formative!=0] <- 1 
 	W.mod[t(nativeModel$reflective)!=0] <- 1 
 	return(W.mod)
