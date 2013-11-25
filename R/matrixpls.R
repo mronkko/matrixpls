@@ -88,14 +88,14 @@ matrixpls <- function(S, model, W.mod = NULL, parameterEstimator = params.regres
 	nativeModel <- parseModelToNativeFormat(model)
 	
 	lvNames <- colnames(nativeModel$inner)
-
+	
 	if(lvNames != rownames(nativeModel$inner) ||
 		 	lvNames != colnames(nativeModel$reflective) ||
 		 	lvNames != rownames(nativeModel$formative)){
-			print(nativeModel)
-			stop("Names of composites are inconsistent between inner, reflective, and formative models.")
+		print(nativeModel)
+		stop("Names of composites are inconsistent between inner, reflective, and formative models.")
 	}
-
+	
 	if(! identical(rownames(nativeModel$reflective), colnames(nativeModel$formative))){
 		print(nativeModel)
 		stop("Names of observed variables are inconsistent between inner, reflective, and formative models.")
@@ -587,9 +587,9 @@ params.disattenuated <- function(S, W, model){
 	
 	diag(R) <- 1
 	
-# 	print(Q)
-# 	print(C)
-# 	print(R)
+	# 	print(Q)
+	# 	print(C)
+	# 	print(R)
 	
 	innerRegressionIndices <- which(nativeModel$inner==1, useNames = FALSE)
 	
@@ -664,17 +664,18 @@ params.internal_formative <- function(S, IC, nativeModel){
 		if(length(independents)>0){
 			if(length(independents)==1){
 				# Simple regresion is the covariance divided by the variance of the predictor, which are standardized
-				results <- c(results, IC[row,independents])
+				thisResults <- IC[row,independents]
 			}
 			else{
-				coefs <- solve(S[independents,independents],IC[row,independents])
-				results <- c(results,coefs)
+				thisResults <- solve(S[independents,independents],IC[row,independents])
 			}
-			names(results)[length(results)] <- paste(rownames(nativeModel$formative)[row], "~",
-																							 colnames(nativeModel$formative)[independents], sep = "")
+			
+			names(thisResults) <- paste(rownames(nativeModel$formative)[row], "<~",
+																	names(thisResults), sep = "")
+			
+			results <- c(results, thisResults)
 		}
 	}
-	
 	return(results)
 }
 
@@ -1187,7 +1188,7 @@ lavaanParTableToNativeFormat <- function(partable){
 	inner[indices] <- 1
 	
 	formativeRegressions <- rbind(regressions[regressions$rhs %in% observedVariableNames & 
-																				regressions$lhs %in% latentVariableNames,],
+																							regressions$lhs %in% latentVariableNames,],
 																formativeLoadings)
 	
 	
@@ -1234,7 +1235,7 @@ defaultWeightModelWithModel <- function(model){
 	
 	nativeModel <- parseModelToNativeFormat(model)
 	W.mod <- matrix(0,nrow(nativeModel$formative), ncol(nativeModel$formative))
-
+	
 	colnames(W.mod) <- colnames(nativeModel$formative)
 	rownames(W.mod) <- rownames(nativeModel$formative)
 	
