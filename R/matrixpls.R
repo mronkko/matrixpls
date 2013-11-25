@@ -94,16 +94,16 @@ matrixpls <- function(S, model, W.mod = NULL, parameterEstimator = params.regres
 	# Mode A for reflective constructs and Mode B for formative constructs
 	
 	if(is.null(outerEstimators)){
-		hasFormativeIndicators <- any(model$formative == 1)
-		hasReflectiveIndicators <- any(model$reflective == 1)
+		hasFormativeIndicators <- any(nativeModel$formative == 1)
+		hasReflectiveIndicators <- any(nativeModel$reflective == 1)
 		
 		if(! hasFormativeIndicators) outerEstimators = outer.modeA
 		else if (! hasReflectiveIndicators) outerEstimators = outer.modeB
 		else{
 			# Constructs with at least one reflective indicator are ModeA and others are ModeB
 			outerEstimators <- list()
-			for(construct in 1:ncol(model$reflective)){
-				if(any(model$reflective[,construct] == 1)) outerEstimators[[construct]] <- outer.modeA
+			for(construct in 1:ncol(nativeModel$reflective)){
+				if(any(nativeModel$reflective[,construct] == 1)) outerEstimators[[construct]] <- outer.modeA
 				else outerEstimators[[construct]] <- outer.modeB
 			}
 		}
