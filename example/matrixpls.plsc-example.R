@@ -34,7 +34,8 @@ formative <- matrix(0, 6, 27, dimnames = list(colnames(inner), colnames(satisfac
 
 matrixpls.out <- matrixpls(cov(satisfaction[,1:27]), model = list(inner = inner,
                                                                   reflective = reflective,
-                                                                  formative = formative))
+                                                                  formative = formative),
+													 parameterEstimator = params.plsc)
 
 summary(matrixpls.out)
 

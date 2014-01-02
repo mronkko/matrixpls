@@ -466,7 +466,7 @@ print.matrixplsweights <- function(x, ...){
 #'
 #'@details
 #'\code{params.regression} estimates the statistical model described by \code{model} with the
-#'following steps. If \code{model} is not in the antive format, it is converted to the native
+#'following steps. If \code{model} is not in the native format, it is converted to the native
 #'format containing matrices \code{inner}, \code{reflective}, and \code{formative}. The
 #'weights \code{W} and the data covariance matrix \code{S} are used to calculate the composite
 #'covariance matrix \code{C} and the indicator-composite covariance matrix \code{IC}. These
@@ -532,96 +532,10 @@ params.internal_generic <- function(S, W, model, pathEstimator){
 	attr(results,"C") <- C
 	attr(results,"IC") <- IC
 	attr(results,"beta") <- inner
-	
+	browser()
 	return(results)
 }
 
-#'@title Parameter estimation with separate regression analyses after disattenuatuin
-#'
-#'@description
-#'Estimates the model parameters with weighted composites using separate OLS regressions.
-#'
-#'@details
-#'\code{params.regression} estimates the statistical model described by \code{model} with the
-#'following steps. If \code{model} is not in the antive format, it is converted to the native
-#'format containing matrices \code{inner}, \code{reflective}, and \code{formative}. The
-#'weights \code{W} and the data covariance matrix \code{S} are used to calculate the composite
-#'covariance matrix \code{C} and the indicator-composite covariance matrix \code{IC}. These
-#'are used to estimate multiple OLS regression models.
-#'
-#'The OLS regressions are estimated separately for each of the three model parts \code{inner},
-#'\code{reflective}, and \code{formative}. These matrices are analyzed one row at a time
-#'so that the row specifies the index of the dependent variable in the OLS regression and 
-#'the non-zero elements on the row specify the indices of the independent variables.
-#'
-#'This approach of estimating the inner and outer models separately with separate 
-#'OLS regression analyses is the standard way of estimation in the PLS literature.
-#'
-#'@param S Covariance matrix of the data.
-#'
-#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
-#'
-#'@inheritParams matrixpls
-#'
-#'@return A named vector of parameter estimates.
-#'
-#'@family parameter estimators
-#'
-#'@export
-
-params.disattenuated <- function(S, W, model){
-	
-	library(psych)
-	
-	nativeModel <- parseModelToNativeFormat(model)
-	
-	results <- c()
-	
-	# Calculate the composite covariance matrix
-	C <- W %*% S %*% t(W)	
-	
-	# Calculate the covariance matrix between indicators and composites
-	IC <- W %*% S
-	
-	# Disattenuate the composite covariance matrix
-	Q <- rep(1,ncol(nativeModel$reflective))
-	for (i in 1:ncol(nativeModel$reflective)) {
-		idx <- which(nativeModel$reflective[,i]!=0)
-		loads <- fa(S[idx,idx])$loadings
-		Q[i] <- 1/sum(loads * W[i,idx])^2
-	}
-	R <- C * sqrt(Q) %*% t(sqrt(Q))
-	
-	diag(R) <- 1
-	
-	# 	print(Q)
-	# 	print(C)
-	# 	print(R)
-	
-	innerRegressionIndices <- which(nativeModel$inner==1, useNames = FALSE)
-	
-	# Choose the specified values and add names
-	if(length(innerRegressionIndices)>0){
-		inner <- regressionsWithCovarianceMatrixAndModelPattern(R,nativeModel$inner)
-		innerVect <- inner[innerRegressionIndices]
-		names(innerVect) <- paste(rownames(inner)[row(inner)[innerRegressionIndices]],"~",
-															colnames(inner)[col(inner)[innerRegressionIndices]], sep="")
-		
-		results <- c(results, innerVect)
-	}
-	else{
-		inner <- matrix(0,nrow(nativeModel$inner), ncol(nativeModel$inner))
-	}
-	
-	results <- c(results, params.internal_reflective(C, IC, nativeModel))
-	results <- c(results,	params.internal_formative(S, IC, nativeModel))
-	
-	# Store these in the result object
-	attr(results,"C") <- C
-	attr(results,"IC") <- IC
-	attr(results,"beta") <- inner
-	
-	return(results)}
 
 params.internal_generic <- function(S, W, model, pathEstimator){
 	

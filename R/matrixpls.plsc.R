@@ -16,51 +16,83 @@
 #'composite reliabilities.
 #'
 #'@details
-#'\code{params.regression} estimates the statistical model described by \code{model} with the
-#'following steps. If \code{model} is not in the antive format, it is converted to the native
+#'\code{params.plsc} estimates the statistical model described by \code{model} with the
+#'following steps. If \code{model} is not in the native format, it is converted to the native
 #'format containing matrices \code{inner}, \code{reflective}, and \code{formative}. The
 #'weights \code{W} and the data covariance matrix \code{S} are used to calculate the composite
-#'covariance matrix \code{C} and the indicator-composite covariance matrix \code{IC}. These
-#'are used to estimate multiple OLS regression models.
+#'covariance matrix \code{C} and the indicator-composite covariance matrix \code{IC}.
 #'
-#'The OLS regressions are estimated separately for each of the three model parts \code{inner},
-#'\code{reflective}, and \code{formative}. These matrices are analyzed one row at a time
-#'so that the row specifies the index of the dependent variable in the OLS regression and 
-#'the non-zero elements on the row specify the indices of the independent variables.
+#'\code{C} is then disattenuated. The reliability estimates used
+#'in the dissattenuation process are calculated by using Dijkstra's (2011)
+#'correction or with a separate factor analysis for each indicator block. Indicators that are
+#'used in a composite but are not specified as reflective indicators for the
+#'latent variable that the composite approximates are assumed to be perfectly
+#'reliable.
 #'
-#'This approach of estimating the inner and outer models separately with separate 
-#'OLS regression analyses is the standard way of estimation in the PLS literature.
+#'The disattenuated \code{C} is used to estimate the the inner part of the model
+#'with separate OLS regressions in the same way as in \code{\link{params.regression}}.
+#'This differs from Dijkstra's (2011) PLSc estimator that uses
+#'2SLS. The reason for not using 2SLS is that PLS is commonly used with models that
+#'do not contain variables that could be used as instruments in the 2SLS estimation.
+#'
+#'The results from the disattenuation process are used as estimates of the \code{reflective}
+#'part of the model and the \code{formative} part of the model estimated with separate
+#'OLS regressions using the \code{S} and \code{IC} matrices.
+#'
+#'Those elements of teh indicator-composite covariance matrix \code{IC} that correspond
+#'to factor loadings are replaced with the factor loading estimates.
+#'
+#'The dissattenuation code for Dijkstra's method is adapted from Huang (2013), which is based on
+#'Dijkstra (2011).
+#'
 #'
 #'@param S Covariance matrix of the data.
 #'
 #'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
 #'
-#'@inheritParams matrixpls
+#'@param fm factoring method for estimating the corrected factor loadings. \code{"dijkstra"}
+#'will use the correction presented by Dijkstra (2011), where the PLS estimates of the 
+#'factor loadings for a latent variable are multiplied with a scalar \code{a}, which is 
+#'calculated by a simple formula that approximately minimizes squared residual covariances
+#'of the factor model. \code{minres}, \code{wls}, \code{gls}, \code{pa}, and \code{ml}
+#'will use a factor analysis and passing this parameter through to \code{\link[psych]{fa}}.
+#'
+#'@inheritParams matrixpls 
 #'
 #'@return A named vector of parameter estimates.
 #'
 #'@family parameter estimators
 #'
+#'@author Mikko Rönkkö, Wenjing Huang, Theo Dijkstra
+#'
+#'@references
+#'
+#' Huang, W. (2013). PLSe: Efficient Estimators and Tests for Partial Least Squares (Doctoral dissertation). University of California, Los Angeles.
+#' Dijkstra, T. K. (2011). Consistent Partial Least Squares estimators for linear and polynomial factor models. A report of a belated, serious and not even unsuccessful attempt. Comments are invited. Retrieved from http://www.rug.nl/staff/t.k.dijkstra/consistent-pls-estimators.pdf
+
+#'  
+#'@example example/matrixpls.plsc-example.R
+#'
 #'@export
 
-params.plsc <- function(S, W, model, fm = "minres"){
+params.plsc <- function(S, W, model, fm = "dijkstra"){
 	
 	nativeModel <- parseModelToNativeFormat(model)
-	
-	# TODO: Check assumptions about model structure
-	# - no formative indicators
-	# - weight model must be identical to the measurement model
-	
+		
 	ab <- nrow(W) #number of blocks
 	ai <- ncol(W) #total number of indicators
 	p <- lapply(1:nrow(W),function(x){which(W[x,]!=0)}) # indicator indices
 	
-	# Calculation of the correlations between the PLS mode A proxies, C:
+	
+	# Calculation of the correlations between the PLS proxies, C:
 	C <- W %*% S %*% t(W)	
 	
-	# If factor analysis estimator is not specified, use Dijkstra's correction
+	# Calculate the covariance matrix between indicators and composites
+	IC <- W %*% S
 	
-	if(is.null(fm)){
+	# Dijkstra's correction
+	
+	if(fm == "dijkstra"){
 		
 		# Determination of the correction factors, based on (11) of Dijkstra, April 7, 2011.
 		c2 <- rep(1,ab)
@@ -86,6 +118,7 @@ params.plsc <- function(S, W, model, fm = "minres"){
 		}
 		
 		# Determination of the quality of the proxies, see (15) of Dijkstra, April 7, 2011.
+		
 		Q <- c2
 		for (i in 1:ab) {
 			idx <- p[[i]]
@@ -96,13 +129,17 @@ params.plsc <- function(S, W, model, fm = "minres"){
 	# Else use factor analysis
 	
 	else{
+		p_refl <- apply(nativeModel$reflective, 2, function(x){which(x!=0)}) # indicator indices based on the reflective model
 		library(psych)
 		L <- matrix(0,ai,ab)
 		Q <- rep(1,ab)
-		for (i in 1:ab) {
-			idx <- p[[i]]
+		for (i in 1:ab) {	
+			idx <- p_refl[[i]]
 			L[idx,i] <- fa(S[idx,idx], fm = fm)$loadings
-			Q[i] <- sum(L[idx,i] * W[i,idx])^2
+			# Non-factor indicators are assumed to be perfectly reliable and not corrected
+			indicator_reliabilities <- L
+			indicator_reliabilities[indicator_reliabilities == 0] <- 1
+			Q[i] <- sum(indicator_reliabilities[idx,i] * W[i,idx])^2
 		}
 	}
 	
@@ -129,56 +166,20 @@ params.plsc <- function(S, W, model, fm = "minres"){
 	
 	
 	results <- c(innerVect, loadingVect)
-	
+	results <- c(results,	params.internal_formative(S, IC, nativeModel))
+
 	# Store these in the result object
 	attr(results,"C") <- R
-	# TODO: Estimate crossloadings
-	attr(results,"IC") <- L
-	attr(results,"beta") <- beta
+	IC[L!=0] <- L[L!=0]
+	attr(results,"IC") <- IC
+	attr(results,"beta") <- inner
 	
 	return(results)
 
 }
 
 
-#'@title Parameter estimation with PLSe2
-#'
-#'@description
-#'Estimates the model parameters with weighted least squares estimator using the weight matrix
-#'\code{W} as the WLS weights.
-#'
-#'@details
-#'\code{params.PLSe2} estimates the statistical model described by \code{model} using the PLSe2
-#'algorithm. This algorithm is simply WLS estimation with the weights \code{W}. The model is 
-#'estimated with \code{\link[lavaan]{lavaan}}.
-#'
-#'@param model Lavaan script or lavaan parameter table defining the model.
-#'
-#'@inheritParams params.regression
-#'@inheritParams matrixpls
-#'
-#'@references
-#' Bentler, P. M., & Huang, W. (submitted). On Components, Latent Variables, PLS and Simple Methods:
-#' Reactions to Ridgon’s Rethinking of PLS. \emph{Long Range Planning}.
-#'
-#'@return A named vector of parameter estimates.
-#'
-#'@family parameter estimators
-#'
-#'@export
-#'
 
-params.plse2 <- function(S, W, model){
-	
-	stop("Not implemented")
-	
-	W.vect <- apply(W,2,function(x){
-		mean(x[x!=0])
-	})
-	
-	lavaan.out = lavaan(model, sample.cov = S, estimator = "GLS", WLS.V = diag(W.vect))	
-
-}
 
 # =========== Original code by Huang ===========
 

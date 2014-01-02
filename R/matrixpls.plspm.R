@@ -14,9 +14,9 @@
 #'statistics. Because of this \code{matrixpls.plspm} is substantially less efficient than the \code{\link{matrixpls}}
 #'function.
 #'
-#'The argument \code{inner_matrix} is a matrix of zeros and ones that indicates
+#'The argument \code{path_matrix} is a matrix of zeros and ones that indicates
 #'the structural relationships between composites. This must be a lower
-#'triangular matrix. \code{inner_matrix} will contain a 1 when column \code{j}
+#'triangular matrix. \code{path_matrix} will contain a 1 when column \code{j}
 #'affects row \code{i}, 0 otherwise. \cr
 #'
 #'@inheritParams plspm::plspm
@@ -32,25 +32,21 @@
 #'@example example/matrixpls.plspm-example.R
 
 matrixpls.plspm <-
-function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid", 
-         scaled = TRUE, tol = 0.000001, iter = 100, boot.val = FALSE, 
-         br = NULL, plsr = FALSE, dataset = TRUE){
+function(Data, path_matrix, blocks, modes = NULL, scheme = "centroid", 
+         scaled = TRUE, tol = 0.000001, maxiter = 100, boot.val = FALSE, 
+         br = NULL, dataset = TRUE){
     
 		library(plspm)
 		library(psych)
 		library(boot)
 		library(parallel)
-		
-		#
-		# Scaling parameters require raw data, so we will just crash if scaling is specified
-		#
-		
+				
 		# =======================================================
 		# checking arguments
 		# =======================================================
-		params = get_params(x=Data, inner=inner_matrix, outer=outer_list, modes=modes, 
-										 scheme=scheme, scaled=scaled, tol=tol, iter=iter,
-										 boot.val=boot.val, br=br, plsr=plsr, dataset=dataset)
+		params = get_params(x=Data, inner=path_matrix, outer=blocks, modes=modes, 
+										 scheme=scheme, scaled=scaled, tol=tol, maxiter=maxiter,
+										 boot.val=boot.val, br=br, plsr=FALSE, dataset=dataset)
 
 		
 		#
@@ -149,7 +145,7 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 				tryCatch(
 					matrixpls(S_boot, model = nativeModel, W.mod = W.mod, parameterEstimator = parameterEstimator,
 										outerEstimators = outerEstimators, innerEstimator = innerEstimator,
-										tol = params$tol, iter = params$iter, convCheck = convCheck,
+										tol = params$tol, iter = params$maxiter, convCheck = convCheck,
 										validateInput = FALSE), 
 					
 					error = function(e){
@@ -165,7 +161,7 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		else{
 			matrixpls.res <- matrixpls(S, model = nativeModel, W.mod = W.mod, parameterEstimator = parameterEstimator,
 																 outerEstimators = outerEstimators, innerEstimator = innerEstimator,
-																 tol = params$tol, iter = params$iter, convCheck = convCheck,
+																 tol = params$tol, iter = params$maxiter, convCheck = convCheck,
 																 validateInput = FALSE)
 		}
 		
@@ -347,7 +343,7 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 															 scheme=switch(scheme, "centroid"="centroid", "factor"="factor", "path"="path"),
 															 scaled=params$scaled, 
 															 tol=params$tol, 
-															 maxiter = params$iter,
+															 maxiter = params$maxiter,
 															 plscomp = NULL),
 									iter = attr(matrixpls.res,"iterations") + 1,
  									boot.val=params$boot.val, 
@@ -359,10 +355,7 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 															lvs = length(lvNames),
 															lvs_names = lvNames))
 		
-#		plsr=params$plsr, obs=nrow(params$x)
-#									, iter=params$iter,
-#									n.iter=, outer=params$outer)
-		
+	
 		if(params$dataset){
 			data <- as.matrix(params$x[,unlist(params$outer)])
 		}
@@ -583,7 +576,7 @@ get_plsr1 <-function(C, nc=NULL, scaled=TRUE)
 
 get_params <-
 	function(x, inner, outer, modes=NULL, scheme="centroid", scaled=TRUE,
-					 boot.val=FALSE, br=NULL, plsr=FALSE, tol=0.00001, iter=100, dataset=TRUE)
+					 boot.val=FALSE, br=NULL, plsr=FALSE, tol=0.00001, maxiter=100, dataset=TRUE)
 	{
 		# =======================================================
 		# checking arguments
@@ -657,9 +650,9 @@ get_params <-
 			warning("Warning: Invalid argument 'tol'. Default 'tol=0.00001' is used.")   
 			tol <- 0.00001
 		} 
-		if (mode(iter)!="numeric" || length(iter)!=1 || iter<100) {
-			warning("Warning: Invalid argument 'iter'. Default 'iter=100' is used.")   
-			iter <- 100
+		if (mode(maxiter)!="numeric" || length(maxiter)!=1 || maxiter<100) {
+			warning("Warning: Invalid argument 'maxiter'. Default 'maxiter=100' is used.")   
+			maxiter <- 100
 		} 
 		if (!is.logical(dataset)) 
 			dataset <- TRUE
@@ -679,7 +672,7 @@ get_params <-
 			br = br,
 			plsr = plsr,
 			tol = tol,
-			iter = iter,
+			maxiter = maxiter,
 			dataset = dataset)
 		res
 }

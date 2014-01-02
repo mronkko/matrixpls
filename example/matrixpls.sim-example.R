@@ -31,7 +31,7 @@ f3 =~ y7 + y8 + y9
 #example runs faster
 
 Output <- matrixpls.sim(10, analyzeModel, n=200, generate=popModel, boot.R=50,
-												multicore = FALSE, stopOnError = TRUE)
+                        multicore = FALSE, stopOnError = TRUE)
 getCutoff(Output, 0.05)
 plotCutoff(Output, 0.05)
 summary(Output)
