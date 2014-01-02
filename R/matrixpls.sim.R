@@ -33,6 +33,7 @@
 #'@inheritParams simsem::sim
 #'
 #'@example example/matrixpls.sim-example.R
+#'@example example/matrixpls.sim-example2.R
 #'
 #'@seealso
 #'

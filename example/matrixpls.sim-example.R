@@ -1,3 +1,9 @@
+#
+#  Runs an example from the SimSem website
+# 
+#  https://github.com/simsem/simsem/wiki/Example-2:-Getting-Started-%28lavaan-input%29
+#
+
 library(matrixpls)
 
 popModel <- "
