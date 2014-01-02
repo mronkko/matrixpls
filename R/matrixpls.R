@@ -761,7 +761,7 @@ inner.factor <- function(S, W, inner.mod){
 #'@details
 #'
 #'This scheme is not commonly discussed in the current PLS literature, but it is a special case 
-#'that is analyzed in the early PLS literature and currently implmented in at least the WarpPLS software.
+#'that is analyzed in the early PLS literature and currently implemented in at least the WarpPLS software.
 #'In the identity scheme identity matrix is used as the inner weight matrix \code{E}.
 #'
 #'The identity scheme with Mode A outer estimation converges toward the first principal component of each indicator block.
