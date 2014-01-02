@@ -25,14 +25,15 @@ plspm.res <- plspm(satisfaction, sat_inner, sat_outer, sat_mod,
 matrixpls.res <- matrixpls.plspm(satisfaction, sat_inner, sat_outer, sat_mod,
 																 scaled=FALSE, boot.val=FALSE)
 
-# print the resuls
-
-summary(plspm.res)
-summary(matrixpls.res)
-
 # If RUnit is installed check that the results are identical
 
 if(is.element("RUnit", installed.packages()[,1])){
 	library(RUnit)
 	checkEquals(plspm.res, matrixpls.res, tol = 0.001)
 }
+
+# print the resuls
+
+summary(plspm.res)
+summary(matrixpls.res)
+

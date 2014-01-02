@@ -33,13 +33,17 @@
 
 matrixpls.plspm <-
 function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid", 
-         scaled = TRUE, tol = 0.00001, iter = 100, boot.val = FALSE, 
+         scaled = TRUE, tol = 0.000001, iter = 100, boot.val = FALSE, 
          br = NULL, plsr = FALSE, dataset = TRUE){
     
 		library(plspm)
 		library(psych)
 		library(boot)
 		library(parallel)
+		
+		#
+		# Scaling parameters require raw data, so we will just crash if scaling is specified
+		#
 		
 		# =======================================================
 		# checking arguments
@@ -188,9 +192,10 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		# Composite values, fittes values, and intercepts
 		
 		lvScores <- dataToUse %*% t(W) * sdv
-		lvScoreFittedValues <- lvScores %*% t(beta)
-		intercepts <- apply(lvScores-lvScoreFittedValues,2,mean)
 		rownames(lvScores) <- 1:nrow(lvScores)
+		
+		lvScores_std <- apply(lvScores, 2, scale) * sdv
+		rownames(lvScores_std) <- 1:nrow(lvScores_std)
 		
 		
 		Modes <- ifelse(params$modes == "A", "Reflective","Formative")
@@ -210,20 +215,53 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 			return(ret)
 		}, simplify= FALSE)
 		
+		outer.mod.dataframe <- do.call(rbind,sapply(lvNames,function(lvName){
+			temp <- outer.mod[[lvName]]
+			data.frame(name = rownames(temp),
+								 block = lvName,
+								 weight = temp[,1],
+								 loading = temp[,2],
+								 communality = temp[,3],
+								 redundancy = temp[,4])
+		}, simplify= FALSE))
+		
+		rownames(outer.mod.dataframe) <- NULL
+		
+		lvScoreFittedValues <- lvScores_std %*% t(beta)
+		intercepts <- apply(lvScores_std-lvScoreFittedValues,2,mean)
+		
 		inner.mod <- sapply(lvNames[!exogenousLVs], function(lvName){
+			
+			# Recalculate the regressions to get standard errors and intercepts
 			row <- which(lvNames == lvName)
 			regressors <- beta[row,]!=0
-			ret <- data.frame(concept =c ("R2","Intercept",paste("path_",lvNames[regressors],sep="")),
-												 value = c(R2[row],intercepts[row],beta[row,regressors]))
 			
-			rownames(ret) <- NULL
+			beta <- c(intercepts[lvName],beta[row,regressors]) 
+
+			# Calculating of SEs adapted from mat.regress from the psych package
+			
+			if(sum(regressors) == 1){
+				uniq <- 1
+			}
+			else{
+				uniq <- (1-smc(C[regressors,regressors]))
+			}
+			df <- nrow(params$x)-sum(regressors)-1
+			se <- sqrt((1-R2[row])/(df))*c(1,sqrt(1/uniq))
+			tvalue <- beta/se
+			prob <- 2*(1- pt(abs(tvalue),df))
+			
+			ret <- cbind(beta, se, tvalue, prob)
+
+			rownames(ret) <- c("Intercept",lvNames[regressors])
+			colnames(ret) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
 			
 			return(ret)
 		}, simplify= FALSE)
 		
 		pathIndices <- lower.tri(nativeModel$inner)
 		
-		pathLabels <- paste(colnames(nativeModel$inner)[col(nativeModel$inner)[pathIndices]],"->",
+		pathLabels <- paste(colnames(nativeModel$inner)[col(nativeModel$inner)[pathIndices]]," -> ",
 												rownames(nativeModel$inner)[row(nativeModel$inner)[pathIndices]], sep="")
 		
 		if(params$boot.val){
@@ -297,13 +335,33 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		blocks <- unlist(lapply(params$outer, length))
 		names(blocks) <- lvNames
 		
+		blocksList <- params$outer
+		names(blocksList) <- lvNames
+		
+		mvsToUse <- unlist(params$outer)
+			
 		model <- list(IDM=params$inner,
-									blocks=blocks,
-									scheme=switch(scheme, "centroid"="centroid", "factor"="factor", "path"="path"),
-									modes=modes, scaled=params$scaled, 
-									boot.val=params$boot.val, plsr=params$plsr, obs=nrow(params$x), br=params$br, 
-									tol=params$tol, iter=params$iter,
-									n.iter=attr(matrixpls.res,"iterations"), outer=params$outer)
+									blocks= blocksList,
+									specs = list(scaling = NULL,
+															 modes = modes, 
+															 scheme=switch(scheme, "centroid"="centroid", "factor"="factor", "path"="path"),
+															 scaled=params$scaled, 
+															 tol=params$tol, 
+															 maxiter = params$iter,
+															 plscomp = NULL),
+									iter = attr(matrixpls.res,"iterations") + 1,
+ 									boot.val=params$boot.val, 
+									br=params$br, 
+									gens = list(obs=nrow(params$x),
+															obs_names=rownames(params$x),
+															mvs=length(mvsToUse),
+															mvs_names = colnames(params$x)[mvsToUse],
+															lvs = length(lvNames),
+															lvs_names = lvNames))
+		
+#		plsr=params$plsr, obs=nrow(params$x)
+#									, iter=params$iter,
+#									n.iter=, outer=params$outer)
 		
 		if(params$dataset){
 			data <- as.matrix(params$x[,unlist(params$outer)])
@@ -311,10 +369,7 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		else{
 			data <- FALSE
 		}
-		
-		lvScores_std <- apply(lvScores, 2, scale) * sdv
-		rownames(lvScores_std) <- 1:nrow(lvScores_std)
-				
+						
 		Windices <-W!=0
 		out.weights <- W[Windices] * sdv
 		names(out.weights) <- colnames(W)[col(W)[Windices]]
@@ -330,12 +385,10 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		}, simplify= FALSE)
 		
 		
-		inner.sum <- data.frame(LV.Type = ifelse(exogenousLVs,"Exogen","Endogen"),
-														Measure = abbreviate(Modes, 5),
-														MVs = blocks,
-														R.square = R2, 
-														Av.Commu = sapply(outer.mod,function(x){mean(x[,"communal"])}), 
-														Av.Redun = sapply(outer.mod,function(x){mean(x[,"redundan"])}), 
+		inner.sum <- data.frame(Type = ifelse(exogenousLVs,"Exogenous","Endogenous"),
+														R2 = R2, 
+														Block_Communality = sapply(outer.mod,function(x){mean(x[,"communal"])}), 
+														Mean_Redundancy = sapply(outer.mod,function(x){mean(x[,"redundan"])}), 
 														AVE = ifelse(params$modes == "A",
 																				 sapply(outer.mod,function(x){mean(x[,"std.loads"]^2)}),
 																				 0))
@@ -343,11 +396,11 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		effs <- effects(matrixpls.res)
 				
 		effects <- data.frame(relationships = pathLabels,
-														dir.effects = effs$Direct[pathIndices[-1,]],
-													ind.effects = effs$Indirect[pathIndices[-1,]], 
-													tot.effects = effs$Total[pathIndices[-1,]])
+														direct = effs$Direct[pathIndices[-1,]],
+													indirect = effs$Indirect[pathIndices[-1,]], 
+													total = effs$Total[pathIndices[-1,]])
 
-		unidim <- data.frame(Type.measure = Modes,
+		unidim <- data.frame(Mode = params$modes,
 												 MVs = blocks,
 												 C.alpha = ifelse(params$modes == "A",
 												 								 sapply(params$outer,function(indices){
@@ -376,22 +429,30 @@ function(Data, inner_matrix, outer_list, modes = NULL, scheme = "centroid",
 		gof <- GoF(matrixpls.res)
 		class(gof) <- "numeric"
 		
-		res = list(outer.mod = outer.mod, 
-							 inner.mod = inner.mod, 
-							 latents = lvScores_std, 
-							 scores = lvScores,
-							 out.weights = out.weights, 
-							 loadings = loadings, 
-							 path.coefs = beta, 
-							 r.sqr = R2,
-							 outer.cor = outer.cor, 
-							 inner.sum = inner.sum, 
+		# Crossloadings are the IC matrix
+
+		crossloadings <- cbind(outer.mod.dataframe[,1:2],t(IC)/sqrt(diag(S)))
+		rownames(crossloadings) <- NULL
+		
+		res = list(outer_model = outer.mod.dataframe, 
+							 inner_model = inner.mod, 
+							 path_coefs = beta, 
+							 scores = lvScores_std,
+							 crossloadings = crossloadings,
+							 inner_summary = inner.sum, 
 							 effects = effects,
 							 unidim = unidim, 
 							 gof = gof, 
 							 boot = boot, 
-							 data = data, 
+							 data = as.data.frame(data), 
+							 manifests = scale(data, scale=FALSE),
 							 model = model)
+		
+#		out.weights = out.weights, 
+#		loadings = loadings, 
+#		r.sqr = R2,
+#		outer.cor = outer.cor, 
+		#							 latents = lvScores_std, 
 		
 		class(res) = "plspm"
 
