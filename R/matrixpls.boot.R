@@ -36,14 +36,14 @@ matrixpls.boot <- function(data, R = 500, ..., parallel = c("no", "multicore", "
 									 function(data, indices){
 									 	
 									 	S <- cov(data[indices,])
-									 	
+
 									 	if(stopOnError){
+									 		matrixpls(S, ...)
+									 	}
+									 	else{
 									 		tryCatch(
 									 			matrixpls(S, ...)
 									 		)
-									 	}
-									 	else{
-									 		matrixpls(S, ...)
 									 	}
 									 },
 									 R, parallel = parallel, ncpus = ncpus)
