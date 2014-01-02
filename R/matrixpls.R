@@ -269,8 +269,15 @@ matrixpls.weights <- function(S, inner.mod, W.mod,
 		assert_all_are_true(apply(W.mod!=0,2,any))
 		
 		# the number of rows in W.mod must match the dimensions of other matrices
-		assert_is_identical_to_true(nrow(inner.mod)==nrow(W.mod))
-		assert_is_identical_to_true(ncol(S)==ncol(W.mod))
+		if(nrow(inner.mod)!=nrow(W.mod)){
+			print(list(inner.mod=inner.mod,W.mod = W.mod))
+			stop("Inner model row count does not match weight model row count")
+		}
+		
+		if(ncol(S)!=ncol(W.mod)){
+			print(list(S=S,W.mod = W.mod))
+			stop("Data matrix column count does not match weight model column count")
+		}
 		
 		# outerEstimators must be a list of same length as number of rows in inner.mod or
 		# a function
