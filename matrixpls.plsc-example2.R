@@ -4,6 +4,9 @@
 #
 # using PLSc, disattenuated summed scales, and disattenuated factor scores
 #
+# This simulation requires features not included in matrixpls 0.2.0, which means that you need to 
+# use the development version from github. See this page for installing instructions
+# https://github.com/mronkko/matrixpls
 
 ####################################################################################################
 #
