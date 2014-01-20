@@ -75,7 +75,7 @@
 #'
 #'@export
 
-params.plsc <- function(S, W, model, fm = "dijkstra"){
+params.plsc <- function(S, W, model, fm = "dijkstra", ...){
 	
 	nativeModel <- parseModelToNativeFormat(model)
 		
@@ -134,12 +134,13 @@ params.plsc <- function(S, W, model, fm = "dijkstra"){
 		L <- matrix(0,ai,ab)
 		Q <- rep(1,ab)
 		for (i in 1:ab) {	
-			idx <- p_refl[[i]]
+			idx <- p_refl[,i]
 			L[idx,i] <- fa(S[idx,idx], fm = fm)$loadings
 			# Non-factor indicators are assumed to be perfectly reliable and not corrected
 			indicator_reliabilities <- L
 			indicator_reliabilities[indicator_reliabilities == 0] <- 1
 			Q[i] <- sum(indicator_reliabilities[idx,i] * W[i,idx])^2
+
 		}
 	}
 	
@@ -147,7 +148,8 @@ params.plsc <- function(S, W, model, fm = "dijkstra"){
 	# latent variables, see (15) and (16) of Dijkstra, April 7, 2011.
 	R <- C / sqrt(Q) %*% t(sqrt(Q))
 	diag(R) <- 1
-
+	
+	
 	# Choose the specified values and add names
 
 	innerRegressionIndices <- which(nativeModel$inner==1, useNames = FALSE)

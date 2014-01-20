@@ -66,7 +66,7 @@
 #'@param parameterEstimator A function that takes three arguments, the data covariance matrix \code{S},
 #'weights \code{W}, and model specification \code{model} and returns a named vector of parameter estimates.
 #'
-#'@param ... All other arguments are passed through to \code{matrixpls.weights}.
+#'@param ... All other arguments are passed through to \code{matrixpls.weights} and \code{parameterEstimator}.
 #'
 #'@inheritParams matrixpls.weights
 #'
@@ -81,7 +81,7 @@
 #'@export
 
 
-matrixpls <- function(S, model, W.mod = NULL, parameterEstimator = params.regression, ..., outerEstimators = NULL, validateInput = TRUE) {
+matrixpls <- function(S, model, W.mod = NULL, parameterEstimator = params.regression, outerEstimators = NULL, validateInput = TRUE, ...) {
 	
 	# TODO: Validate input.
 	
@@ -137,11 +137,23 @@ matrixpls <- function(S, model, W.mod = NULL, parameterEstimator = params.regres
 		}
 	}
 	
+	##################################################################################################
+	#
+	# Start of the estimation process
+	#
+	##################################################################################################
+	
 	# Calculate weights
 	W <- matrixpls.weights(S, nativeModel$inner, W.mod, outerEstimators, ... , validateInput = validateInput)
 	
 	# Apply the parameter estimator and return the results
-	estimates <- parameterEstimator(S, W, model)
+	estimates <- parameterEstimator(S, W, model, ...)
+
+	##################################################################################################
+	#
+	# Construct the return object
+	#
+	##################################################################################################
 	
 	# Construct the return vector by combining estimates with weights in a named vector
 	indices <- W.mod!=0
@@ -277,6 +289,8 @@ print.matrixplssummary <- function(x, ...){
 #'
 #'@param validateInput A boolean indicating whether the validity of the parameter values should be tested.
 #'
+#'@param ... All other arguments are passed through to \code{outerEstimators} and \code{innerEstimator}.
+#'
 #'@return An object of class \code{"matrixplsweights"}, which is a matrix containing the weights with the following attributes: 
 #'@return \item{iterations}{Number of iterations performed}.
 #'@return \item{converged}{A boolean indicating if the algorithm converged}.
@@ -285,7 +299,7 @@ print.matrixplssummary <- function(x, ...){
 
 matrixpls.weights <- function(S, inner.mod, W.mod,
 															outerEstimators = outer.modeA, 
-															innerEstimator = inner.path,
+															innerEstimator = inner.path, ..., 
 															convCheck = function(W,W_new){max(abs(W_new - W))},
 															tol = 1e-05, iter = 100, validateInput = TRUE) {
 	
@@ -358,7 +372,11 @@ matrixpls.weights <- function(S, inner.mod, W.mod,
 		assert_all_are_positive(iter)
 	}
 	
-	# Done checking arguments
+	##################################################################################################
+	#
+	# Start of the estimation process
+	#
+	##################################################################################################
 	
 	# The initial weight matrix
 	
@@ -394,7 +412,7 @@ matrixpls.weights <- function(S, inner.mod, W.mod,
 			# Get new inner weights from inner estimation
 			
 			if(! is.null(innerEstimator)){
-				E <- innerEstimator(S, W, inner.mod)
+				E <- innerEstimator(S, W, inner.mod, ...)
 			}
 			
 			# Get new weights from outer estimation
@@ -407,11 +425,11 @@ matrixpls.weights <- function(S, inner.mod, W.mod,
 				for(i in 1:length(uniqueOuterEstimators)){
 					W.modForThisEstimator <- W.mod
 					W.modForThisEstimator[!outerEstimatorIndices[[i]],] <- 0
-					W[outerEstimatorIndices[[i]],] <- uniqueOuterEstimators[[i]](S, W_old, E, W.modForThisEstimator)[outerEstimatorIndices[[i]]]
+					W[outerEstimatorIndices[[i]],] <- uniqueOuterEstimators[[i]](S, W_old, E, W.modForThisEstimator,...)[outerEstimatorIndices[[i]]]
 				}
 			}
 			else{
-				W <- outerEstimators(S, W_old, E, W.mod)
+				W <- outerEstimators(S, W_old, E, W.mod, ...)
 			}	
 			
 			W <- scaleWeights(S, W)
@@ -492,7 +510,7 @@ print.matrixplsweights <- function(x, ...){
 #'
 #'@export
 
-params.regression <- function(S, W, model){
+params.regression <- function(S, W, model, ...){
 	
 	return(params.internal_generic(S,W,model,
 																 regressionsWithCovarianceMatrixAndModelPattern))
@@ -655,7 +673,7 @@ params.internal_reflective <- function(C, IC, nativeModel){
 
 #'@export
 
-inner.centroid <- function(S, W, inner.mod){
+inner.centroid <- function(S, W, inner.mod, ...){
 	
 	# Centroid is just the sign of factor weighting
 	
@@ -692,7 +710,7 @@ inner.centroid <- function(S, W, inner.mod){
 
 #'@export
 
-inner.path <- function(S, W, inner.mod){
+inner.path <- function(S, W, inner.mod, ...){
 	
 	# Calculate the composite covariance matrix	
 	C <- W %*% S %*% t(W)
@@ -736,7 +754,7 @@ inner.path <- function(S, W, inner.mod){
 
 #'@export
 
-inner.factor <- function(S, W, inner.mod){
+inner.factor <- function(S, W, inner.mod, ...){
 	
 	# Calculate the composite covariance matrix
 	
@@ -786,7 +804,7 @@ inner.factor <- function(S, W, inner.mod){
 
 
 
-inner.identity <- function(S, W, inner.mod){
+inner.identity <- function(S, W, inner.mod, ...){
 	return(diag(nrow(inner.mod)))
 }
 
@@ -829,7 +847,7 @@ inner.identity <- function(S, W, inner.mod){
 #'      
 #'@export
 
-inner.GSCA <- function(S, W, inner.mod){
+inner.GSCA <- function(S, W, inner.mod, ...){
 	
 	# Calculate the composite covariance matrix
 	C <- W %*% S %*% t(W)
@@ -863,7 +881,7 @@ inner.GSCA <- function(S, W, inner.mod){
 #'@export
 
 
-outer.modeA <- function(S, W, E, W.mod){
+outer.modeA <- function(S, W, E, W.mod, ...){
 	
 	# Calculate the covariance matrix between indicators and composites
 	W_new <- E %*% W %*% S
@@ -895,7 +913,7 @@ outer.modeA <- function(S, W, E, W.mod){
 #'@export
 
 
-outer.modeB <- function(S, W, E, W.mod){
+outer.modeB <- function(S, W, E, W.mod, ...){
 	
 	# Calculate the covariance matrix between indicators and composites
 	IC <- E %*% W %*% S
@@ -934,7 +952,7 @@ outer.modeB <- function(S, W, E, W.mod){
 #'
 #'@export
 
-outer.fixedWeights <- function(S, W, E, W.mod){
+outer.fixedWeights <- function(S, W, E, W.mod, ...){
 	return(W.mod)
 }
 
@@ -989,7 +1007,7 @@ outer.fixedWeights <- function(S, W, E, W.mod){
 #'
 #'@export
 
-outer.GSCA <- function(S, W, E, W.mod){
+outer.GSCA <- function(S, W, E, W.mod, ...){
 	
 	
 	Wpattern <- W.mod!=0
@@ -1051,6 +1069,51 @@ outer.GSCA <- function(S, W, E, W.mod){
 	return(W)
 }
 
+#'@title Blockwise factor score outer estimation
+#'
+#'@description
+#'
+#'Calculates outer weights by estimating a common factor analysis model with a single factor for each 
+#'indicator block and using the resulting estimates to calculate factor score weights
+#'
+#'
+#'@param S Covariance matrix of the data.
+#'
+#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'
+#'@param E Inner weight matrix. A square matrix of inner estimates between the composites.
+#'
+#'@param W.mod A matrix specifying the weight relationships and their starting values.
+#'
+#'@param fm factoring method for estimating the common factor model. Possible values are
+#'\code{minres}, \code{wls}, \code{gls}, \code{pa}, and \code{ml}. The parameter is passed through to
+#' to \code{\link[psych]{fa}}.
+
+#'@return A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.mod}.
+#'
+#'@family outer estimators
+#'
+#'@export
+
+outer.factor <- function(S, W, E, W.mod, fm="minres", ...){
+	
+	library(psych)
+	
+	# Set up a weight pattern
+	W_new <- ifelse(W.mod==0,0,1)
+	
+	# Do the factor analyses
+	
+	for(row in which(rowSums(W_new)>0, useNames = FALSE)){
+		indicatorIndices <- W_new[row,]==1
+		fa.res <- fa(S[indicatorIndices,indicatorIndices], fm = fm)
+		# Calculate the factor score weights based on the loadings and indicator covariance matrix
+		W_new[row,indicatorIndices] <- solve(S[indicatorIndices,indicatorIndices])%*%fa.res$loading
+
+	}
+
+	return(W_new)
+}
 # =========== Utility functions ===========
 
 #

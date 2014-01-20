@@ -24,7 +24,7 @@
 #'
 #'@param citype Type of confidence interval. This argument will be forwarded to the \code{\link[boot]{boot.ci}} when calculating the confidence intervals.
 #'
-#'@param boot.R Number of bootstrap replications to use to estimate standard errors.
+#'@param boot.R Number of bootstrap replications to use to estimate standard errors or \code{FALSE} to disable bootstrapping.
 #'
 #'@param fitIndices A function that returns a list of fit indices for the model. Setting this argument to \code{NULL} disables fit indices.
 #'
@@ -45,16 +45,16 @@
 
 
 matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.95, citype=c("norm","basic", "stud", "perc", "bca"), boot.R = 500, fitIndices = fitSummary){
-
+	
 	library(simsem)
 	library(assertive)
 	
 	# Basic verification of the arguments
-	assert_all_are_positive(boot.R)	
+	if(boot.R != FALSE)	assert_all_are_positive(boot.R)	
 	assert_all_are_positive(cilevel)
 	assert_all_are_true(cilevel<1)
 	citype <- match.arg(citype)
-
+	
 	# Decide which arguments to route to simsem and which to matrispls.boot
 	
 	allArgs <- list(...)	
@@ -72,10 +72,10 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
 	nativeModel <- parseModelToNativeFormat(model)
 	
 	if(!"W.mod" %in% names(matrixplsArgs)) matrixplsArgs$W.mod<- defaultWeightModelWithModel(model)
-		
+	
 	matrixplsArgs <- c(list(R= boot.R, model = nativeModel),matrixplsArgs)
 	
-  # A function that takes a data set and returns a list. The list must
+	# A function that takes a data set and returns a list. The list must
 	# contain at least three objects: a vector of parameter estimates (coef),
 	# a vector of standard error (se), and the convergence status as TRUE or
 	# FALSE (converged). There are five optional objects in the list: a vector
@@ -84,52 +84,86 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
 	# missing type II (FMI2). Note that the coef, se, std, FMI1, and FMI2 must
 	# be a vector with names. The name of those vectors across different
 	# objects must be the same.
-
+	
 	
 	model  <- function(data){
-			
+		
 		# Indices for parameters excluding weights
 		
 		parameterIndices <- 1:(sum(nativeModel$inner) + sum(nativeModel$reflective) + sum(nativeModel$formative))
 		
-
 		# Convert the data to matrix for efficiency
-
-		boot.out <- do.call(matrixpls.boot, c(list(as.matrix(data)), matrixplsArgs))
 		
-		cis <- sapply(parameterIndices, FUN = function(index) {
-			boot.ci.out <- boot.ci(boot.out, conf = cilevel, type = citype, index=index)
-
+		if(boot.R == FALSE){
+			S <- cov(data)
+			matrixpls.res <- do.call(matrixpls, c(list(S), matrixplsArgs))
+		}
+		else{
+			
+			boot.out <- do.call(matrixpls.boot, c(list(as.matrix(data)), matrixplsArgs))
+			matrixpls.res  <- boot.out$t0
+			
+		}
+		
+		# Check for inadmissible solutions. The non-boolean values of "converged" are undocumented,
+		# but can be found in the SimSem source code, where the following code is
+		# adapted from. (sim.R: lines 881-897)
+		#
+		# 1: Non-convergent result
+		# 2: Non-converged imputation (not used)
+		# 3: At least one SE is negative or NA (not used)
+		# 4: At least one variance estimate is negative (not used)
+		# 5: At least one correlation estimate is greater than 1 or less than -1
+		
+		
+		if(attr(matrixpls.res,"converged")){
+			converged <- 0
+			if(max(abs(attr(matrixpls.res,"C"))) > 1 ) converged <- 5 
+		}
+		else converged <- 1
+		
+		ret <- list(coef = matrixpls.res[parameterIndices],
+								converged = converged)
+		
+		# Store CIs and SEs if bootstrapping was done
+		
+		if(boot.R != FALSE){
+			
+			cis <- sapply(parameterIndices, FUN = function(index) {
+				boot.ci.out <- boot.ci(boot.out, conf = cilevel, type = citype, index=index)
+				
 				# The cis start from the fourth slot and we only have one type of ci. 
 				# The list names do not match the type parameter exactly (e.g. "norm" vs. "normal")
 				
-			cis <- boot.ci.out[[4]]
-			cis[,ncol(cis)-1:0]
-		})
+				cis <- boot.ci.out[[4]]
+				cis[,ncol(cis)-1:0]
+			})
+			ret <- c(ret, list(se = ses,
+												 cilower = cis[1,],
+												 ciupper = cis[2,],
+												 extra = boot.out))
+			
+		}
+		else{
+			# simsem requires some se estimates, so return a matrix of NAs
+			ses <- rep(NA, length(parameterIndices))
+			names(ses) <- names(ret[["coef"]])
+			ret[["se"]] <- ses
+		}
 		
-		ses <- apply(boot.out$t[,parameterIndices],2,sd,na.rm=TRUE)
-		names(ses) <- names(boot.out$t0[parameterIndices])
-		colnames(cis) <- names(boot.out$t0[parameterIndices])
-		
-		
-		
-		ret <- list(coef = boot.out$t0[parameterIndices],
-								se = ses,
-								converged = attr(boot.out$t0,"converged"),
-								cilower = cis[1,],
-								ciupper = cis[2,],
-								extra = boot.out)
-
 		if(! is.null(fitIndices)){
 			assert_is_function(fitIndices)
 			fitlist <- unlist(fitIndices(boot.out$t0))
 			ret$fit <- fitlist
 		}
+		else ret$fit <- c()
+		
 		return(ret)
 	}
+	
 	simsemArgs <- c(list(nRep = nRep, model = model, n = n), simsemArgs)
 	do.call(simsem::sim, simsemArgs)
-
+	
 }
 
 #'@title Summary of model fit of PLS model
