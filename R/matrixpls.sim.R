@@ -63,13 +63,21 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
 	whichArgsToSimsem <- names(allArgs) %in% simsem.argNames
 	simsemArgs <- allArgs[whichArgsToSimsem]
 	matrixplsArgs <- allArgs[! whichArgsToSimsem]
+
+	nativeModel <- parseModelToNativeFormat(model)
 	
 	# Beacuse we are using a custom estimator function, the generate model must be set.
 	
 	if(!"generate" %in% names(simsemArgs) &&
-		 	!"rawData" %in% names(simsemArgs)) simsemArgs$generate <- model
-	
-	nativeModel <- parseModelToNativeFormat(model)
+		 	!"rawData" %in% names(simsemArgs)){
+		
+		# Derive a SimSem model from lavaan parameter table by fitting a model to a diagonal matrix
+		
+		cvMat <- diag(nrow(nativeModel$reflective))
+		colnames(cvMat) <- rownames(cvMat) <- rownames(nativeModel$reflective)
+		fit <- lavaan(model, sample.cov = cvMat, sample.nobs = 100)
+		simsemArgs$generate <- model.lavaan(fit)
+	}
 	
 	if(!"W.mod" %in% names(matrixplsArgs)) matrixplsArgs$W.mod<- defaultWeightModelWithModel(model)
 	
@@ -118,7 +126,8 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
 		
 		if(attr(matrixpls.res,"converged")){
 			converged <- 0
-			if(max(abs(attr(matrixpls.res,"C"))) > 1 ) converged <- 5 
+			C <- attr(matrixpls.res,"C")
+			if(max(abs(C[lower.tri(C)]))>1) converged <- 5 
 		}
 		else converged <- 1
 		
@@ -148,12 +157,14 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
 			# simsem requires some se estimates, so return a matrix of NAs
 			ses <- rep(NA, length(parameterIndices))
 			names(ses) <- names(ret[["coef"]])
-			ret[["se"]] <- ses
+			ret <- c(ret, list(se = ses,
+												 extra = matrixpls.res))
+												 
 		}
 		
 		if(! is.null(fitIndices)){
 			assert_is_function(fitIndices)
-			fitlist <- unlist(fitIndices(boot.out$t0))
+			fitlist <- unlist(fitIndices(matrixpls.res))
 			ret$fit <- fitlist
 		}
 		else ret$fit <- c()
