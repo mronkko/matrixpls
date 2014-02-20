@@ -66,7 +66,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
 
 	nativeModel <- parseModelToNativeFormat(model)
 	
-	# Beacuse we are using a custom estimator function, the generate model must be set.
+	# Because we are using a custom estimator function, the generate model must be set.
 	
 	if(!"generate" %in% names(simsemArgs) &&
 		 	!"rawData" %in% names(simsemArgs)){
@@ -77,6 +77,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
 		colnames(cvMat) <- rownames(cvMat) <- rownames(nativeModel$reflective)
 		fit <- lavaan(model, sample.cov = cvMat, sample.nobs = 100)
 		simsemArgs$generate <- model.lavaan(fit)
+
 	}
 	
 	if(!"W.mod" %in% names(matrixplsArgs)) matrixplsArgs$W.mod<- defaultWeightModelWithModel(model)
@@ -173,6 +174,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
 	}
 	
 	simsemArgs <- c(list(nRep = nRep, model = model, n = n), simsemArgs)
+
 	do.call(simsem::sim, simsemArgs)
 	
 }

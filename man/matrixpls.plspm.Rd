@@ -1,0 +1,134 @@
+\name{matrixpls.plspm}
+\alias{matrixpls.plspm}
+\title{A plspm compatibility wrapper for matrixpls}
+\usage{
+  matrixpls.plspm(Data, path_matrix, blocks, modes = NULL,
+    scheme = "centroid", scaled = TRUE, tol = 1e-06,
+    maxiter = 100, boot.val = FALSE, br = NULL,
+    dataset = TRUE)
+}
+\arguments{
+  \item{Data}{matrix or data frame containing the manifest
+  variables.}
+
+  \item{path_matrix}{A square (lower triangular) boolean
+  matrix representing the inner model (i.e. the path
+  relationships between latent variables).}
+
+  \item{blocks}{list of vectors with column indices or
+  column names from \code{Data} indicating the sets of
+  manifest variables forming each block (i.e. which
+  manifest variables correspond to each block).}
+
+  \item{modes}{character vector indicating the type of
+  measurement for each block. Possible values are:
+  \code{"A", "B", "newA", "PLScore", "PLScow"}. The length
+  of \code{modes} must be equal to the length of
+  \code{blocks}.}
+
+  \item{scheme}{string indicating the type of inner
+  weighting scheme. Possible values are \code{"centroid"},
+  \code{"factorial"}, or \code{"path"}.}
+
+  \item{scaled}{whether manifest variables should be
+  standardized. Only used when \code{scaling = NULL}. When
+  (\code{TRUE}, data is scaled to standardized values
+  (mean=0 and variance=1). The variance is calculated
+  dividing by \code{N} instead of \code{N-1}).}
+
+  \item{tol}{decimal value indicating the tolerance
+  criterion for the iterations (\code{tol=0.000001}). Can
+  be specified between 0 and 0.001.}
+
+  \item{maxiter}{integer indicating the maximum number of
+  iterations (\code{maxiter=100} by default). The minimum
+  value of \code{maxiter} is 100.}
+
+  \item{boot.val}{whether bootstrap validation should be
+  performed. (\code{FALSE} by default).}
+
+  \item{br}{number bootstrap resamples. Used only when
+  \code{boot.val=TRUE}. When \code{boot.val=TRUE}, the
+  default number of re-samples is 100, but it can be
+  specified in a range from 100 to 1000.}
+
+  \item{dataset}{whether the data matrix used in the
+  computations should be retrieved (\code{TRUE} by
+  default).}
+}
+\value{
+  An object of class \code{\link[plspm]{plspm}}.
+}
+\description{
+  \code{matrixpls.plspm} mimics \code{\link[plspm]{plspm}}
+  function of the \code{plspm} package. The arguments and
+  their default values and the output of the function are
+  identical with \code{\link[plspm]{plspm}} function, but
+  internally the function uses matrixpls estimation.
+}
+\details{
+  The function \code{matrixpls.plspm} calculates indicator
+  weights and estimates a model identically to the
+  \code{\link[plspm]{plspm}} function. In contrast to the
+  \code{\link{matrixpls}} function that provides only
+  weights and parameter estimates, this function also
+  reports multiple post-estimation statistics. Because of
+  this \code{matrixpls.plspm} is substantially less
+  efficient than the \code{\link{matrixpls}} function.
+
+  The argument \code{path_matrix} is a matrix of zeros and
+  ones that indicates the structural relationships between
+  composites. This must be a lower triangular matrix.
+  \code{path_matrix} will contain a 1 when column \code{j}
+  affects row \code{i}, 0 otherwise. \cr
+}
+\examples{
+library(plspm)
+
+# Run the example from plspm package
+
+# load dataset satisfaction
+data(satisfaction)
+# inner model matrix
+IMAG = c(0,0,0,0,0,0)
+EXPE = c(1,0,0,0,0,0)
+QUAL = c(0,1,0,0,0,0)
+VAL = c(0,1,1,0,0,0)
+SAT = c(1,1,1,1,0,0)
+LOY = c(1,0,0,0,1,0)
+sat_inner = rbind(IMAG, EXPE, QUAL, VAL, SAT, LOY)
+# outer model list
+sat_outer = list(1:5, 6:10, 11:15, 16:19, 20:23, 24:27)
+# vector of modes (reflective indicators)
+sat_mod = rep("A", 6)
+
+# apply plspm
+plspm.res <- plspm(satisfaction, sat_inner, sat_outer, sat_mod,
+                   scaled=FALSE, boot.val=FALSE)
+
+# apply matrixpls
+matrixpls.res <- matrixpls.plspm(satisfaction, sat_inner, sat_outer, sat_mod,
+                                 scaled=FALSE, boot.val=FALSE)
+
+# If RUnit is installed check that the results are identical
+
+if(is.element("RUnit", installed.packages()[,1])){
+  library(RUnit)
+  checkEquals(plspm.res, matrixpls.res, tol = 0.001)
+}
+
+# print the resuls
+
+summary(plspm.res)
+summary(matrixpls.res)
+
+}
+\references{
+  Sanchez, G. (2013). \emph{PLS Path Modeling with R.}
+  Retrieved from http://www.gastonsanchez.com/PLS Path
+  Modeling with R.pdf
+}
+\seealso{
+  \code{\link[plspm]{plspm}}
+}
+

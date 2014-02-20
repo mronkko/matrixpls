@@ -114,7 +114,6 @@ matrixpls <- function(S, model, W.mod = NULL, parameterEstimator = params.regres
 	
 	# If the weight model is not defined, calculate it based on the model.
 	if(is.null(W.mod)) W.mod <- defaultWeightModelWithModel(nativeModel)
-	
 	if(! identical(colnames(W.mod), colnames(S))) stop("Column names of W.mod do not match the variable names")
 	if(! identical(rownames(W.mod), lvNames)) stop("Row names of W.mod do not match the latent variable names")
 	
@@ -550,7 +549,7 @@ params.internal_generic <- function(S, W, model, pathEstimator){
 	attr(results,"C") <- C
 	attr(results,"IC") <- IC
 	attr(results,"beta") <- inner
-	browser()
+
 	return(results)
 }
 

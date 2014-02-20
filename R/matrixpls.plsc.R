@@ -72,6 +72,7 @@
 
 #'  
 #'@example example/matrixpls.plsc-example.R
+#'@example example/matrixpls.plsc-example2.R
 #'
 #'@export
 

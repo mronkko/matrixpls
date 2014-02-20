@@ -1,0 +1,18 @@
+\name{fitSummary}
+\alias{fitSummary}
+\title{Summary of model fit of PLS model}
+\usage{
+  fitSummary(object)
+}
+\arguments{
+  \item{object}{PLS estimation result object produced by
+  the \code{\link{matrixpls}} function.}
+}
+\value{
+  A list containing a selection of fit indices.
+}
+\description{
+  \code{fitSummary} computes a list of statistics that are
+  commonly used to access the overall fit of the PLS model.
+}
+

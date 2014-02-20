@@ -1,0 +1,35 @@
+\name{GoF}
+\alias{GoF}
+\title{Goodness of Fit indices for PLS model}
+\usage{
+  GoF(object, ...)
+}
+\arguments{
+  \item{object}{PLS estimation result object produced by
+  the \code{\link{matrixpls}} function.}
+
+  \item{...}{All other arguments are ignored.}
+}
+\value{
+  A list with \code{Total}, \code{Direct}, and
+  \code{Indirect} elements.
+}
+\description{
+  The \code{matrixpls} method for the generic function
+  \code{GoF} computes the Goodness of Fit index for PLS
+  model.
+}
+\references{
+  Henseler, J., & Sarstedt, M. (2013). Goodness-of-fit
+  indices for partial least squares path modeling.
+  \emph{Computational Statistics}, 28(2), 565–580.
+  doi:10.1007/s00180-012-0317-1
+}
+\seealso{
+  Other post-estimation functions: \code{\link{AVE}},
+  \code{\link{CR}}, \code{\link{R2}},
+  \code{\link{effects.matrixpls}},
+  \code{\link{loadings.matrixpls}},
+  \code{\link{residuals.matrixpls}}
+}
+

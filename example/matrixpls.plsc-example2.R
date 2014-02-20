@@ -41,12 +41,9 @@ Eta1~~1*Eta1
 Eta2~~1*Eta2
 Eta2~~-.3*Eta1
 
-#Eta3~.5*Eta1 + -.3*Eta2
-#Eta3~~.57*Eta3  # error tem is calculated as 1-(.5*(.5 + -.3*-.3) + -.3*(-.3 + -.3*.5))
+Eta3~.5*Eta1 + -.3*Eta2
+Eta3~~.57*Eta3  # error tem is calculated as 1-(.5*(.5 + -.3*-.3) + -.3*(-.3 + -.3*.5))
 "
-# Use these to estimate the model without effects
-#Eta3~0*Eta1 + 0*Eta2
-#Eta3~~1*Eta3
 
 
 ####################################################################################################
@@ -84,9 +81,9 @@ sim.PLSc <- matrixpls.sim(nRep = REPLICATIONS, model = MODEL, n = SAMPLE, #Gener
 
 # SimSem summary methods have a bug that causes an error with inadmissible results. (therefore 'try')
 
-try{summary(sim.PLSf1)}
-try{summary(sim.PLSf2)}
-try{summary(sim.PLSc)}
+try(summary(sim.PLSf1))
+try(summary(sim.PLSf2))
+try(summary(sim.PLSc))
 
 # Plot the sampling distribution of the parameters
 
