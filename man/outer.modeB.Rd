@@ -2,7 +2,7 @@
 \alias{outer.modeB}
 \title{PLS outer estimation with Mode B}
 \usage{
-  outer.modeB(S, W, E, W.mod, ...)
+outer.modeB(S, W, E, W.mod, ...)
 }
 \arguments{
   \item{S}{Covariance matrix of the data.}
@@ -17,17 +17,16 @@
   and their starting values.}
 }
 \value{
-  A matrix of unscaled outer weights \code{W} with the same
-  dimesions as \code{W.mod}.
+A matrix of unscaled outer weights \code{W} with the same
+dimesions as \code{W.mod}.
 }
 \description{
-  Performs Mode B outer estimation by regressing the
-  composites on the observed variables.
+Performs Mode B outer estimation by regressing the
+composites on the observed variables.
 }
 \seealso{
-  Other outer estimators: \code{\link{outer.GSCA}},
-  \code{\link{outer.factor}},
-  \code{\link{outer.fixedWeights}},
-  \code{\link{outer.modeA}}
+Other outer estimators: \code{\link{outer.GSCA}};
+\code{\link{outer.factor}};
+\code{\link{outer.fixedWeights}}; \code{\link{outer.modeA}}
 }
 

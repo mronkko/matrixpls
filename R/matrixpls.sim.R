@@ -148,6 +148,10 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
 				cis <- boot.ci.out[[4]]
 				cis[,ncol(cis)-1:0]
 			})
+			
+			ses <- apply(boot.out$t[,parameterIndices],2,sd)
+			names(ses) <- names(ret[["coef"]])
+			
 			ret <- c(ret, list(se = ses,
 												 cilower = cis[1,],
 												 ciupper = cis[2,],

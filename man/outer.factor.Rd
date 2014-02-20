@@ -2,7 +2,7 @@
 \alias{outer.factor}
 \title{Blockwise factor score outer estimation}
 \usage{
-  outer.factor(S, W, E, W.mod, fm = "minres", ...)
+outer.factor(S, W, E, W.mod, fm = "minres", ...)
 }
 \arguments{
   \item{S}{Covariance matrix of the data.}
@@ -23,18 +23,18 @@
   \code{\link[psych]{fa}}.}
 }
 \value{
-  A matrix of unscaled outer weights \code{W} with the same
-  dimesions as \code{W.mod}.
+A matrix of unscaled outer weights \code{W} with the same
+dimesions as \code{W.mod}.
 }
 \description{
-  Calculates outer weights by estimating a common factor
-  analysis model with a single factor for each indicator
-  block and using the resulting estimates to calculate
-  factor score weights
+Calculates outer weights by estimating a common factor
+analysis model with a single factor for each indicator
+block and using the resulting estimates to calculate factor
+score weights
 }
 \seealso{
-  Other outer estimators: \code{\link{outer.GSCA}},
-  \code{\link{outer.fixedWeights}},
-  \code{\link{outer.modeA}}, \code{\link{outer.modeB}}
+Other outer estimators: \code{\link{outer.GSCA}};
+\code{\link{outer.fixedWeights}};
+\code{\link{outer.modeA}}; \code{\link{outer.modeB}}
 }
 

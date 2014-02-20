@@ -2,10 +2,9 @@
 \alias{matrixpls.sim}
 \title{Monte Carlo simulations with matrixpls}
 \usage{
-  matrixpls.sim(nRep = NULL, model = NULL, n = NULL, ...,
-    cilevel = 0.95,
-    citype = c("norm", "basic", "stud", "perc", "bca"),
-    boot.R = 500, fitIndices = fitSummary)
+matrixpls.sim(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.95,
+  citype = c("norm", "basic", "stud", "perc", "bca"), boot.R = 500,
+  fitIndices = fitSummary)
 }
 \arguments{
   \item{nRep}{Number of replications. If any of the
@@ -47,29 +46,28 @@
   non-integers, the decimal will be rounded.  }
 }
 \value{
-  An object of class \code{\link[simsem]{SimResult-class}}.
+An object of class \code{\link[simsem]{SimResult-class}}.
 }
 \description{
-  Performs Monte Carlo simulations of
-  \code{\link{matrixpls}} with the
-  \code{\link[simsem]{sim}} function of the \code{simsem}
-  package. The standard errors and confidence intervals are
-  estimated with the \code{\link[boot]{boot}} and
-  \code{\link[boot]{boot.ci}} functions of the \code{boot}
-  package.
+Performs Monte Carlo simulations of \code{\link{matrixpls}}
+with the \code{\link[simsem]{sim}} function of the
+\code{simsem} package. The standard errors and confidence
+intervals are estimated with the \code{\link[boot]{boot}}
+and \code{\link[boot]{boot.ci}} functions of the
+\code{boot} package.
 }
 \details{
-  This funtion calls the \code{\link[simsem]{sim}} function
-  from the \code{simsem} package to perform Monte Carlo
-  simulations with matrixpls. The function parses the model
-  parameters and replaces it with a function call that
-  estimates the model and bootstrapped standard errors and
-  confidence intervals with \link{matrixpls.boot}.
+This funtion calls the \code{\link[simsem]{sim}} function
+from the \code{simsem} package to perform Monte Carlo
+simulations with matrixpls. The function parses the model
+parameters and replaces it with a function call that
+estimates the model and bootstrapped standard errors and
+confidence intervals with \link{matrixpls.boot}.
 
-  If the \code{generate} or \code{rawdata} arguments are
-  not specified in the \code{\link[simsem]{sim}} arguments
-  then the \code{model} argument will be used for data
-  generation and must be specified in lavaan format.
+If the \code{generate} or \code{rawdata} arguments are not
+specified in the \code{\link[simsem]{sim}} arguments then
+the \code{model} argument will be used for data generation
+and must be specified in lavaan format.
 }
 \examples{
 #
@@ -185,9 +183,9 @@ Output <- matrixpls.sim(model = analyzeModel, rawData = dataSets, boot.R=2,
 summary(Output)
 }
 \seealso{
-  \code{\link[simsem]{sim}},
-  \code{\link[simsem]{SimResult-class}},
-  \code{\link{matrixpls.boot}}, \code{\link[boot]{boot}},
-  \code{\link[boot]{boot.ci}}
+\code{\link[simsem]{sim}},
+\code{\link[simsem]{SimResult-class}},
+\code{\link{matrixpls.boot}}, \code{\link[boot]{boot}},
+\code{\link[boot]{boot.ci}}
 }
 

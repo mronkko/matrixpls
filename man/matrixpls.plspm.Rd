@@ -2,10 +2,9 @@
 \alias{matrixpls.plspm}
 \title{A plspm compatibility wrapper for matrixpls}
 \usage{
-  matrixpls.plspm(Data, path_matrix, blocks, modes = NULL,
-    scheme = "centroid", scaled = TRUE, tol = 1e-06,
-    maxiter = 100, boot.val = FALSE, br = NULL,
-    dataset = TRUE)
+matrixpls.plspm(Data, path_matrix, blocks, modes = NULL,
+  scheme = "centroid", scaled = TRUE, tol = 1e-06, maxiter = 100,
+  boot.val = FALSE, br = NULL, dataset = TRUE)
 }
 \arguments{
   \item{Data}{matrix or data frame containing the manifest
@@ -57,30 +56,30 @@
   default).}
 }
 \value{
-  An object of class \code{\link[plspm]{plspm}}.
+An object of class \code{\link[plspm]{plspm}}.
 }
 \description{
-  \code{matrixpls.plspm} mimics \code{\link[plspm]{plspm}}
-  function of the \code{plspm} package. The arguments and
-  their default values and the output of the function are
-  identical with \code{\link[plspm]{plspm}} function, but
-  internally the function uses matrixpls estimation.
+\code{matrixpls.plspm} mimics \code{\link[plspm]{plspm}}
+function of the \code{plspm} package. The arguments and
+their default values and the output of the function are
+identical with \code{\link[plspm]{plspm}} function, but
+internally the function uses matrixpls estimation.
 }
 \details{
-  The function \code{matrixpls.plspm} calculates indicator
-  weights and estimates a model identically to the
-  \code{\link[plspm]{plspm}} function. In contrast to the
-  \code{\link{matrixpls}} function that provides only
-  weights and parameter estimates, this function also
-  reports multiple post-estimation statistics. Because of
-  this \code{matrixpls.plspm} is substantially less
-  efficient than the \code{\link{matrixpls}} function.
+The function \code{matrixpls.plspm} calculates indicator
+weights and estimates a model identically to the
+\code{\link[plspm]{plspm}} function. In contrast to the
+\code{\link{matrixpls}} function that provides only weights
+and parameter estimates, this function also reports
+multiple post-estimation statistics. Because of this
+\code{matrixpls.plspm} is substantially less efficient than
+the \code{\link{matrixpls}} function.
 
-  The argument \code{path_matrix} is a matrix of zeros and
-  ones that indicates the structural relationships between
-  composites. This must be a lower triangular matrix.
-  \code{path_matrix} will contain a 1 when column \code{j}
-  affects row \code{i}, 0 otherwise. \cr
+The argument \code{path_matrix} is a matrix of zeros and
+ones that indicates the structural relationships between
+composites. This must be a lower triangular matrix.
+\code{path_matrix} will contain a 1 when column \code{j}
+affects row \code{i}, 0 otherwise. \cr
 }
 \examples{
 library(plspm)
@@ -124,11 +123,11 @@ summary(matrixpls.res)
 
 }
 \references{
-  Sanchez, G. (2013). \emph{PLS Path Modeling with R.}
-  Retrieved from http://www.gastonsanchez.com/PLS Path
-  Modeling with R.pdf
+Sanchez, G. (2013). \emph{PLS Path Modeling with R.}
+Retrieved from http://www.gastonsanchez.com/PLS Path
+Modeling with R.pdf
 }
 \seealso{
-  \code{\link[plspm]{plspm}}
+\code{\link[plspm]{plspm}}
 }
 

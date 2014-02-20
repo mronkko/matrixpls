@@ -2,7 +2,7 @@
 \alias{inner.path}
 \title{PLS inner estimation with the path scheme}
 \usage{
-  inner.path(S, W, inner.mod, ...)
+inner.path(S, W, inner.mod, ...)
 }
 \arguments{
   \item{S}{Covariance matrix of the data.}
@@ -14,32 +14,30 @@
   relationships of the composites in the model.}
 }
 \value{
-  A matrix of unscaled inner weights \code{E} with the same
-  dimesions as \code{inner.mod}.
+A matrix of unscaled inner weights \code{E} with the same
+dimesions as \code{inner.mod}.
 }
 \description{
-  Calculates a set of inner weights based on the path
-  scheme.
+Calculates a set of inner weights based on the path scheme.
 }
 \details{
-  In the path scheme, inner weights are based on regression
-  estimates of the relationships between composites that
-  are connected in the model specified in \code{inner.mod},
-  and correlations for the inverse relationships. If a
-  relationship is reciprocal, regression is used for both
-  directions.
+In the path scheme, inner weights are based on regression
+estimates of the relationships between composites that are
+connected in the model specified in \code{inner.mod}, and
+correlations for the inverse relationships. If a
+relationship is reciprocal, regression is used for both
+directions.
 
-  Falls back to to identity scheme for composites that are
-  not connected to any other composites.
+Falls back to to identity scheme for composites that are
+not connected to any other composites.
 }
 \references{
-  Lohmöller J.-B. (1989) \emph{Latent variable path
-  modeling with partial least squares.} Heidelberg:
-  Physica-Verlag.
+Lohmöller J.-B. (1989) \emph{Latent variable path modeling
+with partial least squares.} Heidelberg: Physica-Verlag.
 }
 \seealso{
-  Other inner estimators: \code{\link{inner.GSCA}},
-  \code{\link{inner.centroid}}, \code{\link{inner.factor}},
-  \code{\link{inner.identity}}
+Other inner estimators: \code{\link{inner.GSCA}};
+\code{\link{inner.centroid}}; \code{\link{inner.factor}};
+\code{\link{inner.identity}}
 }
 

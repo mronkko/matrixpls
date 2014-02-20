@@ -2,7 +2,7 @@
 \alias{outer.modeA}
 \title{PLS outer estimation with Mode A}
 \usage{
-  outer.modeA(S, W, E, W.mod, ...)
+outer.modeA(S, W, E, W.mod, ...)
 }
 \arguments{
   \item{S}{Covariance matrix of the data.}
@@ -17,17 +17,16 @@
   and their starting values.}
 }
 \value{
-  A matrix of unscaled outer weights \code{W} with the same
-  dimesions as \code{W.mod}.
+A matrix of unscaled outer weights \code{W} with the same
+dimesions as \code{W.mod}.
 }
 \description{
-  Performs Mode A outer estimation by calculating
-  correlation matrix between the indicators and composites.
+Performs Mode A outer estimation by calculating correlation
+matrix between the indicators and composites.
 }
 \seealso{
-  Other outer estimators: \code{\link{outer.GSCA}},
-  \code{\link{outer.factor}},
-  \code{\link{outer.fixedWeights}},
-  \code{\link{outer.modeB}}
+Other outer estimators: \code{\link{outer.GSCA}};
+\code{\link{outer.factor}};
+\code{\link{outer.fixedWeights}}; \code{\link{outer.modeB}}
 }
 
