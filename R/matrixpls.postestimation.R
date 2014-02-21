@@ -40,7 +40,7 @@ effects.matrixpls <- function(object = NULL,  ...) {
 	diag(AA) <- 1
 	Total <- solve(AA) - I
 	Indirect <-  Total - A
-	result <- list(Total=Total[endog, ], Direct=A[endog, ], Indirect=Indirect[endog, ])
+	result <- list(Total=Total[endog, , drop = FALSE], Direct=A[endog, , drop = FALSE], Indirect=Indirect[endog, , drop = FALSE])
 	class(result) <- "matrixplseffects"
 	result
 }

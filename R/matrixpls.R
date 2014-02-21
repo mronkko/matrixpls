@@ -457,7 +457,7 @@ matrixpls.weights <- function(S, inner.mod, W.mod,
 	attr(W,"S") <- S
 	attr(W,"iterations") <- iteration
 	attr(W,"converged") <- converged
-	attr(W,"history") <- weightHistory[1:iteration+1,]
+	attr(W,"history") <- weightHistory[1:(iteration+1),]
 	class(W) <-("matrixplsweights")
 	rownames(W) <- rownames(inner.mod)
 	
