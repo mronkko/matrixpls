@@ -39,6 +39,15 @@ R CMD CHECK matrixpls_0.0.1.tar.gz
 R CMD INSTALL matrixpls_0.0.1.tar.gz
 ```
 
+You may need to install development versions of Lavaan and SimSem to run the development verison of
+matrixpls
+
+```
+ install.packages("lavaan", repos="http://www.da.ugent.be", type="source")
+
+ install.packages("simsem", repos="http://rweb.quant.ku.edu/kran", type="source")
+```
+ 
 Author Contact
 --------------
 Mikko Rönkkö (mikko.ronkko@aalto.fi)
