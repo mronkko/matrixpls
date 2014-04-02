@@ -618,24 +618,27 @@ params.internal_formative <- function(S, IC, nativeModel){
 }
 
 params.internal_reflective <- function(C, IC, nativeModel){	
-	
+
 	results <-c()
 	
 	for(row in 1:nrow(nativeModel$reflective)){
-		
+
 		independents <- which(nativeModel$reflective[row,]!=0, useNames = FALSE)
 		
 		if(length(independents)>0){
 			if(length(independents)==1){
 				# Simple regresion is the covariance divided by the variance of the predictor, which are standardized
-				results <- c(results, IC[independents,row])
+				coefs <- IC[independents,row]
 			}
 			else{
 				coefs <- solve(C[independents,independents],IC[independents,row])
-				results <- c(results,coefs)
 			}
-			names(results)[length(results)] <- paste(colnames(nativeModel$reflective)[independents], "=~",
+
+			names(coefs) <- paste(colnames(nativeModel$reflective)[independents], "=~",
 																							 rownames(nativeModel$reflective)[row], sep = "")
+
+			results <- c(results,coefs)
+			
 		}
 	}
 	
