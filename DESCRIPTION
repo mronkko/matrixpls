@@ -12,8 +12,7 @@ Description: matrixpls is implements Partial Least Squares Path Modeling algorit
 URL: https://github.com/mronkko/matrixpls
 BugReports: https://github.com/mronkko/matrixpls/issues
 ByteCompile: TRUE
-Suggests: assertive, matrixcalc, plspm, simsem, boot, psych, lavaan,
+Depends: assertive, matrixcalc, plspm, simsem, boot, psych, lavaan,
         MASS, RUnit, parallel, semPLS
 License: GPL-3
 LazyLoad: yes
-Packaged: 2013-09-03 18:49:48 UTC; mronkko
