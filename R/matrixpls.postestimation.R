@@ -96,7 +96,7 @@ residuals.matrixpls <- function(object, ...) {
 	
 	library(psych)
 	library(MASS)
-	
+		
 	# Equation numbers in parenthesis refer to equation number in Lohmoller 1989
 	
 	nativeModel <- attr(object,"model")
@@ -110,13 +110,14 @@ residuals.matrixpls <- function(object, ...) {
 	
 	# Number of endog LVs
 	endog <- rowSums(nativeModel$inner)>0
-	h <- sum(endog)
-		
+	h <- sum(endog)	
+
+	
 	
 	# Factor loading matrix
 	P <- nativeModel$reflective
-	P[P==1] <- object[grepl("=~", names(object), fixed=TRUE)]
 	
+	P[P==1] <- object[grepl("=~", names(object), fixed=TRUE)]
 	
 	B <- attr(object,"beta")
 	
@@ -125,7 +126,8 @@ residuals.matrixpls <- function(object, ...) {
 	
 	R <- W %*% S %*% t(W)
 	R_star <- (B %*% R %*% t(B))[endog,endog] # e. 2.99
-	
+
+
 	# Model implied indicator covariances
 	H <- P %*% R %*% t(P) # eq 2.96
 	
@@ -138,6 +140,7 @@ residuals.matrixpls <- function(object, ...) {
 	
 	R2 <- R2(object)
 	
+
 	# C in Lohmoller 1989 is different from the matrixpls C
 	# residual covariance matrix of indicators
 	
@@ -147,13 +150,23 @@ residuals.matrixpls <- function(object, ...) {
 	Q <- (W %*% S %*% t(W))[endog,endog] - R_star
 	
 
+	RMS <- function(num) sqrt(sum(num^2)/length(num))
+	
 	indices <- list(Communality = tr(H2)/k, # eq 2.109
 									Redundancy = tr(F2)/k,  # eq 2.110
 									SMC = sum(R2)/h,         # eq 2.111
-									"RMS outer residual covariance" = sqrt(sum(C[lower.tri(C)]^2)/length(C[lower.tri(C)])), # eq 2.118
-									"RMS inner residual covariance" = sqrt(sum(Q[lower.tri(Q)]^2)/length(Q[lower.tri(Q)])), # eq 2.118
-									SRMR = sqrt(sum(C_std[lower.tri(C_std)]^2)/length(C[lower.tri(C_std, diag=TRUE)])))
+									"RMS outer residual covariance" = RMS(C[lower.tri(C)]), # eq 2.118
+									"RMS inner residual covariance" = RMS(C[lower.tri(Q)]), # eq 2.118
+									
+									# SRMR as calculated in SEM. (citation needed)
+									
+									SRMR = sqrt(sum(C_std[lower.tri(C_std)]^2)/length(C[lower.tri(C_std, diag=TRUE)])),
+									
+									# SRMR calculated ignoring within block residuals from Henserler et al 2014.
+									
+									SRMR_Henseler = RMS(C[nativeModel$reflective %*% t(nativeModel$reflective)==0]))
 	
+
 	result<- list(inner = Q, outer = C, indices = indices)
 	
 	class(result) <- "matrixplsresiduals"
