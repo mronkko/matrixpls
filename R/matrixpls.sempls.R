@@ -86,19 +86,19 @@ matrixpls.sempls <-
 		# Select the function according to the weighting scheme
 		if(wscheme %in% c("A", "centroid")) {
 			# Start of matrixpls code
-			inner.estimator <- inner.centroid
+			innerEstimator <- inner.centroid
 			# End of matrixpls code
 			result$weighting_scheme <- "centroid"
 		}
 		else if(wscheme %in% c("B", "factorial")) {
 			# Start of matrixpls code
-			inner.estimator <- inner.factorial
+			innerEstimator <- inner.factorial
 			# End of matrixpls code
 			result$weighting_scheme <- "factorial"
 		}
 		else if(wscheme %in% c("C", "pw", "pathWeighting")) {
 			# Start of matrixpls code
-			inner.estimator <- inner.path
+			innerEstimator <- inner.path
 			# End of matrixpls code
 			result$weighting_scheme <- "path weighting"
 		}
@@ -138,14 +138,20 @@ matrixpls.sempls <-
 		
 		matrixpls.res <- matrixpls(S,
 															 matrixpls.model,
-															 innerEstimator = inner.estimator,
+															 innerEstimator = innerEstimator,
 															 outerEstimators = outerEstimators,
 															 convCheck = convCheck, tol = tol)
 				
 		converged <- attr(matrixpls.res, "converged")
 		i <- attr(matrixpls.res, "iterations") + 1
-		Wnew <- attr(matrixpls.res, "W")
-		innerWeights <- attr(matrixpls.res, "E")
+		
+		# Create a new matrix to clear attribute
+		W <- t(attr(matrixpls.res, "W"))
+		Wnew <- matrix(W,nrow(W), ncol(W))
+		colnames(Wnew) <- colnames(W)
+		rownames(Wnew) <- rownames(W)
+
+		innerWeights <- t(attr(matrixpls.res, "E"))
 		whist <- attr(matrixpls.res, "history")
 		weights_evolution <- NULL
 		
@@ -171,15 +177,16 @@ matrixpls.sempls <-
 		ifelse(pairwise, use <- "pairwise.complete.obs", use <- "everything")
 		
 		# Start of matrixpls code
-		result$path_coefficients <- matrixpls.res
-		result$cross_loadings <- attr(matrixpls.res,"IC")
+		result$path_coefficients <- t(attr(matrixpls.res,"beta"))
+		result$cross_loadings <- t(attr(matrixpls.res,"IC"))
 		# End of matrixpls code
 		
 		result$outer_loadings <- result$cross_loadings
 		result$outer_loadings[Wnew==0] <- 0
 		
 		# Start of matrixpls code
-		result$total_effects <- effects(matrixpls.res)$Total
+		result$total_effects <- cbind(0,t(effects(matrixpls.res)$Total))
+		colnames(result$total_effects) <- rownames(result$total_effects)
 		# End of matrixpls code
 		
 		result$inner_weights <- innerWeights
@@ -188,7 +195,23 @@ matrixpls.sempls <-
 		
 		# Start of matrixpls code
 		result$Hanafi <- NA
-		result$factor_scores <- NA
+		
+		#
+		# semPLS calculates the weights using non-standardized weights and standardizes afterwards
+		# because of this, we need to redo the last estimation round to get unscaled weights
+		#
+		
+		W_old <- t(W)
+		W_old[W_old != 0] <- whist[nrow(whist)-1,]
+		
+		E_old <- innerEstimator(S, W_old, matrixpls.model$inner)
+		W_unscaled <- outerEstimators(S, 
+																	W_old,
+																	E_old,
+																	defaultWeightModelWithModel(matrixpls.model))
+		
+		result$factor_scores <- scale(data %*% t(W_unscaled))
+		
 		# End of matrixpls code
 		
 		result$data <- data
