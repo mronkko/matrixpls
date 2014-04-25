@@ -166,7 +166,6 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
 												 extra = matrixpls.res))
 												 
 		}
-		
 		if(! is.null(fitIndices)){
 			assert_is_function(fitIndices)
 			fitlist <- unlist(fitIndices(matrixpls.res))
@@ -176,11 +175,20 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
 		
 		return(ret)
 	}
-	
-	simsemArgs <- c(list(nRep = nRep, model = model, n = n), simsemArgs)
 
-	do.call(simsem::sim, simsemArgs)
+	simsemArgs <- c(list(nRep = nRep, model = model, n = n, saveLatentVar = TRUE, 
+											 
+											 # Outfun is neeeded to get the matrixpls objects into the simsem results.
+											 # The function is actually never called, but simsem checks that it is not
+											 # null before returing extra output.
+											 # see https://github.com/simsem/simsem/issues/12
+											 
+											 outfun = identity),
+									simsemArgs)
+
+	ret <- do.call(simsem::sim, simsemArgs)
 	
+	ret
 }
 
 #'@title Summary of model fit of PLS model
