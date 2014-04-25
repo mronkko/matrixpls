@@ -205,7 +205,8 @@ fitSummary <- function(object){
 							"Min AVE" = min(AVE(object)$AVE),
 							"Min AVE - sq. cor" = min(AVE(object)$AVE_correlation),
 							"Goodness of Fit" = GoF(object),
-							SRMR = residuals(object)$indices$SRMR)
+							SRMR = residuals(object)$indices$SRMR,
+							"Henseler's SRMR" = residuals(object)$indices$SRMR_Henseler)
 	
 	class(ret) <- "matrixplfitsummary"
 	ret
