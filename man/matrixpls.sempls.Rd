@@ -1,0 +1,129 @@
+\name{matrixpls.sempls}
+\alias{matrixpls.sempls}
+\title{A semPLS compatibility wrapper for matrixpls}
+\usage{
+matrixpls.sempls(model, data, maxit = 20, tol = 1e-07, scaled = TRUE,
+  sum1 = FALSE, wscheme = "centroid", pairwise = FALSE,
+  method = c("pearson", "kendall", "spearman"), convCrit = c("relative",
+  "square"), verbose = TRUE, ...)
+}
+\arguments{
+  \item{model}{An object inheriting from class \code{plsm}
+  as returned from \code{\link[semPLS]{plsm}} or
+  \code{\link[semPLS]{read.splsm}}.}
+
+  \item{data}{ A \code{data.frame} containing the observed
+  variables (MVs). The storage mode for all the MVs
+  included in the model must be \code{numeric}.  }
+
+  \item{maxit}{ A \code{numeric} value, which determines
+  the maximum number of iterations performed by the PLS
+  algorithm. The default is \eqn{20} iterations.  }
+
+  \item{tol}{ A \code{numeric} value, specifying the
+  tolerance for the maximum relative differences in the
+  outer weights. The default value is \eqn{10^{-7}}.  }
+
+  \item{scaled}{ A \code{logical} value indicating, whether
+  the observed data shall be scaled to zero mean and unit
+  variance. The default is \code{TRUE}.  }
+
+  \item{sum1}{ A \code{logical} value indicating, whether
+  the outer weights foreach latent variable (LV) shall be
+  standardized to sum up to one. The default is
+  \code{FALSE}. Since the factor scores are scaled in each
+  step of the PLS algorithm, changing this value to
+  \code{TRUE} does not affect the results.  }
+
+  \item{wscheme}{ A \code{character} naming the weighting
+  scheme to use. Possible values are: \itemize{ \item
+  \code{"A"} or \code{"centroid"} for the centroid scheme,
+  the default, \item \code{"B"} or \code{"factorial"}for
+  the factorial scheme and \item \code{"C"}, \code{"pw"} or
+  \code{"pathWeighting"} for the path weighting scheme.  }
+  }
+
+  \item{pairwise}{A \code{logical} value indicating,
+  whether correlations shall be calculated pairwise. If the
+  observed data does not contain missing values, the
+  results are not affected.  The default is \code{FALSE}.
+  For more details the R help, \code{?cor}, can be
+  consulted.}
+
+  \item{method}{A \code{character} naming the method to
+  calculate the correlations. Possible values are:
+  \itemize{ \item \code{"pearson"} , the default, \item
+  \code{"kendall"}, \item \code{"spearman"}.  } For more
+  details on the method, the R help, \code{?cor}, can be
+  consulted. Note, that despite of the \code{method}
+  argument, pearson correlations are always used for the
+  inner approximation (step 2).  }
+
+  \item{convCrit}{ The convergence criteria to use:
+  \itemize{ \item \code{"relative"}, the default, \item
+  \code{"square"}.  } }
+
+  \item{verbose}{ Logical: If \code{FALSE} no status
+  messages are printed.  }
+
+  \item{...}{ Arguments to be passed down.  }
+}
+\value{
+An object of class \code{\link[semPLS]{sempls}}.
+}
+\description{
+\code{matrixpls.sempls} mimics \code{\link[semPLS]{sempls}}
+function of the \code{semPLS} package. The arguments and
+their default values and the output of the function are
+identical with \code{\link[semPLS]{sempls}} function, but
+internally the function uses matrixpls estimation.
+}
+\examples{
+library(semPLS)
+
+data(ECSImobi)
+ecsi <- matrixpls.sempls(model=ECSImobi, data=mobi, wscheme="pathWeighting")
+ecsi
+
+## create plots
+densityplot(ecsi)
+densityplot(ecsi, use="prediction")
+densityplot(ecsi, use="residuals")
+
+## Values of 'sempls' objects
+names(ecsi)
+ecsi$outer_weights
+ecsi$outer_loadings
+ecsi$path_coefficients
+ecsi$total_effects
+
+
+### using convenience methods to sempls results
+## path coefficients
+pathCoeff(ecsi)
+
+## total effects
+totalEffects(ecsi)
+
+## get loadings and check for discriminant validity
+(l <- plsLoadings(ecsi))
+# outer loadings
+print(l, type="outer", digits=2)
+# outer loadings greater than 0.5
+print(l,type="outer", cutoff=0.5, digits=2)
+# cross loadings greater than 0.5
+print(l, type="cross", cutoff=0.5, digits=2)
+
+
+### R-squared
+rSquared(ecsi)
+}
+\references{
+Monecke, A., & Leisch, F. (2012). semPLS: Structural
+Equation Modeling Using Partial Least Squares.
+\emph{Journal of Statistical Software}, 48(3), 1–32.
+}
+\seealso{
+\code{\link[semPLS]{sempls}}
+}
+
