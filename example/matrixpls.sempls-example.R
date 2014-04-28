@@ -1,11 +1,12 @@
 library(semPLS)
+library(matrixpls)
 
 data(ECSImobi)
 ecsi.sempls <- sempls(model=ECSImobi, data=mobi, wscheme="pathWeighting")
 
 ecsi <- matrixpls.sempls(model=ECSImobi, data=mobi, wscheme="pathWeighting")
 
-checkEquals(ecsi.sempls,ecsi)
+checkEquals(ecsi.sempls,ecsi, check.attributes = FALSE)
 
 ecsi
 

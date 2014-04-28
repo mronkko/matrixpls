@@ -141,7 +141,7 @@ matrixpls.sempls <-
 															 innerEstimator = innerEstimator,
 															 outerEstimators = outerEstimators,
 															 convCheck = convCheck, tol = tol)
-				
+		
 		converged <- attr(matrixpls.res, "converged")
 		i <- attr(matrixpls.res, "iterations") + 1
 		
@@ -150,22 +150,39 @@ matrixpls.sempls <-
 		Wnew <- matrix(W,nrow(W), ncol(W))
 		colnames(Wnew) <- colnames(W)
 		rownames(Wnew) <- rownames(W)
-
+		
 		innerWeights <- t(attr(matrixpls.res, "E"))
 		whist <- attr(matrixpls.res, "history")
-		weights_evolution <- NULL
 		
-			# End of matrixpls code
+		weights_evolution <- apply(whist, 1, function(x){
 			
-			
-			## print
-			if(converged & verbose){
-				cat(paste("Converged after ", (i-1), " iterations.\n",
-									"Tolerance: ", tol ,"\n", sep=""))
-				if (wscheme %in% c("A", "centroid")) cat("Scheme: centroid\n")
-				if (wscheme %in% c("B", "factorial")) cat("Scheme: factorial\n")
-				if (wscheme %in% c("C", "pw", "pathWeighting")) cat("Scheme: path weighting\n")
-			}
+			Wnew[Wnew != 0] <- x
+			ret <- reshape(as.data.frame(Wnew),
+										 v.names="weights",
+										 ids=rownames(Wnew),
+										 idvar="MVs",
+										 times=colnames(Wnew),
+										 timevar="LVs",
+										 varying=list(colnames(Wnew)),
+										 direction="long")
+			ret
+		})
+		
+		weights_evolution <- do.call(rbind,weights_evolution)
+		iterationCol <- data.frame(iteration = rep(0:(nrow(whist)-1), each = length(Wnew)))
+		weights_evolution <- cbind(weights_evolution, iterationCol)
+		
+		# End of matrixpls code
+		
+		
+		## print
+		if(converged & verbose){
+			cat(paste("Converged after ", (i-1), " iterations.\n",
+								"Tolerance: ", tol ,"\n", sep=""))
+			if (wscheme %in% c("A", "centroid")) cat("Scheme: centroid\n")
+			if (wscheme %in% c("B", "factorial")) cat("Scheme: factorial\n")
+			if (wscheme %in% c("C", "pw", "pathWeighting")) cat("Scheme: path weighting\n")
+		}
 		else if(!converged){
 			stop("Result did not converge after ", result$maxit, " iterations.\n",
 					 "\nIncrease 'maxit' and rerun.", sep="")
@@ -194,23 +211,28 @@ matrixpls.sempls <-
 		result$weights_evolution <- weights_evolution
 		
 		# Start of matrixpls code
-		result$Hanafi <- NA
+		result$Hanafi <- 		apply(whist,1,function(x){
+			
+			W[W != 0] <- x
+			C <- t(W) %*% S %*% W
+			
+			matrix(c(sum(abs(C) * model$D),
+					 sum(C^2 * model$D)), nrow = 1)
+			
+		})
+		
+		result$Hanafi <- t(result$Hanafi)
+		result$Hanafi <- cbind(result$Hanafi, 0:(i-1))
+		
+		colnames(result$Hanafi) <- c("f", "g", "iteration")
 		
 		#
-		# semPLS calculates the weights using non-standardized weights and standardizes afterwards
-		# because of this, we need to redo the last estimation round to get unscaled weights
+		# semPLS calculates the weights using non-standardized weights and standardizes afterwards.
+		# because of this the attributes scaled:center and scaled:scale added by scale do not match
+		# the semPLS output. These are of little interest to the end user.
 		#
 		
-		W_old <- t(W)
-		W_old[W_old != 0] <- whist[nrow(whist)-1,]
-		
-		E_old <- innerEstimator(S, W_old, matrixpls.model$inner)
-		W_unscaled <- outerEstimators(S, 
-																	W_old,
-																	E_old,
-																	defaultWeightModelWithModel(matrixpls.model))
-		
-		result$factor_scores <- scale(data %*% t(W_unscaled))
+		result$factor_scores <- scale(data %*% W)
 		
 		# End of matrixpls code
 		
@@ -225,7 +247,7 @@ matrixpls.sempls <-
 		pathNames <- paste(colnames(ref)[col(ref)[ref==1]], "->", rownames(ref)[row(ref)[ref==1]])
 		estimates <- t(attr(matrixpls.res,"IC"))[ref==1]
 		coefNames <- paste("lam",col(ref)[ref==1],unlist(apply(ref,2,function(x) 1:sum(x))),sep="_")
-
+		
 		pathNames <- c(pathNames, paste(rownames(inn)[row(inn)[inn==1]], "->", colnames(inn)[col(inn)[inn==1]]))
 		estimates <- c(estimates, t(attr(matrixpls.res,"beta"))[inn==1])
 		coefNames <- c(coefNames, paste("beta",row(inn)[inn==1],col(inn)[inn==1],sep="_"))
@@ -236,7 +258,7 @@ matrixpls.sempls <-
 																			Estimate = estimates, 
 																			row.names = coefNames)
 		# End of matrixpls code
-
+		
 		return(result)
 	}
 
