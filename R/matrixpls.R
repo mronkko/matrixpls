@@ -299,7 +299,7 @@ print.matrixplssummary <- function(x, ...){
 matrixpls.weights <- function(S, inner.mod, W.mod,
 															outerEstimators = outer.modeA, 
 															innerEstimator = inner.path, ..., 
-															convCheck = function(W,W_new){max(abs(W_new - W))},
+															convCheck = function(W,W_old){max(abs(W_old - W))},
 															tol = 1e-05, iter = 100, validateInput = TRUE) {
 	
 	if(validateInput){
@@ -437,7 +437,7 @@ matrixpls.weights <- function(S, inner.mod, W.mod,
 			weightHistory[iteration+1,] <- W[weightPattern]
 			
 			# Check convergence. If we are not using inner estimator, converge to the first iteration
-			
+
 			if(is.null(innerEstimator) || convCheck(W,W_old) < tol){
 				converged <- TRUE
 				break;
@@ -455,6 +455,7 @@ matrixpls.weights <- function(S, inner.mod, W.mod,
 	else converged <- TRUE	
 	
 	attr(W,"S") <- S
+	attr(W,"E") <- E
 	attr(W,"iterations") <- iteration
 	attr(W,"converged") <- converged
 	attr(W,"history") <- weightHistory[1:(iteration+1),]
