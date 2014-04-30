@@ -26,13 +26,13 @@
 
 matrixpls.boot <- function(data, R = 500, ..., parallel = c("no", "multicore", "snow"), ncpus = getOption("boot.ncpus", 1L), stopOnError = FALSE){
   
-  library("boot")
+  if(! requireNamespace("boot")) stop("matrixpls.boot requires the boot package")
   
   if (missing(parallel)) parallel <- getOption("boot.parallel", "no")
   
   data <- as.matrix(data)
   
-  boot.out <- boot(data,
+  boot.out <- boot::boot(data,
                    function(data, indices){
                      
                      S <- cov(data[indices,])

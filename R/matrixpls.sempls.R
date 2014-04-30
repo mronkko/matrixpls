@@ -32,11 +32,7 @@ matrixpls.sempls <-
     
     # This function is largely copied from the semPLS package (licensed under GPL 2)
     # The code specific to matrixpls are marked in the following way
-    
-    # Start of matrixpls code
-    library(semPLS)
-    # End of matrixpls code
-    
+        
     method <- match.arg(method)
     convCrit <- match.arg(convCrit)
     result <- list(coefficients=NULL, path_coefficients=NULL,
@@ -264,63 +260,4 @@ matrixpls.sempls <-
     return(result)
   }
 
-plsLoop <- expression({
-  #######################################################################
-  # Iterate over step 2 to step 5
-  i <- 1
-  converged <- FALSE
-  while(!converged){
-    
-    #############################################
-    # step 2
-    innerWeights <- innerWe(model, fscores=factor_scores, pairwise, method)
-    factor_scores <- step2(Latent=factor_scores, innerWeights, model, pairwise)
-    
-    #############################################
-    # step 3
-    Wnew <-  outerApprx2(Latent=factor_scores, data, model,
-                         sum1=sum1, pairwise, method)
-    
-    #############################################
-    # step 4
-    factor_scores <- step4(data, outerW=Wnew, model, pairwise)
-    if(!sum1){
-      # to ensure: w'Sw=1
-      sdYs <- rep(attr(factor_scores, "scaled:scale"),
-                  each=length(model$manifest))
-      Wnew <- Wnew / sdYs
-    }
-    weights_evolution_tmp <- reshape(as.data.frame(Wnew),
-                                     v.names="weights",
-                                     ids=rownames(Wnew),
-                                     idvar="MVs",
-                                     times=colnames(Wnew),
-                                     timevar="LVs",
-                                     varying=list(colnames(Wnew)),
-                                     direction="long")
-    weights_evolution_tmp <- cbind(weights_evolution_tmp, iteration=i)
-    weights_evolution <- rbind(weights_evolution, weights_evolution_tmp)
-    Hanafi_tmp <- cbind(f=sum(abs(cor(factor_scores)) * model$D),
-                        g=sum(cor(factor_scores)^2 * model$D),
-                        iteration=i)
-    Hanafi <- rbind(Hanafi, Hanafi_tmp)
-    
-    #############################################
-    # step 5
-    st5 <- step5(Wold, Wnew, tol, converged, convCrit)
-    Wold <- st5$Wold
-    converged <- st5$converged
-    
-    #############################################
-    
-    
-    if(i == maxit && !converged){
-      # 'try-error' especially for resempls.R
-      class(result) <- c(class(result), "try-error")
-      i <- i+1
-      break
-    }
-    
-    i <- i+1
-  }
-})
+

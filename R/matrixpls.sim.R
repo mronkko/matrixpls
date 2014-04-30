@@ -47,7 +47,8 @@
 
 matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.95, citype=c("norm","basic", "stud", "perc", "bca"), boot.R = 500, fitIndices = fitSummary){
   
-  library(simsem)
+  if(! requireNamespace("simsem")) stop("matrixpls.sim requires the simsem package")
+  
   
   # Basic verification of the arguments
   if(boot.R != FALSE)	assert_all_are_positive(boot.R)	
@@ -140,7 +141,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
     if(boot.R != FALSE){
       
       cis <- sapply(parameterIndices, FUN = function(index) {
-        boot.ci.out <- boot.ci(boot.out, conf = cilevel, type = citype, index=index)
+        boot.ci.out <- boot::boot.ci(boot.out, conf = cilevel, type = citype, index=index)
         
         # The cis start from the fourth slot and we only have one type of ci. 
         # The list names do not match the type parameter exactly (e.g. "norm" vs. "normal")
@@ -186,7 +187,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
                        outfun = identity),
                   simsemArgs)
   
-  ret <- do.call(sim, simsemArgs)
+  ret <- do.call(simsem::sim, simsemArgs)
   
   ret
 }

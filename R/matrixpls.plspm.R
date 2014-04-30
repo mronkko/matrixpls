@@ -36,9 +36,10 @@ matrixpls.plspm <-
            scaled = TRUE, tol = 0.000001, maxiter = 100, boot.val = FALSE, 
            br = NULL, dataset = TRUE){
     
-    library(plspm)
-    library(boot)
-    library(parallel)
+    if(! requireNamespace("boot")) stop("matrixpls.plspm requires the boot package")
+    if(! requireNamespace("parallel")) stop("matrixpls.plspm requires the parallel package")
+    
+
     
     # =======================================================
     # checking arguments
@@ -129,7 +130,7 @@ matrixpls.plspm <-
       # The matrixpls.boot function is not used here because we need to support data scaling
       #
       
-      boot.res <- boot(dataToUse, function(originalData,indices){
+      boot.res <- boot::boot(dataToUse, function(originalData,indices){
         
         # plspm reports always standardized loadings even if the data were not standardized
         # We mimic this by standardizing the data
