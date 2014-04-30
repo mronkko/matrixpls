@@ -4,9 +4,9 @@
 #  https://github.com/simsem/simsem/wiki/Example-2:-Getting-Started-%28lavaan-input%29
 #
 
-library(matrixpls)
-
-popModel <- "
+if(require(simsem)){
+  
+  popModel <- "
 f1 =~ 1*y1 + 0.6*y2 + 0.7*y3
 f2 =~ 1*y4 + 1.1*y5 + 0.9*y6
 f3 =~ 1*y7 + 1.2*y8 + 1.1*y9
@@ -26,18 +26,23 @@ y7 ~~ 0.8*y7
 y8 ~~ 0.5*y8
 y9 ~~ 0.6*y9
 "
-
-analyzeModel <- "
+  
+  analyzeModel <- "
 f1 =~ y1 + y2 + y3
 f2 =~ y4 + y5 + y6
 f3 =~ y7 + y8 + y9
 "
-
-# Only run 10 replications with 50 bootstrap replications each so that the 
-#example runs faster
-
-Output <- matrixpls.sim(10, analyzeModel, n=200, generate=popModel, boot.R=50,
-                        multicore = FALSE, stopOnError = TRUE)
-getCutoff(Output, 0.05)
-plotCutoff(Output, 0.05)
-summary(Output)
+  
+  # Only run 10 replications with 50 bootstrap replications each so that the 
+  #example runs faster
+  
+  Output <- matrixpls.sim(10, analyzeModel, n=200, generate=popModel, boot.R=50,
+                          multicore = FALSE, stopOnError = TRUE)
+  getCutoff(Output, 0.05)
+  plotCutoff(Output, 0.05)
+  summary(Output)
+  
+  
+} else{
+  print("This example requires the simsem package")
+}

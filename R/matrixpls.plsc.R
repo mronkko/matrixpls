@@ -72,113 +72,111 @@
 
 #'  
 #'@example example/matrixpls.plsc-example.R
-#'@example example/matrixpls.plsc-example2.R
 #'
 #'@export
 
 params.plsc <- function(S, W, model, fm = "dijkstra", ...){
-	
-	nativeModel <- parseModelToNativeFormat(model)
-		
-	ab <- nrow(W) #number of blocks
-	ai <- ncol(W) #total number of indicators
-	p <- lapply(1:nrow(W),function(x){which(W[x,]!=0)}) # indicator indices
-	
-	
-	# Calculation of the correlations between the PLS proxies, C:
-	C <- W %*% S %*% t(W)	
-	
-	# Calculate the covariance matrix between indicators and composites
-	IC <- W %*% S
-	
-	# Dijkstra's correction
-	
-	if(fm == "dijkstra"){
-		
-		# Determination of the correction factors, based on (11) of Dijkstra, April 7, 2011.
-		c2 <- rep(1,ab)
-		for (i in 1:ab) {
-			idx <- p[[i]]
-			if (length(idx) > 1) { # only for latent factors, no need to correct for the single indicator for the phantom LV
-				c2[i] <- t(W[i,idx])%*%(S[idx,idx]-diag(diag(S[idx,idx])))%*%W[i,idx]
-				c2[i] <- c2[i]/(t(W[i,idx])%*%(W[i,idx]%*%t(W[i,idx])-diag(diag(W[i,idx]%*%t(W[i,idx]))))%*%W[i,idx])
-			}
-		}
-		
-		# Dijkstra's formula seems to have problems with negative weights
-		c2 <- abs(c2)
-		
-		c <- sqrt(c2)
-		
-		# Determination of consistent estimates of the loadings, see (13) of Dijkstra, April 7, 2011.
-		L <- matrix(0,ai,ab)
-		
-		for (i in 1:ab) {
-			idx <- p[[i]]
-			L[idx,i] <- c[i]*W[i,idx]
-		}
-		
-		# Determination of the quality of the proxies, see (15) of Dijkstra, April 7, 2011.
-		
-		Q <- c2
-		for (i in 1:ab) {
-			idx <- p[[i]]
-			Q[i] <- c2[i]*(t(W[i,idx])%*%W[i,idx])^2
-		}
-	}
-	
-	# Else use factor analysis
-	
-	else{
-		p_refl <- apply(nativeModel$reflective, 2, function(x){which(x!=0)}) # indicator indices based on the reflective model
-		library(psych)
-		L <- matrix(0,ai,ab)
-		Q <- rep(1,ab)
-		for (i in 1:ab) {	
-			idx <- p_refl[,i]
-			L[idx,i] <- fa(S[idx,idx], fm = fm)$loadings
-			# Non-factor indicators are assumed to be perfectly reliable and not corrected
-			indicator_reliabilities <- L
-			indicator_reliabilities[indicator_reliabilities == 0] <- 1
-			Q[i] <- sum(indicator_reliabilities[idx,i] * W[i,idx])^2
-
-		}
-	}
-	
-	# Determination of consistent estimates for the correlation between the
-	# latent variables, see (15) and (16) of Dijkstra, April 7, 2011.
-	R <- C / sqrt(Q) %*% t(sqrt(Q))
-	diag(R) <- 1
-	
-	
-	# Choose the specified values and add names
-
-	innerRegressionIndices <- which(nativeModel$inner==1, useNames = FALSE)
-
-	inner <- regressionsWithCovarianceMatrixAndModelPattern(R,nativeModel$inner)
-	innerVect <- inner[innerRegressionIndices]
-	names(innerVect) <- paste(rownames(inner)[row(inner)[innerRegressionIndices]],"~",
-															colnames(inner)[col(inner)[innerRegressionIndices]], sep="")		
-	
-	reflective <- nativeModel$reflective
-	
-	loadingIndices <- which(t(W)!=0)
-	loadingVect <- L[loadingIndices]
-	names(loadingVect) <- paste(colnames(reflective)[col(reflective)[loadingIndices]], "=~",
-															 rownames(reflective)[row(reflective)[loadingIndices]], sep = "")
-	
-	
-	results <- c(innerVect, loadingVect)
-	results <- c(results,	params.internal_formative(S, IC, nativeModel))
-
-	# Store these in the result object
-	attr(results,"C") <- R
-	IC[L!=0] <- L[L!=0]
-	attr(results,"IC") <- IC
-	attr(results,"beta") <- inner
-	
-	return(results)
-
+  
+  nativeModel <- parseModelToNativeFormat(model)
+  
+  ab <- nrow(W) #number of blocks
+  ai <- ncol(W) #total number of indicators
+  p <- lapply(1:nrow(W),function(x){which(W[x,]!=0)}) # indicator indices
+  
+  
+  # Calculation of the correlations between the PLS proxies, C:
+  C <- W %*% S %*% t(W)	
+  
+  # Calculate the covariance matrix between indicators and composites
+  IC <- W %*% S
+  
+  # Dijkstra's correction
+  
+  if(fm == "dijkstra"){
+    
+    # Determination of the correction factors, based on (11) of Dijkstra, April 7, 2011.
+    c2 <- rep(1,ab)
+    for (i in 1:ab) {
+      idx <- p[[i]]
+      if (length(idx) > 1) { # only for latent factors, no need to correct for the single indicator for the phantom LV
+        c2[i] <- t(W[i,idx])%*%(S[idx,idx]-diag(diag(S[idx,idx])))%*%W[i,idx]
+        c2[i] <- c2[i]/(t(W[i,idx])%*%(W[i,idx]%*%t(W[i,idx])-diag(diag(W[i,idx]%*%t(W[i,idx]))))%*%W[i,idx])
+      }
+    }
+    
+    # Dijkstra's formula seems to have problems with negative weights
+    c2 <- abs(c2)
+    
+    c <- sqrt(c2)
+    
+    # Determination of consistent estimates of the loadings, see (13) of Dijkstra, April 7, 2011.
+    L <- matrix(0,ai,ab)
+    
+    for (i in 1:ab) {
+      idx <- p[[i]]
+      L[idx,i] <- c[i]*W[i,idx]
+    }
+    
+    # Determination of the quality of the proxies, see (15) of Dijkstra, April 7, 2011.
+    
+    Q <- c2
+    for (i in 1:ab) {
+      idx <- p[[i]]
+      Q[i] <- c2[i]*(t(W[i,idx])%*%W[i,idx])^2
+    }
+  }
+  
+  # Else use factor analysis
+  
+  else{
+    p_refl <- apply(nativeModel$reflective, 2, function(x){which(x!=0)}) # indicator indices based on the reflective model
+    L <- matrix(0,ai,ab)
+    Q <- rep(1,ab)
+    for (i in 1:ab) {	
+      idx <- p_refl[,i]
+      L[idx,i] <- fa(S[idx,idx], fm = fm)$loadings
+      # Non-factor indicators are assumed to be perfectly reliable and not corrected
+      indicator_reliabilities <- L
+      indicator_reliabilities[indicator_reliabilities == 0] <- 1
+      Q[i] <- sum(indicator_reliabilities[idx,i] * W[i,idx])^2
+      
+    }
+  }
+  
+  # Determination of consistent estimates for the correlation between the
+  # latent variables, see (15) and (16) of Dijkstra, April 7, 2011.
+  R <- C / sqrt(Q) %*% t(sqrt(Q))
+  diag(R) <- 1
+  
+  
+  # Choose the specified values and add names
+  
+  innerRegressionIndices <- which(nativeModel$inner==1, useNames = FALSE)
+  
+  inner <- regressionsWithCovarianceMatrixAndModelPattern(R,nativeModel$inner)
+  innerVect <- inner[innerRegressionIndices]
+  names(innerVect) <- paste(rownames(inner)[row(inner)[innerRegressionIndices]],"~",
+                            colnames(inner)[col(inner)[innerRegressionIndices]], sep="")		
+  
+  reflective <- nativeModel$reflective
+  
+  loadingIndices <- which(t(W)!=0)
+  loadingVect <- L[loadingIndices]
+  names(loadingVect) <- paste(colnames(reflective)[col(reflective)[loadingIndices]], "=~",
+                              rownames(reflective)[row(reflective)[loadingIndices]], sep = "")
+  
+  
+  results <- c(innerVect, loadingVect)
+  results <- c(results,	params.internal_formative(S, IC, nativeModel))
+  
+  # Store these in the result object
+  attr(results,"C") <- R
+  IC[L!=0] <- L[L!=0]
+  attr(results,"IC") <- IC
+  attr(results,"beta") <- inner
+  
+  return(results)
+  
 }
 
 
@@ -230,7 +228,7 @@ PLSc.weights <- function(ab,p,Wold,s,S) {
     # Example: idxi=1:3 when i=1, p=c(0 3 6 7), note p is not the p user defined
     idxi <- PLSc.idx(p,i)
     if (length(idxi) > 1) { # if more than one indicator per latent factor, then update the weight.
-    # when there is only one indicator per factor, length(idxi)=1, don't update, weight is 1.
+      # when there is only one indicator per factor, length(idxi)=1, don't update, weight is 1.
       Wnew[idxi] <- 0
       for (j in 1:ab) {
         idxj <- PLSc.idx(p,j)
@@ -260,11 +258,11 @@ PLSc <- function(S,p,tol=1e-6,tmax=500) {
       Wold <- Wnew
     }
   }
-
+  
   # End of iterations, determination of correlations, loadings and the quality of the proxies
   wdak <- Wnew # wdak contains the PLS mode A estimates for the weights.
-
-
+  
+  
   # Calculation of the correlations between the PLS mode A proxies, Rdak:
   Rdak <- matrix(0,ab,ab)
   for (i in 1:(ab-1)) {
@@ -275,9 +273,9 @@ PLSc <- function(S,p,tol=1e-6,tmax=500) {
     }
   }
   Rdak <- Rdak+t(Rdak)+diag(ab)
-###may use Rdak as PLS estimates to compare with PLSc estimates R###
-
-
+  ###may use Rdak as PLS estimates to compare with PLSc estimates R###
+  
+  
   # Determination of the correction factors, based on (11) of Dijkstra, April 7, 2011.
   c2 <- rep(1,ab)
   for (i in 1:ab) {
@@ -296,14 +294,14 @@ PLSc <- function(S,p,tol=1e-6,tmax=500) {
     idx <- PLSc.idx(p,i)
     L[idx] <- c[i]*wdak[idx]
   }
-
+  
   # Determination of the quality of the proxies, see (15) of Dijkstra, April 7, 2011.
   Q <- c2
   for (i in 1:ab) {
     idx <- PLSc.idx(p,i)
     Q[i] <- c2[i]*(t(wdak[idx])%*%wdak[idx])^2
   }
-
+  
   # Determination of consistent estimates for the correlation between the
   # latent variables, see (15) and (16) of Dijkstra, April 7, 2011.
   R <- matrix(0,ab,ab)
@@ -364,7 +362,7 @@ FisherInfo <- function(V) {
   q <- p*(p+1)/2
   invV <- solve(V) #solve returns inverse of V
   I <- matrix(0,q,q)
-
+  
   row <- 0
   for (i in 1:p) {
     for (j in 1:i) {
@@ -374,7 +372,7 @@ FisherInfo <- function(V) {
       dV1 <- matrix(0,p,p)
       dV1[i,j] <- 1
       dV1[j,i] <- 1
-
+      
       for (k in 1:p) {
         for (l in 1:k) {
           col <- col + 1
@@ -383,7 +381,7 @@ FisherInfo <- function(V) {
           dV2[k,l] <- 1
           dV2[l,k] <- 1
           I[row,col] <- 0.5*sum(diag(invV%*%dV1%*%invV%*%dV2))
-#          print(c(row,col))
+          #          print(c(row,col))
         }
       }
     }

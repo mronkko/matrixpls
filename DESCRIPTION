@@ -3,16 +3,15 @@ Package: matrixpls
 Type: Package
 Title: Matrix-based Partial Least Squares estimation
 Version: 0.3.0
-Date: 2013-01-02
+Date: 2014-04-28
 Authors@R: c(person("Mikko", "Rönkkö", role=c("aut", "cre"),
     email = "mikko.ronkko@aalto.fi"))
-Author: Mikko Rönkkö
 Maintainer: Mikko Rönkkö <mikko.ronkko@aalto.fi>
 Description: matrixpls is implements Partial Least Squares Path Modeling algorithm and related algorithms. The algorithm implementations aim for computational efficiency using matrix algebra and covariance data. The package is designed toward Monte Carlo simulations and includes functions to perform simple Monte Carlo simulations.
 URL: https://github.com/mronkko/matrixpls
 BugReports: https://github.com/mronkko/matrixpls/issues
 ByteCompile: TRUE
-Depends: assertive, matrixcalc, plspm, simsem, boot, psych, lavaan,
-        MASS, RUnit, parallel, semPLS
+Imports: assertive, matrixcalc, psych, lavaan, MASS
+Suggests: plspm, simsem, RUnit, parallel, semPLS, boot
 License: GPL-3
 LazyLoad: yes

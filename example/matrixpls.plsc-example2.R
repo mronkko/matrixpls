@@ -1,12 +1,10 @@
 # Simulates the direct effects model from 
 #
-# Dijkstra, T. K., & Schermelleh-Engel, K. (2013). Consistent Partial Least Squares for Nonlinear Structural Equation Models. Psychometrika, 1–20. doi:10.1007/s11336-013-9370-0
+# Dijkstra, T. K., & Schermelleh-Engel, K. (2013). Consistent Partial Least Squares for Nonlinear
+# Structural Equation Models. Psychometrika, 1–20. doi:10.1007/s11336-013-9370-0
 #
 # using PLSc, disattenuated summed scales, and disattenuated factor scores
 #
-# This simulation requires features not included in matrixpls 0.2.0, which means that you need to 
-# use the development version from github. See this page for installing instructions
-# https://github.com/mronkko/matrixpls
 
 ####################################################################################################
 #
@@ -15,12 +13,8 @@
 ####################################################################################################
 
 SAMPLE <- 100
-REPLICATIONS <- 500
-
-# Set this to FALSE allows using breakpoints and traceback. This is useful if you want to experiment
-# with the analysis, and encounter problems
-
-MULTICORE <- TRUE
+REPLICATIONS <- 50
+MULTICORE <- FALSE
 
 MODEL <- "
 Eta1 =~ .8*y1 + .8*y2 + .8*y3
@@ -55,22 +49,26 @@ Eta3~~.57*Eta3  # error tem is calculated as 1-(.5*(.5 + -.3*-.3) + -.3*(-.3 + -
 library(matrixpls)
 
 sim.PLSf1 <- matrixpls.sim(nRep = REPLICATIONS, model = MODEL, n = SAMPLE, #General setup
-													 parameterEstimator = params.plsc, fm = "minres", # Setup disattenuation with minres factor analysis
-													 outerEstimator = outer.factor, innerEstimator = NULL, # Use factor scores as proxies. There is no need for inner estimation
-													 boot.R = FALSE, # We are not interested in bootstrap
-													 multicore = MULTICORE, fitIndices = NULL, stopOnError = TRUE) # Control parameters
+                           parameterEstimator = params.plsc,
+                           fm = "minres", # Setup disattenuation with minres factor analysis
+                           outerEstimator = outer.factor, # Use factor scores as proxies.
+                           innerEstimator = NULL, # Factor score proxies do not use inner estimation
+                           boot.R = FALSE, # We are not interested in bootstrap
+                           multicore = MULTICORE, fitIndices = NULL, stopOnError = TRUE)
+
 
 sim.PLSf2 <- matrixpls.sim(nRep = REPLICATIONS, model = MODEL, n = SAMPLE, #General setup
-													 parameterEstimator = params.plsc, fm = "minres", # Setup disattenuation with minres factor analysis
-													 outerEstimator = outer.fixedWeights, innerEstimator = NULL, # Use equal weights.  There is no need for inner estimation
-													 boot.R = FALSE, # We are not interested in bootstrap
-													 multicore = MULTICORE, fitIndices = NULL, stopOnError = TRUE) # Control parameters
-	
-sim.PLSc <- matrixpls.sim(nRep = REPLICATIONS, model = MODEL, n = SAMPLE, #General setup
-													parameterEstimator = params.plsc, # Setup PLSc disattenuation 
-													boot.R = FALSE, # We are not interested in bootstrap
-													multicore = MULTICORE, fitIndices = NULL, stopOnError = TRUE) # Control parameters
+                           parameterEstimator = params.plsc, 
+                           fm = "minres", # Setup disattenuation with minres factor analysis
+                           outerEstimator = outer.fixedWeights, # Use equal weights
+                           innerEstimator = NULL, # Equal weightproxies do not use inner estimation
+                           boot.R = FALSE, # We are not interested in bootstrap
+                           multicore = MULTICORE, fitIndices = NULL, stopOnError = TRUE)
 
+sim.PLSc <- matrixpls.sim(nRep = REPLICATIONS, model = MODEL, n = SAMPLE, #General setup
+                          parameterEstimator = params.plsc, # Setup PLSc disattenuation 
+                          boot.R = FALSE, # We are not interested in bootstrap
+                          multicore = MULTICORE, fitIndices = NULL, stopOnError = TRUE)
 
 ####################################################################################################
 #
@@ -79,7 +77,7 @@ sim.PLSc <- matrixpls.sim(nRep = REPLICATIONS, model = MODEL, n = SAMPLE, #Gener
 ####################################################################################################
 
 
-# SimSem summary methods have a bug that causes an error with inadmissible results. (therefore 'try')
+# SimSem summary methods have a bug that causes a crash with inadmissible results. (therefore 'try')
 
 try(summary(sim.PLSf1))
 try(summary(sim.PLSf2))
@@ -89,10 +87,10 @@ try(summary(sim.PLSc))
 
 par(mfrow=c(2,3))
 for(i in 1:6){
-	estimatorIndex <- (i-1) %% 3 +1
-	obj <- switch(estimatorIndex, sim.PLSf1,sim.PLSf2,sim.PLSc)
-	var <- colnames(obj@coef)[ceiling(i/3)]
-	title <- paste(switch(estimatorIndex, "Factor scores", "Summed scales", "PLSc"),var,sep=": ")
-	plot(density(obj@coef[,var], na.rm = TRUE), main = title)	
+  estimatorIndex <- (i-1) %% 3 +1
+  obj <- switch(estimatorIndex, sim.PLSf1,sim.PLSf2,sim.PLSc)
+  var <- colnames(obj@coef)[ceiling(i/3)]
+  title <- paste(switch(estimatorIndex, "Factor scores", "Summed scales", "PLSc"),var,sep=": ")
+  plot(density(obj@coef[,var], na.rm = TRUE), main = title)	
 }
 

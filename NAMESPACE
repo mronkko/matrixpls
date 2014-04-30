@@ -43,3 +43,24 @@ export(params.plsregression)
 export(params.regression)
 importFrom(stats,effects)
 importFrom(stats,loadings)
+
+importFrom(lavaan,lavaanify)
+
+importFrom(assertive, assert_all_are_not_na)
+importFrom(assertive, assert_is_matrix)
+importFrom(assertive, assert_is_symmetric_matrix)
+importFrom(assertive, assert_is_identical_to_true)
+importFrom(assertive, assert_all_are_true)
+importFrom(assertive, assert_all_are_real)
+importFrom(assertive, assert_all_are_positive)
+importFrom(assertive, assert_is_function)
+
+importFrom(MASS,ginv)
+
+importFrom(psych,fa)
+importFrom(psych,tr)
+importFrom(psych,smc)
+importFrom(psych,principal)
+importFrom(psych,alpha)
+
+importFrom(matrixcalc, is.positive.semi.definite)

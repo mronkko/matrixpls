@@ -25,31 +25,31 @@
 #'
 
 matrixpls.boot <- function(data, R = 500, ..., parallel = c("no", "multicore", "snow"), ncpus = getOption("boot.ncpus", 1L), stopOnError = FALSE){
-	
-	library(boot)
-	
-	if (missing(parallel)) parallel <- getOption("boot.parallel", "no")
-	
-	data <- as.matrix(data)
-	
-	boot.out <- boot(data,
-									 function(data, indices){
-									 	
-									 	S <- cov(data[indices,])
-
-									 	if(stopOnError){
-									 		matrixpls(S, ...)
-									 	}
-									 	else{
-									 		tryCatch(
-									 			matrixpls(S, ...)
-									 		)
-									 	}
-									 },
-									 R, parallel = parallel, ncpus = ncpus)
-	
-	#	class(boot.out) <- c("matrixplsboot", class(boot.out))
-	boot.out
+  
+  library("boot")
+  
+  if (missing(parallel)) parallel <- getOption("boot.parallel", "no")
+  
+  data <- as.matrix(data)
+  
+  boot.out <- boot(data,
+                   function(data, indices){
+                     
+                     S <- cov(data[indices,])
+                     
+                     if(stopOnError){
+                       matrixpls(S, ...)
+                     }
+                     else{
+                       tryCatch(
+                         matrixpls(S, ...)
+                       )
+                     }
+                   },
+                   R, parallel = parallel, ncpus = ncpus)
+  
+  #	class(boot.out) <- c("matrixplsboot", class(boot.out))
+  boot.out
 }
 
 # These are not in use 

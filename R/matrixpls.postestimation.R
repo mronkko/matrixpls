@@ -31,36 +31,36 @@
 #'@S3method effects matrixpls
 
 effects.matrixpls <- function(object = NULL,  ...) {
-	
-	A <- attr(object,"beta")
-	endog <- rowSums(attr(object,"model")$inner)!=0 
-	
-	I <- diag(endog)
-	AA <- - A
-	diag(AA) <- 1
-	Total <- solve(AA) - I
-	Indirect <-  Total - A
-	result <- list(Total=Total[endog, , drop = FALSE], Direct=A[endog, , drop = FALSE], Indirect=Indirect[endog, , drop = FALSE])
-	class(result) <- "matrixplseffects"
-	result
+  
+  A <- attr(object,"beta")
+  endog <- rowSums(attr(object,"model")$inner)!=0 
+  
+  I <- diag(endog)
+  AA <- - A
+  diag(AA) <- 1
+  Total <- solve(AA) - I
+  Indirect <-  Total - A
+  result <- list(Total=Total[endog, , drop = FALSE], Direct=A[endog, , drop = FALSE], Indirect=Indirect[endog, , drop = FALSE])
+  class(result) <- "matrixplseffects"
+  result
 }
 
 #'@S3method print matrixplseffects
 
 print.matrixplseffects <- function(x, ...){
-	cat("\n Total Effects (column on row)\n")
-	Total <- x$Total
-	Direct <- x$Direct
-	Indirect <- x$Indirect
-	select <- !(apply(Total, 2, function(x) all( x == 0)) & 
-								apply(Direct, 2, function(x) all( x == 0)) & 
-								apply(Indirect, 2, function(x) all( x == 0)))
-	print(Total[, select], ...)
-	cat("\n Direct Effects\n")
-	print(Direct[, select], ...)
-	cat("\n Indirect Effects\n")
-	print(Indirect[, select], ...)
-	invisible(x)
+  cat("\n Total Effects (column on row)\n")
+  Total <- x$Total
+  Direct <- x$Direct
+  Indirect <- x$Indirect
+  select <- !(apply(Total, 2, function(x) all( x == 0)) & 
+                apply(Direct, 2, function(x) all( x == 0)) & 
+                apply(Indirect, 2, function(x) all( x == 0)))
+  print(Total[, select], ...)
+  cat("\n Direct Effects\n")
+  print(Direct[, select], ...)
+  cat("\n Indirect Effects\n")
+  print(Indirect[, select], ...)
+  invisible(x)
 }
 
 #'@title Residual diagnostics for PLS model
@@ -68,8 +68,8 @@ print.matrixplseffects <- function(x, ...){
 #'@description
 #'
 #'The \code{matrixpls} method for generic function \code{residuals} computes the residual
-#'covariance matrix and various fit indices presented by Lohmöller (1989, ch 2.4).
-#''
+#'covariance matrix and various fit indices presented by Lohmöller (1989, ch 2.4)
+#'
 #'@param object PLS estimation result object produced by the \code{\link{matrixpls}} function.
 #'
 #'@param ... All other arguments are ignored.
@@ -84,6 +84,10 @@ print.matrixplseffects <- function(x, ...){
 #'Lohmöller J.-B. (1989) \emph{Latent variable path modeling with partial
 #'least squares.} Heidelberg: Physica-Verlag.
 #'
+#'Henseler, J., Dijkstra, T. K., Sarstedt, M., Ringle, C. M., Diamantopoulos, A., Straub, D. W., …
+#'Calantone, R. J. (2014). Common Beliefs and Reality About PLS Comments on Rönkkö and Evermann 
+#'(2013). Organizational Research Methods, 17(2), 182–209. doi:10.1177/1094428114526928
+#'
 #'@export
 #'
 #'@family post-estimation functions
@@ -93,95 +97,92 @@ print.matrixplseffects <- function(x, ...){
 #'@S3method residuals matrixpls
 
 residuals.matrixpls <- function(object, ...) {
-	
-	library(psych)
-	library(MASS)
-		
-	# Equation numbers in parenthesis refer to equation number in Lohmoller 1989
-	
-	nativeModel <- attr(object,"model")
-	
-	W <- attr(object,"W")
-	S <- attr(object,"S")
-
-	# Number of reflective indicators
-	reflectiveIndicators<- rowSums(nativeModel$reflective)>0
-	k <- sum(reflectiveIndicators)
-	
-	# Number of endog LVs
-	endog <- rowSums(nativeModel$inner)>0
-	h <- sum(endog)	
-
-	
-	
-	# Factor loading matrix
-	P <- nativeModel$reflective
-	
-	P[P==1] <- object[grepl("=~", names(object), fixed=TRUE)]
-	
-	B <- attr(object,"beta")
-	
-	# Lohmoller is not clear whether R should be based on the estimated betas or calculated scores
-	# The scores are used here because this results in less complex code
-	
-	R <- W %*% S %*% t(W)
-	R_star <- (B %*% R %*% t(B))[endog,endog] # e. 2.99
-
-
-	# Model implied indicator covariances
-	H <- P %*% R %*% t(P) # eq 2.96
-	
-	I <- diag(S)
-	H2 <- (I * H)  %*% ginv(I * S) # eq 2.9	
-	
-	F <- P %*% B %*% R %*% t(B) %*% t(P) # eq 2.104
-	
-	F2 <- (I * F) %*% ginv(I * S) # eq 2.105
-	
-	R2 <- R2(object)
-	
-
-	# C in Lohmoller 1989 is different from the matrixpls C
-	# residual covariance matrix of indicators
-	
-	C <- S-H
-	C_std <- diag(1/diag(S)) %*% C
-
-	Q <- (W %*% S %*% t(W))[endog,endog] - R_star
-	
-
-	RMS <- function(num) sqrt(sum(num^2)/length(num))
-	
-	indices <- list(Communality = tr(H2)/k, # eq 2.109
-									Redundancy = tr(F2)/k,  # eq 2.110
-									SMC = sum(R2)/h,         # eq 2.111
-									"RMS outer residual covariance" = RMS(C[lower.tri(C)]), # eq 2.118
-									"RMS inner residual covariance" = RMS(C[lower.tri(Q)]), # eq 2.118
-									
-									# SRMR as calculated in SEM. (citation needed)
-									
-									SRMR = sqrt(sum(C_std[lower.tri(C_std)]^2)/length(C[lower.tri(C_std, diag=TRUE)])),
-									
-									# SRMR calculated ignoring within block residuals from Henserler et al 2014.
-									
-									SRMR_Henseler = RMS(C[nativeModel$reflective %*% t(nativeModel$reflective)==0]))
-	
-
-	result<- list(inner = Q, outer = C, indices = indices)
-	
-	class(result) <- "matrixplsresiduals"
-	result
+  
+  # Equation numbers in parenthesis refer to equation number in Lohmoller 1989
+  
+  nativeModel <- attr(object,"model")
+  
+  W <- attr(object,"W")
+  S <- attr(object,"S")
+  
+  # Number of reflective indicators
+  reflectiveIndicators<- rowSums(nativeModel$reflective)>0
+  k <- sum(reflectiveIndicators)
+  
+  # Number of endog LVs
+  endog <- rowSums(nativeModel$inner)>0
+  h <- sum(endog)	
+  
+  
+  
+  # Factor loading matrix
+  P <- nativeModel$reflective
+  
+  P[P==1] <- object[grepl("=~", names(object), fixed=TRUE)]
+  
+  B <- attr(object,"beta")
+  
+  # Lohmoller is not clear whether R should be based on the estimated betas or calculated scores
+  # The scores are used here because this results in less complex code
+  
+  R <- W %*% S %*% t(W)
+  R_star <- (B %*% R %*% t(B))[endog,endog] # e. 2.99
+  
+  
+  # Model implied indicator covariances
+  H <- P %*% R %*% t(P) # eq 2.96
+  
+  I <- diag(S)
+  H2 <- (I * H)  %*% ginv(I * S) # eq 2.9	
+  
+  F <- P %*% B %*% R %*% t(B) %*% t(P) # eq 2.104
+  
+  F2 <- (I * F) %*% ginv(I * S) # eq 2.105
+  
+  R2 <- R2(object)
+  
+  
+  # C in Lohmoller 1989 is different from the matrixpls C
+  # residual covariance matrix of indicators
+  
+  C <- S-H
+  C_std <- diag(1/diag(S)) %*% C
+  
+  Q <- (W %*% S %*% t(W))[endog,endog] - R_star
+  
+  
+  RMS <- function(num) sqrt(sum(num^2)/length(num))
+  
+  indices <- list(Communality = tr(H2)/k, # eq 2.109
+                  Redundancy = tr(F2)/k,  # eq 2.110
+                  SMC = sum(R2)/h,         # eq 2.111
+                  "RMS outer residual covariance" = RMS(C[lower.tri(C)]), # eq 2.118
+                  "RMS inner residual covariance" = RMS(C[lower.tri(Q)]), # eq 2.118
+                  
+                  # SRMR as calculated in SEM. (citation needed)
+                  
+                  SRMR = sqrt(sum(C_std[lower.tri(C_std)]^2)/length(C[lower.tri(C_std, diag=TRUE)])),
+                  
+                  # SRMR calculated ignoring within block residuals from Henserler et al 2014.
+                  
+                  SRMR_Henseler = RMS(C[nativeModel$reflective %*% t(nativeModel$reflective)==0]))
+  
+  
+  result<- list(inner = Q, outer = C, indices = indices)
+  
+  class(result) <- "matrixplsresiduals"
+  result
 }
 
 #'@S3method print matrixplsresiduals
 
 print.matrixplsresiduals <- function(x, ...){
-	cat("\n Inner model (composite) residual covariance matrix\n")
-	print(x$inner, ...)
-	cat("\n Outer model (indicator) residual covariance matrix\n")
-	print(x$outer, ...)
-	cat("\n Residual-based fit indices\n")
-	print(data.frame(Value = unlist(x$indices)), ...)
+  cat("\n Inner model (composite) residual covariance matrix\n")
+  print(x$inner, ...)
+  cat("\n Outer model (indicator) residual covariance matrix\n")
+  print(x$outer, ...)
+  cat("\n Residual-based fit indices\n")
+  print(data.frame(Value = unlist(x$indices)), ...)
 }
 
 #'@title R2	for PLS model
@@ -203,24 +204,24 @@ print.matrixplsresiduals <- function(x, ...){
 #'
 
 R2 <- function(object, ...){
-	UseMethod("R2")
+  UseMethod("R2")
 }
 
 #'@S3method R2 matrixpls
 
 R2.matrixpls <- function(object, ...){
-	
-	R2 <- rowSums(attr(object,"beta") * attr(object,"C"))
-	names(R2) <- colnames(attr(object,"model")$inner)
-	class(R2) <- "matrixplsr2"
-	R2
+  
+  R2 <- rowSums(attr(object,"beta") * attr(object,"C"))
+  names(R2) <- colnames(attr(object,"model")$inner)
+  class(R2) <- "matrixplsr2"
+  R2
 }
 
 #'@S3method print matrixplsr2
 
 print.matrixplsr2 <- function(x, ...){
-	cat("\n Inner model squared multiple correlations (R2)\n")
-	print.table(x, ...)
+  cat("\n Inner model squared multiple correlations (R2)\n")
+  print.table(x, ...)
 }
 
 #'@title Goodness of Fit indices for PLS model
@@ -246,33 +247,33 @@ print.matrixplsr2 <- function(x, ...){
 #'
 
 GoF <- function(object, ...){
-	UseMethod("GoF")
+  UseMethod("GoF")
 }
 
 #'@S3method GoF matrixpls
 
 GoF.matrixpls <- function(object, ...) {
-	
-	nativeModel <- attr(object,"model")
-	IC <- attr(object,"IC")
-	S <- attr(object,"S")
-
-	exogenousLVs <- rowSums(nativeModel$inner) == 0
-	
-	
-	IC_std <- IC %*% (diag(1/sqrt(diag(S))))
-	
-	result <- sqrt(mean(IC_std[t(nativeModel$reflective)==1]^2) * 
-			 	mean(R2(object)[!exogenousLVs]))
-	class(result) <- "matrixplsgof"
-	result
+  
+  nativeModel <- attr(object,"model")
+  IC <- attr(object,"IC")
+  S <- attr(object,"S")
+  
+  exogenousLVs <- rowSums(nativeModel$inner) == 0
+  
+  
+  IC_std <- IC %*% (diag(1/sqrt(diag(S))))
+  
+  result <- sqrt(mean(IC_std[t(nativeModel$reflective)==1]^2) * 
+                   mean(R2(object)[!exogenousLVs]))
+  class(result) <- "matrixplsgof"
+  result
 }
 
 #'@S3method print matrixplsgof
 
 print.matrixplsgof <- function(x, digits=getOption("digits"), ...){
-	cat("\n Absolute goodness of fit:", round(x, digits = digits))
-	cat("\n")
+  cat("\n Absolute goodness of fit:", round(x, digits = digits))
+  cat("\n")
 }
 
 #'@title Factor loadings matrix from PLS model
@@ -297,16 +298,16 @@ print.matrixplsgof <- function(x, digits=getOption("digits"), ...){
 #'@S3method loadings matrixpls
 
 loadings.matrixpls <- function(x, ...) {
-	nativeModel <- attr(x,"model")
-	IC <- attr(x,"IC")
-	
-	#Standardize
-	S <- attr(x,"S")
-	IC_std <- IC %*% (diag(1/sqrt(diag(S))))
-	
-	res <- nativeModel$reflective
-	res[res==1] <- t(IC_std)[res==1]
-	res
+  nativeModel <- attr(x,"model")
+  IC <- attr(x,"IC")
+  
+  #Standardize
+  S <- attr(x,"S")
+  IC_std <- IC %*% (diag(1/sqrt(diag(S))))
+  
+  res <- nativeModel$reflective
+  res[res==1] <- t(IC_std)[res==1]
+  res
 }
 
 #'@title Composite Reliability indices for PLS model
@@ -332,34 +333,34 @@ loadings.matrixpls <- function(x, ...) {
 #'
 
 CR <- function(object, ...){
-	UseMethod("CR")
+  UseMethod("CR")
 }
 
 #'@S3method CR matrixpls
 
 CR.matrixpls <- function(object, ...) {
-
-	loadings <- loadings.matrixpls(object)
-	reflectiveModel <- attr(object, "model")$reflective
-	
-	result <- unlist(lapply(1:ncol(loadings), function(col){	
-		useLoadings <- loadings[,col][reflectiveModel[,col]==1]
-		
-		crvalue <- sum(useLoadings)^2/
-			(sum(useLoadings)^2 + sum(1-useLoadings^2))
-		crvalue
-	}))
-	
-	class(result) <- "matrixplscr"
-	names(result) <- colnames(loadings)
-	result
+  
+  loadings <- loadings.matrixpls(object)
+  reflectiveModel <- attr(object, "model")$reflective
+  
+  result <- unlist(lapply(1:ncol(loadings), function(col){	
+    useLoadings <- loadings[,col][reflectiveModel[,col]==1]
+    
+    crvalue <- sum(useLoadings)^2/
+      (sum(useLoadings)^2 + sum(1-useLoadings^2))
+    crvalue
+  }))
+  
+  class(result) <- "matrixplscr"
+  names(result) <- colnames(loadings)
+  result
 }
 
 #'@S3method print matrixplscr
 
 print.matrixplscr <- function(x, ...){
-	cat("\n Composite Reliability indices\n")
-	print.table(x, ...)
+  cat("\n Composite Reliability indices\n")
+  print.table(x, ...)
 }
 
 
@@ -387,52 +388,52 @@ print.matrixplscr <- function(x, ...){
 #'
 
 AVE <- function(object, ...){
-	UseMethod("AVE")
+  UseMethod("AVE")
 }
 
 
 #'@S3method AVE matrixpls
 
 AVE.matrixpls <- function(object, ...) {
-	
-	loadings <- loadings.matrixpls(object, standardized = TRUE)
-	reflectiveModel <- attr(object, "model")$reflective
-	
-	aves <- unlist(lapply(1:ncol(loadings), function(col){
-		useLoadings <- loadings[,col][reflectiveModel[,col]==1]
-		
-		sum(useLoadings^2)/
-			(sum(useLoadings^2) + sum(1-useLoadings^2))
-		
-	}))
-
-	names(aves) <- colnames(loadings)
-	
-	C <- attr(object,"C")
-	C2 <- C^2
-	diag(C2) <- 0
-	maxC <- apply(C2,1,max)
-
-	aves_correlation <- aves - maxC
-	
-	names(aves_correlation) <- colnames(loadings)
-	
-	result = list(AVE = aves,
-								AVE_correlation = aves_correlation)
-	
-	class(result) <- "matrixplsave"
-
-	
-	C <- attr(object,"C")
-	result
+  
+  loadings <- loadings.matrixpls(object, standardized = TRUE)
+  reflectiveModel <- attr(object, "model")$reflective
+  
+  aves <- unlist(lapply(1:ncol(loadings), function(col){
+    useLoadings <- loadings[,col][reflectiveModel[,col]==1]
+    
+    sum(useLoadings^2)/
+      (sum(useLoadings^2) + sum(1-useLoadings^2))
+    
+  }))
+  
+  names(aves) <- colnames(loadings)
+  
+  C <- attr(object,"C")
+  C2 <- C^2
+  diag(C2) <- 0
+  maxC <- apply(C2,1,max)
+  
+  aves_correlation <- aves - maxC
+  
+  names(aves_correlation) <- colnames(loadings)
+  
+  result = list(AVE = aves,
+                AVE_correlation = aves_correlation)
+  
+  class(result) <- "matrixplsave"
+  
+  
+  C <- attr(object,"C")
+  result
 }
 
 #'@S3method print matrixplsave
 
 print.matrixplsave <- function(x, ...){
-	cat("\n Average Variance Extracted indices\n")
-	print.table(x$AVE, ...)
-	cat("\n AVE - largest squared correlation\n")
-	print.table(x$AVE_correlation, ...)
+  cat("\n Average Variance Extracted indices\n")
+  print.table(x$AVE, ...)
+  cat("\n AVE - largest squared correlation\n")
+  print.table(x$AVE_correlation, ...)
 }
 
