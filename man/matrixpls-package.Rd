@@ -13,8 +13,8 @@ and equation group solving (using the \code{\link{solve}} function).
 \tabular{ll}{
 Package: \tab matrixpls\cr
 Type: \tab Package\cr
-Version: \tab 0.0.1\cr
-Date: \tab 2013-08-12\cr
+Version: \tab 0.3.0\cr
+Date: \tab 2014-04-28\cr
 License: \tab GPL-3\cr
 }
 

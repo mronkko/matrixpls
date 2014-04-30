@@ -2,8 +2,10 @@
 \alias{matrixpls.boot}
 \title{Bootstrapping of matrixpls function}
 \usage{
-matrixpls.boot(data, R = 500, ..., parallel = c("no", "multicore", "snow"),
-  ncpus = getOption("boot.ncpus", 1L), stopOnError = FALSE)
+  matrixpls.boot(data, R = 500, ...,
+    parallel = c("no", "multicore", "snow"),
+    ncpus = getOption("boot.ncpus", 1L),
+    stopOnError = FALSE)
 }
 \arguments{
   \item{data}{Matrix or data frame containing the raw
@@ -28,14 +30,15 @@ matrixpls.boot(data, R = 500, ..., parallel = c("no", "multicore", "snow"),
   number of available CPUs.  }
 }
 \value{
-An object of class \code{\link[boot]{boot}}.
+  An object of class \code{\link[boot]{boot}}.
 }
 \description{
-\code{matrixpls.boot} is a convenience method that
-implements bootstrapping of \code{matrixpls} with
-\code{\link[boot]{boot}} method of the \code{boot} package.
+  \code{matrixpls.boot} is a convenience method that
+  implements bootstrapping of \code{matrixpls} with
+  \code{\link[boot]{boot}} method of the \code{boot}
+  package.
 }
 \seealso{
-\code{\link[boot]{boot}}
+  \code{\link[boot]{boot}}
 }
 

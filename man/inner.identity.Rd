@@ -2,7 +2,7 @@
 \alias{inner.identity}
 \title{PLS inner estimation with the identity scheme}
 \usage{
-inner.identity(S, W, inner.mod, ...)
+  inner.identity(S, W, inner.mod, ...)
 }
 \arguments{
   \item{S}{Covariance matrix of the data.}
@@ -12,39 +12,42 @@ inner.identity(S, W, inner.mod, ...)
 
   \item{inner.mod}{A square matrix specifying the
   relationships of the composites in the model.}
+
+  \item{...}{Other parameters are ignored}
 }
 \value{
-A matrix of unscaled inner weights \code{E} with the same
-dimesions as \code{inner.mod}.
+  A matrix of unscaled inner weights \code{E} with the same
+  dimesions as \code{inner.mod}.
 }
 \description{
-Returns a set of inner weights using the identity scheme.
+  Returns a set of inner weights using the identity scheme.
 }
 \details{
-This scheme is not commonly discussed in the current PLS
-literature, but it is a special case that is analyzed in
-the early PLS literature and currently implemented in at
-least the WarpPLS software. In the identity scheme identity
-matrix is used as the inner weight matrix \code{E}.
+  This scheme is not commonly discussed in the current PLS
+  literature, but it is a special case that is analyzed in
+  the early PLS literature and currently implemented in at
+  least the WarpPLS software. In the identity scheme
+  identity matrix is used as the inner weight matrix
+  \code{E}.
 
-The identity scheme with Mode A outer estimation converges
-toward the first principal component of each indicator
-block.
+  The identity scheme with Mode A outer estimation
+  converges toward the first principal component of each
+  indicator block.
 }
 \references{
-Wold, H. (1966). Nonlinear estimation by iterative least
-squares procedures. \emph{Research Papers in Statistics:
-Festschrift for J. Neyman}, 411–444.
+  Wold, H. (1966). Nonlinear estimation by iterative least
+  squares procedures. \emph{Research Papers in Statistics:
+  Festschrift for J. Neyman}, 411–444.
 
-Wold, H. (1982). Soft modeling - The Basic Design And Some
-Extensions. In K. G. Jöreskog & S. Wold (Eds.),
-\emph{Systems under indirect observation: causality,
-structure, prediction} (pp. 1–54). Amsterdam:
-North-Holland.
+  Wold, H. (1982). Soft modeling - The Basic Design And
+  Some Extensions. In K. G. Jöreskog & S. Wold (Eds.),
+  \emph{Systems under indirect observation: causality,
+  structure, prediction} (pp. 1–54). Amsterdam:
+  North-Holland.
 }
 \seealso{
-Other inner estimators: \code{\link{inner.GSCA}};
-\code{\link{inner.centroid}}; \code{\link{inner.factor}};
-\code{\link{inner.path}}
+  Other inner estimators: \code{\link{inner.GSCA}},
+  \code{\link{inner.centroid}}, \code{\link{inner.factor}},
+  \code{\link{inner.path}}
 }
 

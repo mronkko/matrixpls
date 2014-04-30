@@ -2,15 +2,19 @@
 \alias{matrixpls.sempls}
 \title{A semPLS compatibility wrapper for matrixpls}
 \usage{
-matrixpls.sempls(model, data, maxit = 20, tol = 1e-07, scaled = TRUE,
-  sum1 = FALSE, wscheme = "centroid", pairwise = FALSE,
-  method = c("pearson", "kendall", "spearman"), convCrit = c("relative",
-  "square"), verbose = TRUE, ...)
+  matrixpls.sempls(model, data, maxit = 20, tol = 1e-07,
+    scaled = TRUE, sum1 = FALSE, wscheme = "centroid",
+    pairwise = FALSE,
+    method = c("pearson", "kendall", "spearman"),
+    convCrit = c("relative", "square"), verbose = TRUE,
+    ...)
 }
 \arguments{
   \item{model}{An object inheriting from class \code{plsm}
   as returned from \code{\link[semPLS]{plsm}} or
   \code{\link[semPLS]{read.splsm}}.}
+
+  \item{...}{Other arguments are ignored}
 
   \item{data}{ A \code{data.frame} containing the observed
   variables (MVs). The storage mode for all the MVs
@@ -65,65 +69,77 @@ matrixpls.sempls(model, data, maxit = 20, tol = 1e-07, scaled = TRUE,
 
   \item{verbose}{ Logical: If \code{FALSE} no status
   messages are printed.  }
-
-  \item{...}{ Arguments to be passed down.  }
 }
 \value{
-An object of class \code{\link[semPLS]{sempls}}.
+  An object of class \code{\link[semPLS]{sempls}}.
 }
 \description{
-\code{matrixpls.sempls} mimics \code{\link[semPLS]{sempls}}
-function of the \code{semPLS} package. The arguments and
-their default values and the output of the function are
-identical with \code{\link[semPLS]{sempls}} function, but
-internally the function uses matrixpls estimation.
+  \code{matrixpls.sempls} mimics
+  \code{\link[semPLS]{sempls}} function of the
+  \code{semPLS} package. The arguments and their default
+  values and the output of the function are identical with
+  \code{\link[semPLS]{sempls}} function, but internally the
+  function uses matrixpls estimation.
 }
 \examples{
-library(semPLS)
-
-data(ECSImobi)
-ecsi <- matrixpls.sempls(model=ECSImobi, data=mobi, wscheme="pathWeighting")
-ecsi
-
-## create plots
-densityplot(ecsi)
-densityplot(ecsi, use="prediction")
-densityplot(ecsi, use="residuals")
-
-## Values of 'sempls' objects
-names(ecsi)
-ecsi$outer_weights
-ecsi$outer_loadings
-ecsi$path_coefficients
-ecsi$total_effects
-
-
-### using convenience methods to sempls results
-## path coefficients
-pathCoeff(ecsi)
-
-## total effects
-totalEffects(ecsi)
-
-## get loadings and check for discriminant validity
-(l <- plsLoadings(ecsi))
-# outer loadings
-print(l, type="outer", digits=2)
-# outer loadings greater than 0.5
-print(l,type="outer", cutoff=0.5, digits=2)
-# cross loadings greater than 0.5
-print(l, type="cross", cutoff=0.5, digits=2)
-
-
-### R-squared
-rSquared(ecsi)
+if(require(semPLS)){
+  
+  data(ECSImobi)
+  
+  ecsi.sempls <- sempls(model=ECSImobi, data=mobi, wscheme="pathWeighting")
+  ecsi <- matrixpls.sempls(model=ECSImobi, data=mobi, wscheme="pathWeighting")
+  
+  # If RUnit is installed check that the results are identical
+  
+  if(require(RUnit)){
+    checkEquals(ecsi.sempls,ecsi, check.attributes = FALSE)
+  }
+  
+  ecsi
+  
+  ## create plots
+  densityplot(ecsi)
+  densityplot(ecsi, use="prediction")
+  densityplot(ecsi, use="residuals")
+  
+  ## Values of 'sempls' objects
+  names(ecsi)
+  ecsi$outer_weights
+  ecsi$outer_loadings
+  ecsi$path_coefficients
+  ecsi$total_effects
+  
+  
+  ### using convenience methods to sempls results
+  ## path coefficients
+  pathCoeff(ecsi)
+  
+  ## total effects
+  totalEffects(ecsi)
+  
+  ## get loadings and check for discriminant validity
+  (l <- plsLoadings(ecsi))
+  # outer loadings
+  print(l, type="outer", digits=2)
+  # outer loadings greater than 0.5
+  print(l,type="outer", cutoff=0.5, digits=2)
+  # cross loadings greater than 0.5
+  print(l, type="cross", cutoff=0.5, digits=2)
+  
+  
+  ### R-squared
+  rSquared(ecsi)
+  
+} else{
+  print("This example requires the semPLS package")
+}
 }
 \references{
-Monecke, A., & Leisch, F. (2012). semPLS: Structural
-Equation Modeling Using Partial Least Squares.
-\emph{Journal of Statistical Software}, 48(3), 1–32.
+  Monecke, A., & Leisch, F. (2012). semPLS: Structural
+  Equation Modeling Using Partial Least Squares.
+  \emph{Journal of Statistical Software}, 48(3), 1–32.
 }
 \seealso{
-\code{\link[semPLS]{sempls}}
+  \code{\link[semPLS]{sempls}}
 }
 

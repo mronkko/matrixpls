@@ -2,9 +2,12 @@
 \alias{matrixpls.weights}
 \title{Partial Least Squares weight algorithm}
 \usage{
-matrixpls.weights(S, inner.mod, W.mod, outerEstimators = outer.modeA,
-  innerEstimator = inner.path, ..., convCheck = function(W, W_new) {    
-  max(abs(W_new - W)) }, tol = 1e-05, iter = 100, validateInput = TRUE)
+  matrixpls.weights(S, inner.mod, W.mod,
+    outerEstimators = outer.modeA,
+    innerEstimator = inner.path, ...,
+    convCheck = function(W, W_old) {
+        max(abs(W_old - W)) }, tol = 1e-05, iter = 100,
+    validateInput = TRUE)
 }
 \arguments{
   \item{S}{Covariance matrix of the data.}
@@ -56,43 +59,43 @@ matrixpls.weights(S, inner.mod, W.mod, outerEstimators = outer.modeA,
   \code{outerEstimators} and \code{innerEstimator}.}
 }
 \value{
-An object of class \code{"matrixplsweights"}, which is a
-matrix containing the weights with the following
-attributes:
+  An object of class \code{"matrixplsweights"}, which is a
+  matrix containing the weights with the following
+  attributes:
 
-\item{iterations}{Number of iterations performed}.
+  \item{iterations}{Number of iterations performed}.
 
-\item{converged}{A boolean indicating if the algorithm
-converged}.
+  \item{converged}{A boolean indicating if the algorithm
+  converged}.
 
-\item{history}{A data.frame containing the weights for each
-iteration}.
+  \item{history}{A data.frame containing the weights for
+  each iteration}.
 }
 \description{
-Estimates a weight matrix using Partial Least Squares or a
-related algorithm.
+  Estimates a weight matrix using Partial Least Squares or
+  a related algorithm.
 }
 \details{
-\code{matrixpls.weights} performs the PLS weighting
-algorithm by calling the inner and outer estimators
-iteratively until either the convergence criterion or
-maximum number of iterations is reached and provides the
-results in a matrix.
+  \code{matrixpls.weights} performs the PLS weighting
+  algorithm by calling the inner and outer estimators
+  iteratively until either the convergence criterion or
+  maximum number of iterations is reached and provides the
+  results in a matrix.
 
-The argument \code{inner.mod} is a binary (\code{l x l})
-matrix, where \code{l} is the number of composites. This
-matrix indicates how the composites should be linked in the
-inner estimation. The matrix \code{inner.mod} will contain
-a 1 when a variable on the column \code{j} has a link
-toward the variable on row \code{i} and 0 otherwise.
+  The argument \code{inner.mod} is a binary (\code{l x l})
+  matrix, where \code{l} is the number of composites. This
+  matrix indicates how the composites should be linked in
+  the inner estimation. The matrix \code{inner.mod} will
+  contain a 1 when a variable on the column \code{j} has a
+  link toward the variable on row \code{i} and 0 otherwise.
 
-The argument \code{W.mod} is a (\code{l x k}) matrix that
-indicates how the indicators are combined to form the
-composites, where \code{k} is the number of observed
-variables. \code{W.mod} will contain a non-zero value when
-a variable on the column \code{j} is a part of the
-composites variable on row \code{i}, zero otherwise. The
-values are used as starting values for the weighting
-algorithm.
+  The argument \code{W.mod} is a (\code{l x k}) matrix that
+  indicates how the indicators are combined to form the
+  composites, where \code{k} is the number of observed
+  variables. \code{W.mod} will contain a non-zero value
+  when a variable on the column \code{j} is a part of the
+  composites variable on row \code{i}, zero otherwise. The
+  values are used as starting values for the weighting
+  algorithm.
 }
 
