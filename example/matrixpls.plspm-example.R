@@ -1,5 +1,8 @@
 if(require(plspm) & packageVersion("plspm")>=0.4) {
   
+  cores <- getOption("mc.cores")
+  options(mc.cores=2)
+  
   # Run the example from plspm package
   
   # load dataset satisfaction
@@ -36,6 +39,8 @@ if(require(plspm) & packageVersion("plspm")>=0.4) {
   
   summary(plspm.res)
   summary(matrixpls.res)
+  
+  options(mc.cores=cores)
   
 } else{
   print("This example requires the plspm package, version 0.4 or greater")
