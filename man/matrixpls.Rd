@@ -4,7 +4,8 @@
 \usage{
   matrixpls(S, model, W.mod = NULL,
     parameterEstimator = params.regression,
-    outerEstimators = NULL, validateInput = TRUE, ...)
+    outerEstimators = NULL, validateInput = TRUE,
+    standardize = TRUE, ...)
 }
 \arguments{
   \item{S}{Covariance matrix of the data.}
@@ -27,6 +28,10 @@
   arguments, the data covariance matrix \code{S}, weights
   \code{W}, and model specification \code{model} and
   returns a named vector of parameter estimates.}
+
+  \item{standardize}{\code{TRUE} (default) or \code{FALSE}
+  indicating whether S should be converted to correlation
+  matrix.}
 
   \item{...}{All other arguments are passed through to
   \code{matrixpls.weights} and \code{parameterEstimator}.}

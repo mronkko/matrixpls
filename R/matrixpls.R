@@ -66,6 +66,9 @@
 #'@param parameterEstimator A function that takes three arguments, the data covariance matrix \code{S},
 #'weights \code{W}, and model specification \code{model} and returns a named vector of parameter estimates.
 #'
+#'@param standardize \code{TRUE} (default) or \code{FALSE} indicating whether S should be converted
+#' to correlation matrix.
+#'
 #'@param ... All other arguments are passed through to \code{matrixpls.weights} and \code{parameterEstimator}.
 #'
 #'@inheritParams matrixpls.weights
@@ -81,7 +84,9 @@
 #'@export
 
 
-matrixpls <- function(S, model, W.mod = NULL, parameterEstimator = params.regression, outerEstimators = NULL, validateInput = TRUE, ...) {
+matrixpls <- function(S, model, W.mod = NULL, parameterEstimator = params.regression, 
+                      outerEstimators = NULL, validateInput = TRUE,
+                      standardize = TRUE, ...) {
   
   # TODO: Validate input.
   
@@ -136,11 +141,21 @@ matrixpls <- function(S, model, W.mod = NULL, parameterEstimator = params.regres
     }
   }
   
+  
   ##################################################################################################
   #
   # Start of the estimation process
   #
   ##################################################################################################
+
+  if(standardize){
+    v <- diag(1/sqrt(diag(S)))
+    S <- cov2cor(S)
+    # cov2cor can result in non.symmetrix matrix because of computational inaccuracy
+    S[lower.tri(S)] <- t(S)[lower.tri(S)]
+  }
+  
+  
   
   # Calculate weights
   W <- matrixpls.weights(S, nativeModel$inner, W.mod, outerEstimators, ... , validateInput = validateInput)

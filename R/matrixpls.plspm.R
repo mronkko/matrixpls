@@ -146,7 +146,7 @@ matrixpls.plspm <-
           matrixpls(S_boot, model = nativeModel, W.mod = W.mod, parameterEstimator = parameterEstimator,
                     outerEstimators = outerEstimators, innerEstimator = innerEstimator,
                     tol = params$tol, iter = params$maxiter, convCheck = convCheck,
-                    validateInput = FALSE), 
+                    validateInput = FALSE, standardize = FALSE), 
           
           error = function(e){
             print(e)
@@ -162,7 +162,7 @@ matrixpls.plspm <-
       matrixpls.res <- matrixpls(S, model = nativeModel, W.mod = W.mod, parameterEstimator = parameterEstimator,
                                  outerEstimators = outerEstimators, innerEstimator = innerEstimator,
                                  tol = params$tol, iter = params$maxiter, convCheck = convCheck,
-                                 validateInput = FALSE)
+                                 validateInput = FALSE, standardize = FALSE)
     }
     
     #

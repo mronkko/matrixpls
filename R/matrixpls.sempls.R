@@ -138,7 +138,8 @@ matrixpls.sempls <-
                                matrixpls.model,
                                innerEstimator = innerEstimator,
                                outerEstimators = outerEstimators,
-                               convCheck = convCheck, tol = tol)
+                               convCheck = convCheck, tol = tol,
+                               standardize = FALSE)
     
     converged <- attr(matrixpls.res, "converged")
     i <- attr(matrixpls.res, "iterations") + 1
