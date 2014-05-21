@@ -327,8 +327,9 @@ matrixpls.weights <- function(S, inner.mod, W.mod,
     assert_is_symmetric_matrix(S)
     assert_is_identical_to_true(is.positive.semi.definite(S))
     
-    # inner.mod must be a square matrix consisting of ones and zeros and zero diagonal
+    # Inner.mod must be a square matrix consisting of ones and zeros and zero diagonal
     # and all variables must be linked to at least one other variable
+    
     assert_is_matrix(inner.mod)
     assert_is_identical_to_true(nrow(inner.mod)==ncol(inner.mod))
     assert_all_are_true(inner.mod==0 | inner.mod == 1)
@@ -349,6 +350,7 @@ matrixpls.weights <- function(S, inner.mod, W.mod,
     }
     
     # the number of rows in W.mod must match the dimensions of other matrices
+    
     if(nrow(inner.mod)!=nrow(W.mod)){
       print(list(inner.mod=inner.mod,W.mod = W.mod))
       stop("Inner model row count does not match weight model row count")
@@ -922,7 +924,7 @@ outer.modeB <- function(S, W, E, W.mod, ...){
     indicatorIndices <- W_new[row,]==1
     W_new[row,indicatorIndices] <- solve(S[indicatorIndices,indicatorIndices],IC[row,indicatorIndices])
   }
-  
+
   return(W_new)
   
 }
@@ -1103,7 +1105,9 @@ scaleWeights <- function(S, W){
   
   # Scaling the unscaled weights and return
   
-  return(diag(x = 1/sqrt(var_C_unscaled)) %*% W)
+  return(diag(x = 1/sqrt(var_C_unscaled),
+              nrow = length(var_C_unscaled),
+              ncol = length(var_C_unscaled)) %*% W)
 }
 
 lavaanParTableToNativeFormat <- function(partable){
