@@ -422,9 +422,6 @@ AVE.matrixpls <- function(object, ...) {
                 AVE_correlation = aves_correlation)
   
   class(result) <- "matrixplsave"
-  
-  
-  C <- attr(object,"C")
   result
 }
 
