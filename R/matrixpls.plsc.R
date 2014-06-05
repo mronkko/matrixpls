@@ -171,10 +171,17 @@ params.plsc <- function(S, W, model, fm = "dijkstra", ...){
   
   # Store these in the result object
   attr(results,"C") <- R
-  IC[L!=0] <- L[L!=0]
+  
+  # Fix the IC matrix. Start by replacing correlations with the corrected loadings
+  tL <- t(L)
+  IC[tL!=0] <- tL[tL!=0]
+  
+  # Disattenuate the remaining correlations
+  IC[tL==0] <- (IC/sqrt(Q))[tL==0]
+  
   attr(results,"IC") <- IC
   attr(results,"beta") <- inner
-  
+
   return(results)
   
 }
