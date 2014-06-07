@@ -181,7 +181,9 @@ params.plsc <- function(S, W, model, fm = "dijkstra", ...){
   
   attr(results,"IC") <- IC
   attr(results,"beta") <- inner
-
+  
+  attr(results,"Q") <- Q
+  
   return(results)
   
 }
