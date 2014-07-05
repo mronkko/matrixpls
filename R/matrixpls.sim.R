@@ -59,7 +59,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
   # Decide which arguments to route to simsem and which to matrispls.boot
   
   allArgs <- list(...)	
-  simsem.argNames <- names(formals(sim))
+  simsem.argNames <- names(formals(simsem::sim))
   
   whichArgsToSimsem <- names(allArgs) %in% simsem.argNames
   simsemArgs <- allArgs[whichArgsToSimsem]
