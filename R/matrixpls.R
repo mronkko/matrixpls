@@ -183,8 +183,11 @@ matrixpls <- function(S, model, W.mod = NULL, parameterEstimator = params.regres
   
   for(a in setdiff(names(allAttributes), c("dim", "dimnames", "class", "names"))){
     attr(ret,a) <- allAttributes[[a]]
+    attr(W,a) <- NULL
   }
   
+  # Make W a plain numeric matrix instead of class matrixplweights
+  class(W) <- "numeric"
   attr(ret,"W") <- W
   attr(ret,"model") <- nativeModel
   
