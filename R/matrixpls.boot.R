@@ -8,9 +8,10 @@
 #'
 #'@param R Number of bootstrap samples to draw.
 #'
-#'@param ... All other parameters are passed through to \code{matrixpls}.
+#'@param ... All other parameters are passed through to \code{\link{matrixpls}}.
 #'
-#'@param stopOnError A logical indicating whether boostrapping should be continued when error occurs in a replication.
+#'@param stopOnError A logical indicating whether boostrapping should be continued when error occurs
+#' in a replication.
 #'
 #'@inheritParams boot::boot
 #'@inheritParams simsem::sim
