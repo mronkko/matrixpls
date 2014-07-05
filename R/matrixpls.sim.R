@@ -77,7 +77,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
     cvMat <- diag(nrow(nativeModel$reflective))
     colnames(cvMat) <- rownames(cvMat) <- rownames(nativeModel$reflective)
     fit <- lavaan::lavaan(model, sample.cov = cvMat, sample.nobs = 100)
-    simsemArgs$generate <- lavaan::model.lavaan(fit)
+    simsemArgs$generate <- simsem::model.lavaan(fit)
     
   }
   
@@ -109,10 +109,8 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
       matrixpls.res <- do.call(matrixpls, c(list(S), matrixplsArgs))
     }
     else{
-      
       boot.out <- do.call(matrixpls.boot, c(list(as.matrix(data)), matrixplsArgs))
       matrixpls.res  <- boot.out$t0
-      
     }
     
     # Check for inadmissible solutions. The non-boolean values of "converged" are undocumented,
@@ -135,6 +133,16 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
     
     ret <- list(coef = matrixpls.res[parameterIndices],
                 converged = converged)
+    
+    # If the data were generated sequentially using LV scores, calculate the true reliabilities
+    
+    latentVar <- attr(data,"latentVar")
+    
+    if(! is.null(latentVar)){
+      lvScores <-  as.matrix(data) %*% t(attr(matrixpls.res, "W"))
+      # The latent vars and composites should be in the same order
+      attr(matrixpls.res, "R") <- diag(cor(lvScores,latentVar[,1:ncol(lvScores)]))^2
+    }
     
     # Store CIs and SEs if bootstrapping was done
     
