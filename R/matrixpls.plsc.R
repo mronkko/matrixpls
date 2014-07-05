@@ -123,6 +123,8 @@ params.plsc <- function(S, W, model, fm = "dijkstra", ...){
     for (i in 1:ab) {
       idx <- p[[i]]
       Q[i] <- c2[i]*(t(W[i,idx])%*%W[i,idx])^2
+      # Debug inadmissible Qs
+      # if(abs(Q[i]) > 1) browser()
     }
   }
   
