@@ -76,8 +76,8 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
     
     cvMat <- diag(nrow(nativeModel$reflective))
     colnames(cvMat) <- rownames(cvMat) <- rownames(nativeModel$reflective)
-    fit <- lavaan(model, sample.cov = cvMat, sample.nobs = 100)
-    simsemArgs$generate <- model.lavaan(fit)
+    fit <- lavaan::lavaan(model, sample.cov = cvMat, sample.nobs = 100)
+    simsemArgs$generate <- lavaan::model.lavaan(fit)
     
   }
   
