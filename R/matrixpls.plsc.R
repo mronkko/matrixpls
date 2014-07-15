@@ -174,6 +174,10 @@ params.plsc <- function(S, W, model, fm = "dijkstra", ...){
   # Store these in the result object
   attr(results,"C") <- R
   
+  if(fm == "dijkstra"){
+    attr(results,"c") <- c
+  } 
+  
   # Fix the IC matrix. Start by replacing correlations with the corrected loadings
   tL <- t(L)
   IC[tL!=0] <- tL[tL!=0]
