@@ -85,6 +85,51 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
   
   matrixplsArgs <- c(list(R= boot.R, model = nativeModel),matrixplsArgs)
   
+  #
+  # The LV scores returned by SimSem for endogenous LVs are not the LVs, but their error terms.
+  # To get scores for the endogenous LVs, we need to calculate these based on the other LVs. To
+  # so this, the population model needs to be parsed.
+  #
+  
+  partable <- NULL
+  
+  if(is.character(model)) {
+    # Remove all multigroup specifications because we do not support multigroup analyses
+    model <- gsub("c\\(.+?\\)","NA",model)
+    partable <- lavaanify(model)
+  } else if (is.partable(model)) {
+    partable <- model
+  } else if (is(model, "lavaan")) {
+    partable <- model@ParTable
+  }
+  
+  if(!is.null(partable)){
+    
+    factorLoadings <- partable[partable$op == "=~",]
+    regressions <- partable[partable$op == "~",]
+    formativeLoadings <- partable[partable$op == "<~",]
+    
+    # Parse the variables
+    latentVariableNames <- unique(c(factorLoadings$lhs, formativeLoadings$lhs))
+    
+    # Set up empty model tables
+    
+    inner <- matrix(0,length(latentVariableNames),length(latentVariableNames))
+    colnames(inner)<-rownames(inner)<-latentVariableNames
+    
+    # Set the relationships in the tables
+    
+    latentRegressions <- regressions[regressions$rhs %in% latentVariableNames & 
+                                       regressions$lhs %in% latentVariableNames,]
+    
+    rows <- match(regressions$lhs, latentVariableNames)
+    cols <- match(regressions$rhs, latentVariableNames)
+    indices <- rows + (cols-1)*nrow(inner) 
+    
+    inner[indices] <- regressions$ustart
+    
+  }
+  
   # A function that takes a data set and returns a list. The list must
   # contain at least three objects: a vector of parameter estimates (coef),
   # a vector of standard error (se), and the convergence status as TRUE or
@@ -96,7 +141,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
   # objects must be the same.
   
   
-  model  <- function(data){
+  modelFun  <- function(data){
     
     # Indices for parameters excluding weights
     
@@ -140,8 +185,18 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
     
     if(! is.null(latentVar)){
       lvScores <-  as.matrix(data) %*% t(attr(matrixpls.res, "W"))
-      # The latent vars and composites should be in the same order
-      attr(matrixpls.res, "R") <- diag(cor(lvScores,latentVar[,1:ncol(lvScores)]))^2
+      
+      # The latent vars and composites should be in the same order. 
+      trueScores <- as.matrix(latentVar[,1:ncol(lvScores)])
+      
+      # Calculate the values for the endogenous LVs
+      trueScores <- trueScores + trueScores %*% t(inner)
+      
+      r <- diag(cor(lvScores,trueScores))
+    
+      # Keep the sign of the correlation when calculating reliabilities
+      attr(matrixpls.res, "R") <- sign(r) * r^2
+      
     }
     
     # Store CIs and SEs if bootstrapping was done
@@ -185,7 +240,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
     return(ret)
   }
   
-  simsemArgs <- c(list(nRep = nRep, model = model, n = n, saveLatentVar = TRUE, 
+  simsemArgs <- c(list(nRep = nRep, model = modelFun, n = n, saveLatentVar = TRUE, 
                        
                        # Outfun is neeeded to get the matrixpls objects into the simsem results.
                        # The function is actually never called, but simsem checks that it is not
