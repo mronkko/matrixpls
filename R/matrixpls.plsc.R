@@ -59,6 +59,8 @@
 #'
 #'@inheritParams matrixpls 
 #'
+#'@param tsls Should estimation be done with two stage least squares instead of regression
+#'
 #'@return A named vector of parameter estimates.
 #'
 #'@family parameter estimators
@@ -75,7 +77,7 @@
 #'
 #'@export
 
-params.plsc <- function(S, W, model, fm = "dijkstra", ...){
+params.plsc <- function(S, W, model, fm = "dijkstra", tsls = FALSE, ...){
   
   nativeModel <- parseModelToNativeFormat(model)
   
@@ -131,11 +133,16 @@ params.plsc <- function(S, W, model, fm = "dijkstra", ...){
   # Else use factor analysis
   
   else{
-    p_refl <- apply(nativeModel$reflective, 2, function(x){which(x!=0)}) # indicator indices based on the reflective model
+    
+    # indicator indices based on the reflective model. Coerced to list to avoid the problem that
+    # apply can return a list or a matrix depending on whether the number of indicators is equal
+    # between the LVs
+    
+    p_refl <- apply(nativeModel$reflective, 2, function(x){list(which(x!=0))})
     L <- matrix(0,ai,ab)
     Q <- rep(1,ab)
-    for (i in 1:ab) {	
-      idx <- p_refl[,i]
+    for (i in 1:ab) {
+      idx <- p_refl[[i]][[1]]
       L[idx,i] <- fa(S[idx,idx], fm = fm)$loadings
       # Non-factor indicators are assumed to be perfectly reliable and not corrected
       indicator_reliabilities <- L
@@ -155,7 +162,13 @@ params.plsc <- function(S, W, model, fm = "dijkstra", ...){
   
   innerRegressionIndices <- which(nativeModel$inner==1, useNames = FALSE)
   
-  inner <- regressionsWithCovarianceMatrixAndModelPattern(R,nativeModel$inner)
+  if(tsls){
+    inner <- TwoStageLeastSquaresWithCovarianceMatrixAndModelPattern(R,nativeModel$inner)
+  }
+  else{
+    inner <- regressionsWithCovarianceMatrixAndModelPattern(R,nativeModel$inner)
+  }
+    
   innerVect <- inner[innerRegressionIndices]
   names(innerVect) <- paste(rownames(inner)[row(inner)[innerRegressionIndices]],"~",
                             colnames(inner)[col(inner)[innerRegressionIndices]], sep="")		
@@ -194,6 +207,63 @@ params.plsc <- function(S, W, model, fm = "dijkstra", ...){
   
 }
 
+
+#
+# Runs 2SLS defined by model
+# using covariance matrix S and places the results in model
+#
+
+TwoStageLeastSquaresWithCovarianceMatrixAndModelPattern <- function(S,model){
+  
+  exog <- apply(model == 0, 1, all)
+  endog <- ! exog
+  
+  for(row in 1:nrow(model)){
+    
+    independents <- which(model[row,]!=0, useNames = FALSE)
+    
+    # Check if this variable is endogenous
+    
+    if(length(independents) > 0 ){
+      needInstruments <- which(model[row,]!=0 & endog, useNames = FALSE)
+      
+      # Stage 1
+      
+      S2 <- S
+      
+      for(toBeInstrumented in needInstruments){
+        # Regress the variable requiring instruments on its predictors excluding the current DV
+        
+        instruments <- unique(c(which(model[toBeInstrumented,]!=0 & 1:ncol(model) != row, useNames = FALSE), # instruments that are not part of the regression
+                                setdiff(independents, needInstruments))) # instruments that are part of the regression
+        
+        coefs <- solve(S[instruments, instruments],S[toBeInstrumented, instruments])
+        
+        # Calculate correlations between fitted values and values of variables not included in the 
+        # first stage regression
+        
+        for(variable in c(row,setdiff(independents, instruments))){
+          S2[toBeInstrumented, variable] <- S2[variable, toBeInstrumented] <- sum(S[variable,instruments] * coefs)
+        }
+      }
+      
+      
+      # Stage 2
+      
+      if(length(independents)==1){
+        # Simple regresion is the covariance divided by the variance of the predictor
+        model[row,independents] <- S2[row,independents]/S2[independents,independents]
+      }
+      if(length(independents)>1){
+        coefs <- solve(S2[independents,independents],S2[row,independents])
+        model[row,independents] <- coefs
+      }
+    }
+    # Continue to the next equation
+  }
+  
+  return(model)
+}
 
 
 

@@ -3,7 +3,7 @@
 \alias{params.plsc}
 \title{Parameter estimation with an adaptation of PLSc algorithm}
 \usage{
-params.plsc(S, W, model, fm = "dijkstra", ...)
+params.plsc(S, W, model, fm = "dijkstra", tsls = FALSE, ...)
 }
 \arguments{
 \item{S}{Covariance matrix of the data.}
@@ -16,6 +16,8 @@ factor loadings for a latent variable are multiplied with a scalar \code{a}, whi
 calculated by a simple formula that approximately minimizes squared residual covariances
 of the factor model. \code{minres}, \code{wls}, \code{gls}, \code{pa}, and \code{ml}
 will use a factor analysis and passing this parameter through to \code{\link[psych]{fa}}.}
+
+\item{tsls}{Should estimation be done with two stage least squares instead of regression}
 
 \item{model}{There are two options for this argument: 1. lavaan script or lavaan parameter
 table, or 2. a list containing three matrices
