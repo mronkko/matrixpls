@@ -3,7 +3,7 @@
 \alias{inner.factor}
 \title{PLS inner estimation with the factor scheme}
 \usage{
-inner.factor(S, W, inner.mod, ...)
+inner.factor(S, W, inner.mod, innerIgnoreModel = FALSE, ...)
 }
 \arguments{
 \item{S}{Covariance matrix of the data.}
@@ -11,6 +11,8 @@ inner.factor(S, W, inner.mod, ...)
 \item{W}{Weight matrix, where the indicators are on colums and composites are on the rows.}
 
 \item{inner.mod}{A square matrix specifying the relationships of the composites in the model.}
+
+\item{innerIgnoreModel}{Should the inner model be ignored and all correlations be used.}
 
 \item{...}{Other parameters are ignored}
 }

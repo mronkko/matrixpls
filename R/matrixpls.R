@@ -677,13 +677,7 @@ params.internal_reflective <- function(C, IC, nativeModel){
 #'
 #'Falls back to to identity scheme for composites that are not connected to any other composites.
 #'
-#'@param S Covariance matrix of the data.
-#'
-#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
-#'
-#'@param inner.mod A square matrix specifying the relationships of the composites in the model.
-#'
-#'@param ... Other parameters are ignored
+#'@inheritParams inner.factor
 #'
 #'@return A matrix of unscaled inner weights \code{E} with the same dimesions as \code{inner.mod}.
 #'
@@ -699,7 +693,7 @@ inner.centroid <- function(S, W, inner.mod, ...){
   
   # Centroid is just the sign of factor weighting
   
-  E <- sign(inner.factor(S, W, inner.mod))
+  E <- sign(inner.factor(S, W, inner.mod, ...))
   
   return(E)
 }
@@ -754,7 +748,15 @@ inner.path <- function(S, W, inner.mod, ...){
 #'
 #'Falls back to to identity scheme for composites that are not connected to any other composites.
 #'
-#'@inheritParams inner.centroid
+#'@param S Covariance matrix of the data.
+#'
+#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'
+#'@param inner.mod A square matrix specifying the relationships of the composites in the model.
+
+#'@param innerIgnoreModel Should the inner model be ignored and all correlations be used.
+#'
+#'@param ... Other parameters are ignored
 #'
 #'@return A matrix of unscaled inner weights \code{E} with the same dimesions as \code{inner.mod}.
 #'
@@ -766,15 +768,15 @@ inner.path <- function(S, W, inner.mod, ...){
 
 #'@export
 
-inner.factor <- function(S, W, inner.mod, ...){
-  
+inner.factor <- function(S, W, inner.mod, innerIgnoreModel = FALSE, ...){
+
   # Calculate the composite covariance matrix
   
   C <- W %*% S %*% t(W)
   
-  # Calculate unscaled inner weights using the centroid weighting scheme
-  
-  E <- C * (inner.mod | t(inner.mod))
+  # Calculate unscaled inner weights using the factor weighting scheme
+  if(innerIgnoreModel) E <- C
+  else E <- C * (inner.mod | t(inner.mod))
   
   # If we have LVs that are not connected to any other LVs, use identity scheme as fallback
   diag(E)[rowSums(E) == 0] <- 1
