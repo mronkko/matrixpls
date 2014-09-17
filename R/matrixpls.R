@@ -64,7 +64,7 @@
 #'elements of \code{model}.
 #'
 #'@param parameterEstimator A function that takes three arguments, the data covariance matrix \code{S},
-#'weights \code{W}, and model specification \code{model} and returns a named vector of parameter estimates.
+#'weights \code{W}, and model specification \code{model} and returns a named vector of parameter estimates. The default is \code{\link{params.regression}}
 #'
 #'@param standardize \code{TRUE} (default) or \code{FALSE} indicating whether S should be converted
 #' to correlation matrix.
@@ -85,8 +85,132 @@
 
 
 matrixpls <- function(S, model, W.mod = NULL, parameterEstimator = params.regression, 
-                      outerEstimators = NULL, validateInput = TRUE,
-                      standardize = TRUE, ...) {
+                               outerEstimators = NULL, innerEstimator = inner.path, 
+                              ..., 
+                               convCheck = function(W,W_old){max(abs(W_old - W))},
+                               tol = 1e-05, iter = 100, validateInput = TRUE,
+                               standardize = TRUE) {
+  
+  matrixpls.internal(S, model, W.mod = W.mod, parameterEstimator = parameterEstimator, 
+                     outerEstimators = outerEstimators, innerEstimator = innerEstimator, 
+                     weightEstimator = NULL, ..., 
+                     convCheck = convCheck,
+                     tol = tol, iter = iter, validateInput = validateInput,
+                     standardize = standardize)
+  
+  
+}
+
+#'@title Optimized weights estimation
+#'
+#'@description
+#'Estimates a weight matrix by optimizing weights and then
+#'uses the weights to estimate the parameters of a statistical model.
+#'
+#'@details
+#'\code{matrixpls.optim} is an alternative to function \code{\link{matrixpls}}. 
+#'Instead of iterating estimating the weights by alternating inner and outer
+#'estimation, \code{matrixpls.optim} calculated the weights against a criterion
+#'function using the \code{\link[stats]{optim}} function. After this the
+#'\code{parameterEstimator} function is
+#'applied to the indicator weights, the data covariance matrix,
+#'and the model object and the resulting parameter estimates are returned.
+#'
+#'The model object specifies the model that is estimated with \code{parameterEstimator}.
+#'Model can be specified in the lavaan format or the native matrixpls format.
+#'The native model format is a list of three binary matrices, \code{inner}, \code{reflective},
+#'and \code{formative} specifying the free parameters of a model: \code{inner} (\code{l x l}) specifies the 
+#'regressions between composites, \code{reflective} (\code{k x l}) specifies the regressions of observed
+#'data on composites, and \code{formative} (\code{l x k}) specifies the regressions of composites on the
+#'observed data. Here \code{k} is the number of observed variables and \code{l} is the number of composites.
+#'
+#'If the model is specified in lavaan format, the native
+#'format model is derived from this model by assigning all regressions between latent
+#'variables to \code{inner}, all factor loadings to \code{reflective}, and all regressions
+#'of latent variables on observed variables to \code{formative}. Regressions between
+#'observed variables and all free covariances are ignored. All parameters that are
+#'specified in the model will be treated as free parameters. If model is specified in
+#'lavaan syntax, the model that is passed to the \code{parameterEstimator} will be that
+#'model and not the native format model.
+#'
+#'The original papers about Partial Least Squares, as well as many of the current PLS
+#'implementations, impose restrictions on the matrices \code{inner},
+#'\code{reflective}, and \code{formative}: \code{inner} must be a lower triangular matrix,
+#'\code{reflective} must have exactly one non-zero value on each row and must have at least
+#'one non-zero value on each column, and \code{formative} must only contain zeros.
+#'Some PLS implementations allow \code{formative} to contain non-zero values, but impose a
+#'restriction that the sum of \code{reflective} and \code{t(formative)} must satisfy
+#'the original restrictions of \code{reflective}. The only restrictions that matrixpls
+#'imposes on \code{inner}, \code{reflective}, and \code{formative} is that these must be
+#'binary matrices and that the diagonal of \code{inner} must be zeros.
+#'
+#'The argument \code{W.mod} is a (\code{l x k}) matrix that indicates
+#'how the indicators are combined to form the composites. The original papers about
+#'Partial Least Squares as well as all current PLS implementations define this as
+#'\code{t(reflective) | formative}, which means that the weight model must match the
+#'model specified in \code{reflective} and \code{formative}. Matrixpls does not
+#'require that \code{W.mod} needs to match \code{reflective} and \code{formative}, but
+#'accepts any numeric matrix. If this argument is not specified, \code{W.mod} is
+#'defined as \code{t(reflective) | formative}.
+#'
+#'@param method The minimization algorithm to be used. See \code{\link[stats]{optim}}
+#' for details. Default is "BFGS".
+#'
+#'@param weightEstimator A function that taking an object of class class 
+#'\code{matrixpls} and returning a scalar. The default is \code{\link{optim.maximizeInnerR2}}
+#'
+#'@inheritParams matrixpls
+#'
+#'@param ... All other arguments are passed through to \code{\link[stats]{optim}} and \code{parameterEstimator}.
+#'
+#'@seealso \code{\link{matrixpls}}
+#'
+#'@return A named numeric vector of class \code{matrixpls} containing parameter estimates followed by weights.
+#'
+#'@export
+
+
+matrixpls.optim <- function(S, model, W.mod = NULL, parameterEstimator = params.regression, 
+                      weightEstimator = optim.maximizeInnerR2, method = "BFGS",
+                      ..., 
+                      validateInput = TRUE,
+                      standardize = TRUE) {
+  
+  matrixpls.internal(S, model, W.mod = W.mod, parameterEstimator = parameterEstimator, 
+                     outerEstimators = NULL, innerEstimator = NULL, 
+                     weightEstimator = weightEstimator, method = method, ..., 
+                     validateInput = validateInput,
+                     standardize = standardize)
+  
+  
+}
+#'@title Partial Least Squares estimation - Internal 
+#'
+#'@description
+#'Implementation of \code{\link{matrixpls}} and \code{\link{matrixpls.optim}}
+#'
+#'@details
+#' See \code{\link{matrixpls}} and \code{\link{matrixpls.optim}} for details.
+#'
+#'@inheritParams matrixpls
+#'@inheritParams matrixpls.optim
+#'@inheritParams matrixpls.weights
+#'
+#'@param ... All other arguments are passed through to \code{matrixpls.weights} or 
+#'\code{\link{matrixpls.optim}} and \code{parameterEstimator}.
+#'
+#'@seealso \code{\link{matrixpls}} and \code{\link{matrixpls.optim}}
+#'
+#'@return A named numeric vector of class \code{matrixpls} containing parameter estimates followed by weights.
+#'
+
+
+matrixpls.internal <- function(S, model, W.mod = NULL, parameterEstimator = params.regression, 
+                      outerEstimators = NULL, innerEstimator = inner.path, 
+                      weightEstimator = NULL, method = NULL, ..., 
+                      convCheck = function(W,W_old){max(abs(W_old - W))},
+                      tol = 1e-05, iter = 100, validateInput = TRUE,
+                      standardize = TRUE) {
   
   # TODO: Validate input.
   
@@ -157,8 +281,32 @@ matrixpls <- function(S, model, W.mod = NULL, parameterEstimator = params.regres
   
   
   
-  # Calculate weights
-  W <- matrixpls.weights(S, nativeModel$inner, W.mod, outerEstimators, ... , validateInput = validateInput)
+  # Calculate weights. If we weight estimator is specified, use that. Otherwise
+  # use matrixpls.weoghts
+  
+  if(is.null(weightEstimator)){
+    W <- matrixpls.weights(S, nativeModel$inner, W.mod, outerEstimators,
+                         innerEstimator = innerEstimator, ... ,
+                         convCheck = convCheck,
+                         tol = tol, iter = iter,
+                         validateInput = validateInput)
+  }
+  else{
+    W <- W.mod
+    
+    optim.res <- optim(W.mod[W.mod != 0], fn = function(par, ...){
+      W[W.mod != 0] <- par
+      # Use fixed weights estimation
+      matrixpls.res <- matrixpls(S, model, W, parameterEstimator, 
+                              outerEstimators = outer.fixedWeights,
+                              innerEstimator = NULL, ...,
+                              validateInput = FALSE, standardize = FALSE)
+      weightEstimator(matrixpls.res)
+    }, method = method, ...)
+    
+    W[W.mod != 0] <- optim.res$par
+    W <- scaleWeights(S, W)
+  }
   
   # Apply the parameter estimator and return the results
   estimates <- parameterEstimator(S, W, model, ...)
@@ -402,7 +550,7 @@ matrixpls.weights <- function(S, inner.mod, W.mod,
   
   weightHistory <- matrix(NA,iter+1,sum(weightPattern))
   weightHistory[1,] <- W[weightPattern]
-  rownames(weightHistory) <- c("start",1:100)
+  rownames(weightHistory) <- c("start",1:iter)
   
   
   # If we are not using an outer estimator, do not perform iterative estimation
@@ -1096,6 +1244,25 @@ outer.factor <- function(S, W, E, W.mod, fm="minres", ...){
   
   return(W_new)
 }
+
+# =========== Optimization criterion functions ===========
+
+#'@title Optimization criterion to maximize the inner model mean R2
+#'
+#'@param matrixpls.res An object of class \code{matrixpls} from which the
+#'criterion function is calculated
+#'
+#'@return A negative mean R2.
+#'
+#'@family weight optimization criteria
+#'
+#'@export
+#'
+
+optim.maximizeInnerR2 <- function(matrixpls.res){
+  -mean(R2(matrixpls.res))
+}
+
 # =========== Utility functions ===========
 
 #
