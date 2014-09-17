@@ -158,10 +158,9 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
       matrixpls.res  <- boot.out$t0
     }
     
-    # Check for inadmissible solutions. The non-boolean values of "converged" are undocumented,
-    # but can be found in the SimSem source code, where the following code is
-    # adapted from. (sim.R: lines 881-897)
+    # Check for inadmissible solutions. 
     #
+    # 0: Converged normally 
     # 1: Non-convergent result
     # 2: Non-converged imputation (not used)
     # 3: At least one SE is negative or NA (not used)
@@ -170,9 +169,23 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
     
     
     if(attr(matrixpls.res,"converged")){
+      
       converged <- 0
+      
       C <- attr(matrixpls.res,"C")
-      if(max(abs(C[lower.tri(C)]))>1) converged <- 5 
+      
+      if(max(abs(C[lower.tri(C)]))>1){
+        converged <- 5 
+      }
+      # If the model is estimated with 2SLS, then checking C is not enough to check for admissible
+      # solution. We need to calculate the explained variances of the endogenous composites
+      
+      else{
+        beta <- attr(matrixpls.res,"beta")
+        if(any(diag(beta%*%C%*%t(beta)) > 1)){
+          converged <- 4
+        }
+      }
     }
     else converged <- 1
     
