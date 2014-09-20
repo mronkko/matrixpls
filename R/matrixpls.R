@@ -73,7 +73,7 @@
 #'
 #'@inheritParams matrixpls.weights
 #'
-#'@seealso \code{\link{matrixpls.weights}}
+#'@seealso \code{\link{matrixpls.weights}} 
 #'
 #'@return A named numeric vector of class \code{matrixpls} containing parameter estimates followed by weights.
 #'
@@ -457,9 +457,9 @@ print.matrixplssummary <- function(x, ...){
 #'@param ... All other arguments are passed through to \code{outerEstimators} and \code{innerEstimator}.
 #'
 #'@return An object of class \code{"matrixplsweights"}, which is a matrix containing the weights with the following attributes: 
-#'@return \item{iterations}{Number of iterations performed}.
-#'@return \item{converged}{A boolean indicating if the algorithm converged}.
-#'@return \item{history}{A data.frame containing the weights for each iteration}.
+#'@return \item{iterations}{Number of iterations performed}
+#'@return \item{converged}{A boolean indicating if the algorithm converged}
+#'@return \item{history}{A data.frame containing the weights for each iteration}
 #'@export
 
 matrixpls.weights <- function(S, inner.mod, W.mod,
@@ -923,7 +923,10 @@ inner.factor <- function(S, W, inner.mod, innerIgnoreModel = FALSE, ...){
   C <- W %*% S %*% t(W)
   
   # Calculate unscaled inner weights using the factor weighting scheme
-  if(innerIgnoreModel) E <- C
+  if(innerIgnoreModel){
+    E <- C
+    diag(E) <- 0
+  } 
   else E <- C * (inner.mod | t(inner.mod))
   
   # If we have LVs that are not connected to any other LVs, use identity scheme as fallback
