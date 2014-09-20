@@ -56,6 +56,7 @@
 #'calculated by a simple formula that approximately minimizes squared residual covariances
 #'of the factor model. \code{minres}, \code{wls}, \code{gls}, \code{pa}, and \code{ml}
 #'will use a factor analysis and passing this parameter through to \code{\link[psych]{fa}}.
+#'\code{"cfa"} estimates a maximum likelihood confirmatory factor analysis with \code{\link[lavaan]{lavaan}}
 #'
 #'@inheritParams matrixpls 
 #'
@@ -130,28 +131,74 @@ params.plsc <- function(S, W, model, fm = "dijkstra", tsls = FALSE, ...){
     }
   }
   
+  
   # Else use factor analysis
   
   else{
     
-    # indicator indices based on the reflective model. Coerced to list to avoid the problem that
-    # apply can return a list or a matrix depending on whether the number of indicators is equal
-    # between the LVs
-    
-    p_refl <- apply(nativeModel$reflective, 2, function(x){list(which(x!=0))})
     L <- matrix(0,ai,ab)
     Q <- rep(1,ab)
-    for (i in 1:ab) {
-      idx <- p_refl[[i]][[1]]
-      L[idx,i] <- fa(S[idx,idx], fm = fm)$loadings
-      # Non-factor indicators are assumed to be perfectly reliable and not corrected
-      indicator_reliabilities <- L
-      indicator_reliabilities[indicator_reliabilities == 0] <- 1
-      Q[i] <- sum(indicator_reliabilities[idx,i] * W[i,idx])^2
+    
+    # Use confirmatory factor analysis
+    
+    if(fm == "cfa"){
       
+      Lp <- nativeModel$reflective # Loading pattern
+      
+      # Loadings
+      parTable <- data.frame(lhs = colnames(Lp)[col(Lp)[Lp!=0]], op = "=~",  rhs = rownames(Lp)[row(Lp)[Lp!=0]], stringsAsFactors = F)
+      
+      # Errors
+      parTable <- rbind(parTable,data.frame(lhs = rownames(Lp)[row(Lp)[Lp!=0]], op = "~~",  rhs = rownames(Lp)[row(Lp)[Lp!=0]], stringsAsFactors = F))
+      
+      # Factor covariances
+      a <- matrix(0,ncol(Lp),ncol(Lp))
+      parTable <- rbind(parTable,data.frame(lhs = colnames(Lp)[col(a)[lower.tri(a)]], op = "~~",  rhs = colnames(Lp)[row(a)[lower.tri(a)]], stringsAsFactors = F))
+      
+      # Factor variances
+      parTable <- rbind(parTable,data.frame(lhs = colnames(Lp), op = "~~",  rhs = colnames(Lp), stringsAsFactors = F))
+      
+      parTable <- cbind(id = as.integer(1:nrow(parTable)), 
+                        parTable,
+                        user = as.integer(ifelse(1:nrow(parTable)<=sum(Lp!=0),1,0)),
+                        group = as.integer(1),
+                        free = as.integer(ifelse(1:nrow(parTable)<=(nrow(parTable)-ncol(Lp)),1:nrow(parTable),0)),
+                        ustart = as.integer(ifelse(1:nrow(parTable)<=(nrow(parTable)-ncol(Lp)),NA,1)),
+                        exo = as.integer(0),
+                        label = "",
+                        eq.id = as.integer(0),
+                        unco = as.integer(ifelse(1:nrow(parTable)<=(nrow(parTable)-ncol(Lp)),1:nrow(parTable),0)),
+                        stringsAsFactors = FALSE)
+      
+      
+      cfa.res <- lavaan::lavaan(parTable, sample.cov = S,
+                                sample.nobs = 100, # this does not matter, but is required by lavaan
+                                se="none")
+      
+      L[Lp==1] <- coef(cfa.res)[1:sum(Lp!=0)]
+      Q <- rowSums(t(L)*W)^2
+    }
+    
+    # Else loop over factors and use EFA
+    else{
+      
+      # indicator indices based on the reflective model. Coerced to list to avoid the problem that
+      # apply can return a list or a matrix depending on whether the number of indicators is equal
+      # between the LVs
+      
+      p_refl <- apply(nativeModel$reflective, 2, function(x){list(which(x!=0))})
+      
+      for (i in 1:ab) {
+        idx <- p_refl[[i]][[1]]
+        L[idx,i] <- fa(S[idx,idx], fm = fm)$loadings
+        # Non-factor indicators are assumed to be perfectly reliable and not corrected
+        indicator_reliabilities <- L
+        indicator_reliabilities[indicator_reliabilities == 0] <- 1
+        Q[i] <- sum(indicator_reliabilities[idx,i] * W[i,idx])^2
+        
+      }
     }
   }
-  
   # Determination of consistent estimates for the correlation between the
   # latent variables, see (15) and (16) of Dijkstra, April 7, 2011.
   R <- C / sqrt(Q) %*% t(sqrt(Q))
@@ -168,7 +215,7 @@ params.plsc <- function(S, W, model, fm = "dijkstra", tsls = FALSE, ...){
   else{
     inner <- regressionsWithCovarianceMatrixAndModelPattern(R,nativeModel$inner)
   }
-    
+  
   innerVect <- inner[innerRegressionIndices]
   names(innerVect) <- paste(rownames(inner)[row(inner)[innerRegressionIndices]],"~",
                             colnames(inner)[col(inner)[innerRegressionIndices]], sep="")		
@@ -258,6 +305,7 @@ TwoStageLeastSquaresWithCovarianceMatrixAndModelPattern <- function(S,model){
         coefs <- solve(S2[independents,independents],S2[row,independents])
         model[row,independents] <- coefs
       }
+      
     }
     # Continue to the next equation
   }

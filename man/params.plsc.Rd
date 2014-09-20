@@ -15,7 +15,8 @@ will use the correction presented by Dijkstra (2011), where the PLS estimates of
 factor loadings for a latent variable are multiplied with a scalar \code{a}, which is
 calculated by a simple formula that approximately minimizes squared residual covariances
 of the factor model. \code{minres}, \code{wls}, \code{gls}, \code{pa}, and \code{ml}
-will use a factor analysis and passing this parameter through to \code{\link[psych]{fa}}.}
+will use a factor analysis and passing this parameter through to \code{\link[psych]{fa}}.
+\code{"cfa"} estimates a maximum likelihood confirmatory factor analysis with \code{\link[lavaan]{lavaan}}}
 
 \item{tsls}{Should estimation be done with two stage least squares instead of regression}
 
