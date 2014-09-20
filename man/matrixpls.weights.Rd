@@ -47,11 +47,11 @@ iterations.}
 \value{
 An object of class \code{"matrixplsweights"}, which is a matrix containing the weights with the following attributes:
 
-\item{iterations}{Number of iterations performed}.
+\item{iterations}{Number of iterations performed}
 
-\item{converged}{A boolean indicating if the algorithm converged}.
+\item{converged}{A boolean indicating if the algorithm converged}
 
-\item{history}{A data.frame containing the weights for each iteration}.
+\item{history}{A data.frame containing the weights for each iteration}
 }
 \description{
 Estimates a weight matrix using Partial Least Squares or a related algorithm.
