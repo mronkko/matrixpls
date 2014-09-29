@@ -118,14 +118,10 @@ matrixpls.sempls <-
     S <- cov(data)
     
     if(convCrit=="relative"){
-      convCheck <- function(Wnew, Wold){
-        max(abs((Wold[Wnew != 0]-Wnew[Wnew != 0])/Wnew[Wnew != 0]))
-      } 
+      convCheck <- convCheck.relative
     }
     else if(convCrit=="square"){
-      convCheck <- function(Wnew, Wold){
-        max((Wold-Wnew)^2)
-      }
+      convCheck <- convCheck.square
     }	
     
     

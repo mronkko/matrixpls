@@ -34,11 +34,11 @@ if(require(plspm)) {
   
   # Estimation using covariance matrix and the GSCA estimators
   
-  matrixpls(cov(satisfaction[,1:27]),  model = list(inner = inner,
+  print(matrixpls(cov(satisfaction[,1:27]),  model = list(inner = inner,
                                                     reflective = reflective,
                                                     formative = formative),
             outerEstimators = outer.GSCA,
-            innerEstimator = inner.GSCA)
+            innerEstimator = inner.GSCA))
   
 } else{
   print("This example requires the plspm package")

@@ -18,7 +18,8 @@
 #'
 #'@inheritParams matrixpls
 #'
-#'@param ... All other arguments are passed through to \code{\link[simsem]{sim}} or \code{\link{matrixpls.boot}}.
+#'@param ... All other arguments are passed through to \code{\link[simsem]{sim}},
+#' \code{\link{matrixpls.boot}}, or \code{\link{matrixpls}}.
 #'
 #'@param cilevel Confidence level. This argument will be forwarded to the \code{\link[boot]{boot.ci}} when calculating the confidence intervals.
 #'
@@ -38,7 +39,7 @@
 #'
 #'@seealso
 #'
-#'\code{\link[simsem]{sim}}, \code{\link[simsem]{SimResult-class}}, \code{\link{matrixpls.boot}}, \code{\link[boot]{boot}}, \code{\link[boot]{boot.ci}}
+#'\code{\link{matrixpls}}, \code{\link{matrixpls.boot}}, \code{\link[simsem]{sim}}, \code{\link[simsem]{SimResult-class}}
 #'
 #'@include matrixpls.R
 #'

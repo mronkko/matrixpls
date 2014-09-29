@@ -37,8 +37,8 @@ if(require(plspm) & packageVersion("plspm")>=0.4) {
   
   # print the resuls
   
-  summary(plspm.res)
-  summary(matrixpls.res)
+  print(summary(plspm.res))
+  print(summary(matrixpls.res))
   
   options(mc.cores=cores)
   

@@ -33,7 +33,8 @@
 #'with separate OLS regressions in the same way as in \code{\link{params.regression}}.
 #'This differs from Dijkstra's (2011) PLSc estimator that uses
 #'2SLS. The reason for not using 2SLS is that PLS is commonly used with models that
-#'do not contain variables that could be used as instruments in the 2SLS estimation.
+#'do not contain a sufficient number of exogenous variables that could be used 
+#'as instruments in the 2SLS estimation.
 #'
 #'The results from the disattenuation process are used as estimates of the \code{reflective}
 #'part of the model and the \code{formative} part of the model estimated with separate
@@ -78,7 +79,7 @@
 #'
 #'@export
 
-params.plsc <- function(S, W, model, fm = "dijkstra", tsls = FALSE, ...){
+params.plsc <- function(S,  model, W, fm = "dijkstra", tsls = FALSE, ...){
   
   nativeModel <- parseModelToNativeFormat(model)
   
