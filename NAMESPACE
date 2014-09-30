@@ -34,7 +34,6 @@ export(matrixpls.sim)
 export(weight.optim)
 export(weight.pls)
 export(weight.fixed)
-export(weight.MIIV)
 
 export(convCheck.absolute)
 export(convCheck.square)
