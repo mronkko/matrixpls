@@ -174,10 +174,12 @@ params.plsc <- function(S,  model, W, fm = "dijkstra", tsls = FALSE, ...){
       
       cfa.res <- lavaan::lavaan(parTable, sample.cov = S,
                                 sample.nobs = 100, # this does not matter, but is required by lavaan
-                                se="none")
+                                se="none",
+                                sample.cov.rescale = FALSE)
       
       L[Lp==1] <- coef(cfa.res)[1:sum(Lp!=0)]
       Q <- rowSums(t(L)*W)^2
+      
     }
     
     # Else loop over factors and use EFA
