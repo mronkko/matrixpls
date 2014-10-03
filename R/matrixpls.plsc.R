@@ -251,6 +251,7 @@ params.plsc <- function(S,  model, W, fm = "dijkstra", tsls = FALSE, ...){
   attr(results,"IC") <- IC
   attr(results,"beta") <- inner
   
+  names(Q) <- rownames(inner)
   attr(results,"Q") <- Q
   
   return(results)
