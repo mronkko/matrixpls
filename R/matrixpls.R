@@ -571,6 +571,8 @@ weight.pls <- function(S, model, W.mod,
 #'@seealso 
 #'Optimization criteria: \code{\link{optim.maximizeInnerR2}}
 #'
+#'@example example/matrixpls.optim-example.R
+#'
 #'@export
 
 

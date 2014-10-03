@@ -95,6 +95,59 @@ require that \code{W.mod} needs to match \code{reflective} and \code{formative},
 accepts any numeric matrix. If this argument is not specified, \code{W.mod} is
 defined as \code{t(reflective) | formative}.
 }
+\examples{
+library(plspm)
+
+# Run the customer satisfaction examle form plspm
+
+# load dataset satisfaction
+data(satisfaction)
+# inner model matrix
+IMAG = c(0,0,0,0,0,0)
+EXPE = c(1,0,0,0,0,0)
+QUAL = c(0,1,0,0,0,0)
+VAL = c(0,1,1,0,0,0)
+SAT = c(1,1,1,1,0,0)
+LOY = c(1,0,0,0,1,0)
+inner = rbind(IMAG, EXPE, QUAL, VAL, SAT, LOY)
+colnames(inner) <- rownames(inner)
+
+# Reflective model
+list(1:5, 6:10, 11:15, 16:19, 20:23, 24:27)
+
+reflective<- matrix(
+  c(1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1),
+  27,6, dimnames = list(colnames(satisfaction)[1:27],colnames(inner)))
+
+# empty formative model
+
+formative <- matrix(0, 6, 27, dimnames = list(colnames(inner), colnames(satisfaction)[1:27]))
+
+# Estimation using covariance matrix
+model <- list(inner = inner,
+              reflective = reflective,
+              formative = formative)
+
+S <- cov(satisfaction[,1:27])
+
+matrixpls.ModeA <- matrixpls(S, model)
+matrixpls.ModeB <- matrixpls(S, model, outerEstimators = outer.modeB)
+matrixpls.MaxR2 <- matrixpls(S, model, weightFunction = weight.optim)
+
+# Compare the R2s from the different estimations
+
+R2s <- cbind(R2(matrixpls.ModeA), R2(matrixpls.ModeB), R2(matrixpls.MaxR2))
+print(R2s)
+apply(R2s,2,mean)
+
+
+
+}
 \seealso{
 Optimization criteria: \code{\link{optim.maximizeInnerR2}}
 
