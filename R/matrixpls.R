@@ -587,20 +587,21 @@ weight.optim <- function(S, model, W.mod,
   optim.res <- optim(W.mod[W.mod != 0], fn = function(par, ...){
     W[W.mod != 0] <- par
     # Use fixed weights estimation
-    matrixpls.res <- matrixpls(S, model, W.mod, weightFunction = weight.fixed,
+    matrixpls.res <- matrixpls(S, model, W, weightFunction = weight.fixed,
                                parameterEstimator = params.regression,
                                ..., validateInput = FALSE, standardize = standardize)
+    
     optimCriterion(matrixpls.res)
   }, method = method, ...)
-  
+
   W[W.mod != 0] <- optim.res$par
   W <- scaleWeights(S, W)
   
-  attr(W,"iterations") <- optim.res$counts()
+  attr(W,"iterations") <- optim.res$counts[1]
   attr(W,"converged") <- optim.res$convergence == 0
   attr(W,"history") <- NA
   class(W) <-("matrixplsweights")
-  
+
   return(W)
   
 }
