@@ -203,14 +203,10 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
       # The latent vars and composites should be in the same order. 
       trueScores <- as.matrix(latentVar[,1:ncol(lvScores)])
       
-      # Calculate the values for the endogenous LVs
-      trueScores <- trueScores + trueScores %*% t(inner)
-      
       r <- diag(cor(lvScores,trueScores))
     
       # Keep the sign of the correlation when calculating reliabilities
       attr(matrixpls.res, "R") <- sign(r) * r^2
-      
     }
     
     # Store CIs and SEs if bootstrapping was done
