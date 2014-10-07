@@ -1516,6 +1516,9 @@ is.matrixpls.model <- function(model) {
 
 regressionsWithCovarianceMatrixAndModelPattern <- function(S,model){
   
+  # Ensure that S and model have right order
+  S <- S[rownames(model),colnames(model)]
+  
   for(row in 1:nrow(model)){
     
     independents <- which(model[row,]!=0, useNames = FALSE)

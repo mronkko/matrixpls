@@ -266,6 +266,9 @@ params.plsc <- function(S,  model, W, fm = "dijkstra", tsls = FALSE, ...){
 
 TwoStageLeastSquaresWithCovarianceMatrixAndModelPattern <- function(S,model){
   
+  # Ensure that S and model have right order
+  S <- S[rownames(model),colnames(model)]
+  
   exog <- apply(model == 0, 1, all)
   endog <- ! exog
   
@@ -273,41 +276,45 @@ TwoStageLeastSquaresWithCovarianceMatrixAndModelPattern <- function(S,model){
     
     independents <- which(model[row,]!=0, useNames = FALSE)
     
-    # Check if this variable is endogenous
     
+    # Check if this variable is endogenous
+          
     if(length(independents) > 0 ){
-      needInstruments <- which(model[row,]!=0 & endog, useNames = FALSE)
       
       # Stage 1
       
-      S2 <- S
+      needInstruments <- which(model[row,]!=0 & endog, useNames = FALSE)
       
+      # This is a matrix that will transform the instruments into independent
+      # variables. By default, all variables are instrumented by themselves
+      
+      stage1Model <- diag(nrow(model))
+        
       for(toBeInstrumented in needInstruments){
         # Regress the variable requiring instruments on its predictors excluding the current DV
         
         instruments <- unique(c(which(model[toBeInstrumented,]!=0 & 1:ncol(model) != row, useNames = FALSE), # instruments that are not part of the regression
                                 setdiff(independents, needInstruments))) # instruments that are part of the regression
         
-        coefs <- solve(S[instruments, instruments],S[toBeInstrumented, instruments])
+        coefs1 <- solve(S[instruments, instruments],S[toBeInstrumented, instruments])
         
-        # Calculate correlations between fitted values and values of variables not included in the 
-        # first stage regression
+        stage1Model[toBeInstrumented, toBeInstrumented] <- 0
+        stage1Model[toBeInstrumented, instruments] <- coefs1
         
-        for(variable in c(row,setdiff(independents, instruments))){
-          S2[toBeInstrumented, variable] <- S2[variable, toBeInstrumented] <- sum(S[variable,instruments] * coefs)
-        }
       }
       
       
       # Stage 2
       
+      S2 <- stage1Model %*% S %*% t(stage1Model)
+        
       if(length(independents)==1){
         # Simple regresion is the covariance divided by the variance of the predictor
         model[row,independents] <- S2[row,independents]/S2[independents,independents]
       }
       if(length(independents)>1){
-        coefs <- solve(S2[independents,independents],S2[row,independents])
-        model[row,independents] <- coefs
+        coefs2 <- solve(S2[independents,independents],S2[row,independents])
+        model[row,independents] <- coefs2
       }
       
     }
