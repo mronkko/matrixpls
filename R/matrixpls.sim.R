@@ -165,7 +165,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
     # 1: Non-convergent result
     # 2: Non-converged imputation (not used)
     # 3: At least one SE is negative or NA (not used)
-    # 4: At least one variance estimate is negative (not used)
+    # 4: At least one variance estimate is negative
     # 5: At least one correlation estimate is greater than 1 or less than -1
     
     
@@ -204,9 +204,11 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
       trueScores <- as.matrix(latentVar[,1:ncol(lvScores)])
       
       r <- diag(cor(lvScores,trueScores))
-    
+      
       # Keep the sign of the correlation when calculating reliabilities
-      attr(matrixpls.res, "R") <- sign(r) * r^2
+      R <- sign(r) * r^2
+      names(R) <- colnames(lvScores)
+      attr(matrixpls.res, "R") <- R
     }
     
     # Store CIs and SEs if bootstrapping was done
@@ -251,13 +253,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
   }
   
   simsemArgs <- c(list(nRep = nRep, model = modelFun, n = n, saveLatentVar = TRUE, 
-                       
-                       # Outfun is neeeded to get the matrixpls objects into the simsem results.
-                       # The function is actually never called, but simsem checks that it is not
-                       # null before returing extra output.
-                       # see https://github.com/simsem/simsem/issues/12
-                       
-                       outfun = identity),
+                       outfun = function(x){x$extra}),
                   simsemArgs)
   
   ret <- do.call(simsem::sim, simsemArgs)
