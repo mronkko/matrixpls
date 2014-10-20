@@ -685,8 +685,6 @@ weight.fixed <- function(S, model, W.mod = NULL,
   
 }
 
-
-
 #'@S3method print matrixplsweights
 
 print.matrixplsweights <- function(x, ...){
@@ -802,6 +800,38 @@ params.regression <- function(S, model, W, ...){
                                  regressionsWithCovarianceMatrixAndModelPattern))
 }
 
+
+#'@title Parameter estimation with two-stage least squares
+#'
+#'@description
+#'Estimates the model parameters with weighted composites using two-stage least squares
+#'
+#'@details
+#'\code{params.tsls} estimates the statistical model described by \code{model} with the
+#'following steps. If \code{model} is not in the native format, it is converted to the native
+#'format containing matrices \code{inner}, \code{reflective}, and \code{formative}. The
+#'weights \code{W} and the data covariance matrix \code{S} are used to calculate the composite
+#'covariance matrix \code{C} and the indicator-composite covariance matrix \code{IC}. These
+#'are used to estimate multiple regression models with two-stage least squares for
+#'inner model and OLS regressions for the outer model.
+#'
+#'@param S Covariance matrix of the data.
+#'
+#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'
+#'@inheritParams matrixpls
+#'
+#'@return A named vector of parameter estimates.
+#'
+#'@family parameter estimators
+#'
+#'@export
+
+params.tsls <- function(S, model, W, ...){
+  
+  return(params.internal_generic(S,model, W, 
+                                 TwoStageLeastSquaresWithCovarianceMatrixAndModelPattern))
+}
 params.internal_generic <- function(S, model, W, pathEstimator){
   
   nativeModel <- parseModelToNativeFormat(model)
@@ -849,7 +879,7 @@ params.internal_generic <- function(S, model, W, pathEstimator){
   
   # Calculate the composite covariance matrix
   C <- W %*% S %*% t(W)
-  
+
   # Calculate the covariance matrix between indicators and composites
   IC <- W %*% S
   
@@ -961,7 +991,7 @@ params.internal_reflective <- function(C, IC, nativeModel){
 inner.centroid <- function(S, W, inner.mod, ignoreInnerModel = FALSE, ...){
   
   # Centroid is just the sign of factor weighting
-  
+
   E <- sign(inner.factor(S, W, inner.mod, ignoreInnerModel, ...))
   
   return(E)
@@ -1401,9 +1431,12 @@ scaleWeights <- function(S, W){
   
   # Scaling the unscaled weights and return
   
-  return(diag(x = 1/sqrt(var_C_unscaled),
-              nrow = length(var_C_unscaled),
-              ncol = length(var_C_unscaled)) %*% W)
+  ret <- diag(x = 1/sqrt(var_C_unscaled)) %*% W
+  
+  colnames(ret) <- colnames(W)
+  rownames(ret) <- rownames(W)
+  
+  return(ret)
 }
 
 lavaanParTableToNativeFormat <- function(partable){
@@ -1498,6 +1531,7 @@ defaultWeightModelWithModel <- function(model){
   
   W.mod[nativeModel$formative!=0] <- 1 
   W.mod[t(nativeModel$reflective)!=0] <- 1 
+  
   return(W.mod)
   
 }
