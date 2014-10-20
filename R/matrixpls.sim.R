@@ -46,7 +46,9 @@
 #'@export
 
 
-matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.95, citype=c("norm","basic", "stud", "perc", "bca"), boot.R = 500, fitIndices = fitSummary){
+matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.95,
+                          citype=c("norm","basic", "stud", "perc", "bca"), 
+                          boot.R = 500, fitIndices = fitSummary){
   
   if(! requireNamespace("simsem")) stop("matrixpls.sim requires the simsem package")
   
@@ -167,7 +169,6 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
     # 3: At least one SE is negative or NA (not used)
     # 4: At least one variance estimate is negative
     # 5: At least one correlation estimate is greater than 1 or less than -1
-    
     
     if(attr(matrixpls.res,"converged")){
       
