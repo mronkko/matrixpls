@@ -38,6 +38,7 @@ Bjørn-Helge Mevik, & Ron Wehrens. (2007). The pls Package:  Principal Component
 }
 \seealso{
 Other parameter estimators: \code{\link{params.plsc}};
-  \code{\link{params.regression}}
+  \code{\link{params.regression}};
+  \code{\link{params.tsls}}
 }
 

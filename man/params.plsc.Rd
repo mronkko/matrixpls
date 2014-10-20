@@ -120,6 +120,7 @@ Dijkstra, T. K. (2011). Consistent Partial Least Squares estimators for linear a
 }
 \seealso{
 Other parameter estimators: \code{\link{params.plsregression}};
-  \code{\link{params.regression}}
+  \code{\link{params.regression}};
+  \code{\link{params.tsls}}
 }
 

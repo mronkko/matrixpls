@@ -79,7 +79,7 @@ accepts any numeric matrix. If this argument is not specified, \code{W.mod} is
 defined as \code{t(reflective) | formative}.
 }
 \seealso{
-Other Weight algorithms: \code{\link{weight.optim}};
-  \code{\link{weight.pls}}
+Other Weight algorithms: \code{\link{weight.MIIV}};
+  \code{\link{weight.optim}}; \code{\link{weight.pls}}
 }
 
