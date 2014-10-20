@@ -3,8 +3,9 @@
 \alias{matrixpls.boot}
 \title{Bootstrapping of matrixpls function}
 \usage{
-matrixpls.boot(data, R = 500, ..., parallel = c("no", "multicore", "snow"),
-  ncpus = getOption("boot.ncpus", 1L), stopOnError = FALSE)
+matrixpls.boot(data, R = 500, ..., signChangeCorrection = NULL,
+  parallel = c("no", "multicore", "snow"), ncpus = getOption("boot.ncpus",
+  1L), stopOnError = FALSE)
 }
 \arguments{
 \item{data}{Matrix or data frame containing the raw data.}
