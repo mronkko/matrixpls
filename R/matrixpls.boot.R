@@ -25,25 +25,54 @@
 #'@export
 #'
 
-matrixpls.boot <- function(data, R = 500, ..., parallel = c("no", "multicore", "snow"), ncpus = getOption("boot.ncpus", 1L), stopOnError = FALSE){
+matrixpls.boot <- function(data, R = 500, ..., 
+                           signChangeCorrection = NULL,
+                           parallel = c("no", "multicore", "snow"),
+                           ncpus = getOption("boot.ncpus", 1L),
+                           stopOnError = FALSE){
   
   if(! requireNamespace("boot")) stop("matrixpls.boot requires the boot package")
   
   if (missing(parallel)) parallel <- getOption("boot.parallel", "no")
   
   data <- as.matrix(data)
+
+  arguments <- list(...)
+  
+  # Prepare sign change corrections
+  
+  if(! is.null(signChangeCorrection)){
+    Worig <- attr(matrixpls(cov(data),...), "W")
+    
+    # Get the original weight function
+    weightFunction <- arguments[["weightFunction"]]
+    if(is.null(weightFunction)) weightFunction <- weight.pls
+    
+    # Wrap inside sign change correction
+    arguments[["weightFunction"]] <- function(S, ...){
+      Wrep <- weightFunction(S, ...)
+      W <- signChangeCorrection(Worig, Wrep)
+      W <- scaleWeights(S, W)
+      attributes(W) <- attributes(Wrep)
+      W
+    }
+    
+  }
+  
+  # Bootstrap
   
   boot.out <- boot::boot(data,
                    function(data, indices){
                      
                      S <- cov(data[indices,])
+                     arguments <- c(list(S),arguments)
                      
                      if(stopOnError){
-                       matrixpls(S, ...)
+                       do.call(matrixpls, arguments)
                      }
                      else{
                        tryCatch(
-                         matrixpls(S, ...)
+                         do.call(matrixpls, arguments)
                        )
                      }
                    },
@@ -51,6 +80,17 @@ matrixpls.boot <- function(data, R = 500, ..., parallel = c("no", "multicore", "
   
   #	class(boot.out) <- c("matrixplsboot", class(boot.out))
   boot.out
+}
+
+signChange.individual <- function(Worig,W){
+  W * sign(Worig) * sign(W)
+}
+
+signChange.construct <- function(Worig,W){
+  origSums <- apply(Worig,1,sum)
+  curSums <- apply(W,1,sum)
+  signs <- ifelse(abs(origSums-curSums) > abs(origSums+curSums), -1,1)
+  sweep(W,MARGIN=1,signs,`*`)
 }
 
 # These are not in use 

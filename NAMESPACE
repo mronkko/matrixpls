@@ -23,6 +23,9 @@ export(R2)
 export(fitSummary)
 export(loadings.matrixpls)
 
+export(signChange.construct)
+export(signChange.individual)
+
 export(matrixpls)
 export(matrixpls.boot)
 
@@ -54,6 +57,8 @@ export(outer.modeB)
 export(params.plsc)
 export(params.plsregression)
 export(params.regression)
+export(params.tsls)
+
 
 importFrom(stats,effects)
 importFrom(stats,loadings)
