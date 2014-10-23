@@ -9,7 +9,7 @@ if(require(simsem)){
   
   # Define the parameters to create the datasets
   
-  SAMPLE <- 10000
+  SAMPLE <- 100
   
   MODEL <- "
   a <~ sqrt(1/3)*a1 + sqrt(1/3)*a2 + sqrt(1/3)*a3
@@ -62,11 +62,30 @@ if(require(simsem)){
   
   # Estimate a PLS model with the first dataset
   
-  pls.res <- matrixpls(cor(dataSets[[1]]), MODEL)
+  pls.res1 <- matrixpls(cor(dataSets[[1]]), MODEL)
   
   # Do predictions from the second dataset
   
-  predictions <- predict(pls.res, dataSets[[2]])
+  predictions1 <- predict(pls.res1, dataSets[[2]])
+  
+  
+  # Compare with maximally predictive composites
+  
+  pls.res2 <- matrixpls(cor(dataSets[[1]]), MODEL,
+                        weightFunction = weight.optim,
+                        optimCriterion = optim.maximizePrediction)
+   
+
+  predictions2 <- predict(pls.res2, dataSets[[2]])
+  
+  # Calculate root mean squared prediction errors for both methods and compare
+  
+  predictions <- cbind(
+    sqrt(apply((predictions1[, colnames(dataSets[[2]])] - dataSets[[2]])^2,2,mean)),
+    sqrt(apply((predictions2[, colnames(dataSets[[2]])] - dataSets[[2]])^2,2,mean))
+  )
+  print(predictions)
+  print(apply(predictions, 2, mean))
   
 } else{
   print("This example requires the simsem package")

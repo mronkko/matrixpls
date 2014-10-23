@@ -1417,6 +1417,44 @@ optim.maximizeInnerR2 <- function(matrixpls.res){
   -mean(R2(matrixpls.res))
 }
 
+#'@title Optimization criterion for maximal prediction
+#'
+#'@details Calculates the predicted variances of reflective indicators. The
+#'prediction criterion is negative of the sum of predicted variances.
+#'
+#'@param matrixpls.res An object of class \code{matrixpls} from which the
+#'criterion function is calculated
+#'
+#'@return Mean squared prediction error.
+#'
+#'@family Weight optimization criteria
+#'
+#'@export
+#'
+
+optim.maximizePrediction <- function(matrixpls.res){
+  
+  C <- attr(matrixpls.res,"C")
+  nativeModel <- attr(matrixpls.res,"model")
+  exog <- rowSums(nativeModel$inner)==0
+  W <- attr(matrixpls.res,"W")
+  beta <- attr(matrixpls.res,"beta")
+  
+  reflective <- nativeModel$reflective
+  reflective[which(reflective==1)] <- matrixpls.res[grep("=~",names(matrixpls.res))]
+  
+  # Predict endog LVs using reduced from equations
+  Beta <- beta[! exog, ! exog]
+  Gamma <- beta[! exog, exog]
+  
+  invBeta <- solve(diag(nrow(Beta)) - Beta)
+  endogC <- invBeta %*% Gamma %*% C[exog,exog] %*% t(Gamma) %*% t(invBeta)
+  C[!exog, !exog] <- endogC
+  
+  -sum(diag(reflective %*% C %*% t(reflective)))
+}
+
+
 # =========== Utility functions ===========
 
 #
