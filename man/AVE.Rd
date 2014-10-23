@@ -9,10 +9,11 @@ AVE(object, ...)
 \item{object}{PLS estimation result object produced by the \code{\link{matrixpls}} function.}
 
 \item{...}{All other arguments are ignored.}
+
+\item{newdata}{A data frame or a matrix containing data used for prediction.}
 }
 \value{
-A list containing the Average Variance Extracted indices in the first position and the differences
-between AVEs and largest squared correlations with other composites in the second position.
+a matrix of predicted values for reflective indicators of endogenous latent variables.
 }
 \description{
 The \code{matrixpls} method for the generic function \code{AVE} computes Average Variance Extracted
@@ -26,6 +27,7 @@ Other post-estimation functions: \code{\link{CR}};
   \code{\link{GoF}}; \code{\link{R2}};
   \code{\link{effects.matrixpls}};
   \code{\link{loadings.matrixpls}};
+  \code{\link{predict.matrixpls}};
   \code{\link{residuals.matrixpls}}
 }
 

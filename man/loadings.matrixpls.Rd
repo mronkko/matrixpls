@@ -21,6 +21,7 @@ from the model results.
 Other post-estimation functions: \code{\link{AVE}};
   \code{\link{CR}}; \code{\link{GoF}}; \code{\link{R2}};
   \code{\link{effects.matrixpls}};
+  \code{\link{predict.matrixpls}};
   \code{\link{residuals.matrixpls}}
 }
 

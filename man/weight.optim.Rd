@@ -151,7 +151,7 @@ apply(R2s,2,mean)
 \seealso{
 Optimization criteria: \code{\link{optim.maximizeInnerR2}}
 
-Other Weight algorithms: \code{\link{weight.MIIV}};
-  \code{\link{weight.fixed}}; \code{\link{weight.pls}}
+Other Weight algorithms: \code{\link{weight.fixed}};
+  \code{\link{weight.pls}}
 }
 
