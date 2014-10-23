@@ -363,6 +363,70 @@ print.matrixplscr <- function(x, ...){
   print.table(x, ...)
 }
 
+#'@title Predict method for matrixpls results
+#'
+#'@description
+#'
+#'The \code{matrixpls} method for the generic function \code{predict} predict.
+#'Predicts the reflective indicators of endogenous latent variables using
+#'estimated model and data for the indicators of exogenous latent variables
+#'
+#'@param object PLS estimation result object produced by the \code{\link{matrixpls}} function.
+#'
+#'@param newdata A data frame or a matrix containing data used for prediction.
+#'
+#'@param ... All other arguments are ignored.
+#'
+#'@return a matrix of predicted values for reflective indicators of endogenous latent variables.
+#'
+#'@references
+#'
+#'Wold, H. (1974). Causal flows with latent variables: Partings of the ways in the light of NIPALS modelling. \emph{European Economic Review}, 5(1), 67–86. doi:10.1016/0014-2921(74)90008-7
+#'
+#'
+#'@family post-estimation functions
+#'
+#'@export
+#'
+
+
+
+predict.matrixpls <- function(object, newdata, ...){
+      
+  nativeModel <- attr(object,"model")
+  exog <- rowSums(nativeModel$inner)==0
+  W <- attr(object,"W")
+  beta <- attr(object,"beta")
+  
+  reflective <- nativeModel$reflective
+  reflective[which(reflective==1)] <- object[grep("=~",names(object))]
+  
+  # Reorder the variables in newdata
+  data <- NULL
+  
+  for(name in colnames(W)){
+    if(! name %in% colnames(newdata)){
+      data <- cbind(data,NA)
+    }
+    else{
+      data <- cbind(data,newdata[,name])
+    }
+  }
+  
+  colnames(data) <- colnames(W)
+    
+  LVScores <- as.matrix(data) %*% t(W)
+    
+  # Predict endog LVs usign reduced from equations
+  Beta <- beta[! exog, ! exog]
+  Gamma <- beta[! exog, exog]
+  
+  LVScoresEndo <- (LVScores[,exog] %*% t(Gamma)) %*% solve(diag(nrow(Beta))- t(Beta))
+  
+  LVScores[,! exog] <- LVScoresEndo
+  
+  LVScores %*% t(reflective)
+}
 
 #'@title Average Variance Extracted indices for PLS model
 #'
@@ -377,6 +441,7 @@ print.matrixplscr <- function(x, ...){
 #'
 #'@return A list containing the Average Variance Extracted indices in the first position and the differences
 #'between AVEs and largest squared correlations with other composites in the second position.
+#'
 #'
 #'@references
 #'
