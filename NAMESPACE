@@ -55,6 +55,9 @@ export(outer.fixedWeights)
 export(outer.modeA)
 export(outer.modeB)
 
+export(optim.maximizePrediction)
+export(optim.maximizeInnerR2)
+
 export(params.plsc)
 export(params.plsregression)
 export(params.regression)
