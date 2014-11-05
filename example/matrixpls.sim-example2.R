@@ -54,7 +54,7 @@ eta2 ~ eta1
 eta3 ~ eta1
 "
   
-  # Only run 100 replications with 2 bootstrap replications each so that the 
+  # Only run 100 replications without bootstrap replications each so that the 
   # example runs faster. Generate the data outside simsem because simsem
   # does not support drawing samples from population matrix
   
@@ -64,7 +64,7 @@ eta3 ~ eta1
             X)                   # Population covarancematrix
   })
   
-  Output <- matrixpls.sim(model = analyzeModel, rawData = dataSets, boot.R=2,
+  Output <- matrixpls.sim(model = analyzeModel, rawData = dataSets, boot.R=FALSE,
                           multicore = FALSE, stopOnError = TRUE)
   
   summary(Output)

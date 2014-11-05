@@ -92,6 +92,6 @@ Wold, H. (1982). Soft modeling - The Basic Design And Some Extensions. In K. G. 
 \seealso{
 Weight algorithms: \code{\link{weight.pls}}; \code{\link{weight.fixed}}; \code{\link{weight.optim}}
 
-Parameter estimators: \code{\link{params.regression}}; \code{\link{params.plsregression}}; \code{\link{params.plsc}}
+Parameter estimators: \code{\link{params.regression}}; \code{\link{params.plsregression}}; \code{\link{params.plsc}}; \code{\link{params.tsls}}
 }
 

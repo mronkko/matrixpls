@@ -3,16 +3,17 @@
 \alias{predict.matrixpls}
 \title{Predict method for matrixpls results}
 \usage{
-predict.matrixpls(object, newdata, ...)
+\method{predict}{matrixpls}(object, newdata, ...)
 }
 \arguments{
-\item{object}{PLS estimation result object produced by the \code{\link{matrixpls}} function.}
+\item{object}{matrixpls estimation result object produced by the \code{\link{matrixpls}} function.}
+
+\item{newdata}{A data frame or a matrix containing data used for prediction.}
 
 \item{...}{All other arguments are ignored.}
 }
 \value{
-A list containing the Average Variance Extracted indices in the first position and the differences
-between AVEs and largest squared correlations with other composites in the second position.
+a matrix of predicted values for reflective indicators of endogenous latent variables.
 }
 \description{
 The \code{matrixpls} method for the generic function \code{predict} predict.

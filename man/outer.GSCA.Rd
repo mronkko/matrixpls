@@ -50,48 +50,56 @@ step of GSCA estimation.
 \examples{
 # Run the example from plspm package using GSCA estimation
 
-if(require(plspm)) {
+if(require(ASGSCA)) {
+
+  # Run the GSCA example from the ASGSCA package
   
-  # Run the customer satisfaction examle form plspm
+  #Scenario (g) in Romdhani et al. (2014): 4 SNPs mapped to 2 genes and 4 
+  #traits involved in 2 clinical pathways 
+  #In total: 8 observed variables and 4 latent variables.
+  #One of the traits is involved in both clinical pathways.
+  #One gene is connected to one of the clinical pathways and
+  #the other to both of them.
   
-  # load dataset satisfaction
-  data(satisfaction)
-  # inner model matrix
-  IMAG = c(0,0,0,0,0,0)
-  EXPE = c(1,0,0,0,0,0)
-  QUAL = c(0,1,0,0,0,0)
-  VAL = c(0,1,1,0,0,0)
-  SAT = c(1,1,1,1,0,0)
-  LOY = c(1,0,0,0,1,0)
-  inner = rbind(IMAG, EXPE, QUAL, VAL, SAT, LOY)
-  colnames(inner) <- rownames(inner)
+  data(GenPhen)
+  W0 <- matrix(c(rep(1,2),rep(0,8),rep(1,2),rep(0,8),rep(1,3),rep(0,7),rep(1,2)),nrow=8,ncol=4)
+  B0 <- matrix(c(rep(0,8),rep(1,2),rep(0,3),1,rep(0,2)),nrow=4,ncol=4)
   
-  # Reflective model
-  list(1:5, 6:10, 11:15, 16:19, 20:23, 24:27)
+  #Estimation only
+  GSCA.res <- GSCA(GenPhen,W0, B0,estim=TRUE,path.test=FALSE, latent.names=c("Gene1","Gene2","Clinical pathway 1","Clinical pathway 2"))
   
-  reflective<- matrix(
-    c(1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1),
-    27,6, dimnames = list(colnames(satisfaction)[1:27],colnames(inner)))
+  # Setup matrixpls to estimate the same model. Note GSCA places dependent variables
+  # on columns but matrixpls uses rows for dependent variables
   
-  # empty formative model
+  inner <- t(B0)
+  reflective <- W0
+  reflective[,1:2] <- 0
+  formative <- t(W0)
+  formative[3:4,] <- 0
+
+  colnames(formative) <- rownames(reflective) <- names(GenPhen)
+  colnames(inner) <- rownames(inner) <- rownames(formative) <- colnames(reflective) <- c("Gene1","Gene2","Clinical pathway 1","Clinical pathway 2")
+    
+  model <- list(inner = inner, 
+                reflective = reflective,
+                formative = formative)
+
+  # Estimate using direct minimization of the estimation criterion
   
-  formative <- matrix(0, 6, 27, dimnames = list(colnames(inner), colnames(satisfaction)[1:27]))
+  matrixpls.res1 <- matrixpls(cov(GenPhen),  model,
+                              weightFunction = weight.optim,
+                              optimCriterion = optim.minimizeGSCA)
+
+  stop()
   
-  # Estimation using covariance matrix and the GSCA estimators
-  
-  print(matrixpls(cov(satisfaction[,1:27]),  model = list(inner = inner,
-                                                    reflective = reflective,
-                                                    formative = formative),
+  # Estimate using alternative least squares
+
+  matrixpls.res2 <- matrixpls(cov(GenPhen),  model,
             outerEstimators = outer.GSCA,
-            innerEstimator = inner.GSCA))
+            innerEstimator = inner.GSCA)
   
 } else{
-  print("This example requires the plspm package")
+  print("This example requires the ASGSCA package")
 }
 
 }

@@ -33,10 +33,10 @@ f2 =~ y4 + y5 + y6
 f3 =~ y7 + y8 + y9
 "
   
-  # Only run 10 replications with 50 bootstrap replications each so that the 
+  # Only run 100 replications without bootstrap replications each so that the 
   #example runs faster
   
-  Output <- matrixpls.sim(10, analyzeModel, n=200, generate=popModel, boot.R=50,
+  Output <- matrixpls.sim(100, analyzeModel, n=200, generate=popModel, boot.R=FALSE,
                           multicore = FALSE, stopOnError = TRUE)
   getCutoff(Output, 0.05)
   plotCutoff(Output, 0.05)

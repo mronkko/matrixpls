@@ -14,6 +14,8 @@ matrixpls.boot(data, R = 500, ..., signChangeCorrection = NULL,
 
 \item{...}{All other parameters are passed through to \code{\link{matrixpls}}.}
 
+\item{signChangeCorrection}{Sign change correction function.}
+
 \item{parallel}{
     The type of parallel operation to be used (if any).  If missing, the
     default is taken from the option \code{"boot.parallel"} (and if that
@@ -37,5 +39,7 @@ with \code{\link[boot]{boot}} method of the \code{boot} package.
 }
 \seealso{
 \code{\link[boot]{boot}}
+
+Sign change corrections: \code{\link{signChange.individual}}; \code{\link{signChange.construct}}
 }
 

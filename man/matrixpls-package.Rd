@@ -5,7 +5,8 @@
   Matrix-based Partial Least Squares estimation
 }
 \description{
-Matrixpls estimates composite variable models using Partial Least Squares estimation and related methods. The algorithms are based on matrix multiplication
+Matrixpls estimates composite variable models using Partial Least Squares 
+estimation and related methods. The algorithms are based on matrix multiplication
 and equation group solving (using the \code{\link{solve}} function).
 }
 \details{
@@ -13,8 +14,8 @@ and equation group solving (using the \code{\link{solve}} function).
 \tabular{ll}{
 Package: \tab matrixpls\cr
 Type: \tab Package\cr
-Version: \tab 0.3.0\cr
-Date: \tab 2014-04-28\cr
+Version: \tab 0.4.0\cr
+Date: \tab 2014-10-23\cr
 License: \tab GPL-3\cr
 }
 
