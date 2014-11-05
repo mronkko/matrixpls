@@ -1,4 +1,9 @@
-# Run the example from plspm package using GSCA estimation
+# Run the example from http://www.sem-gesca.org/example.php
+
+data <- read.table("http://www.sem-gesca.org/rick2_0.dat", header = TRUE)
+maleData <- data[data$gender == 1,-1]
+
+stop("Not implemented")
 
 if(require(ASGSCA)) {
   
