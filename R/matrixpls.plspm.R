@@ -268,11 +268,11 @@ matrixpls.plspm <-
       bootLoadingIndices <- 1:weightCount + pathCount
       bootWeightIndices <- bootLoadingIndices + weightCount
       
-      bootIndices <- boot.array(boot.res, indices = TRUE)
+      bootIndices <- boot::boot.array(boot.res, indices = TRUE)
       
       boot <- list(weights = get_bootDataFrame(boot.res$t0[bootWeightIndices]*sdv, boot.res$t[,bootWeightIndices]*sdv, rownames(S)),
                    loadings = get_bootDataFrame(IC_std[W.mod == 1], 
-                                                t(mcmapply(function(x){
+                                                t(parallel::mcmapply(function(x){
                                                   
                                                   # Recover the data that were used in the bootrap replications and calculate indicator variances
                                                   sdX <- apply(dataToUse[bootIndices[x,],],2,sd)
@@ -285,7 +285,7 @@ matrixpls.plspm <-
                    # Use parallel processing because of the large number of elements
                    
                    rsq = get_bootDataFrame(R2[!exogenousLVs],
-                                           t(mcmapply(function(x){
+                                           t(parallel::mcmapply(function(x){
                                              
                                              # Recover the data that were used in the bootrap replication
                                              if(scaled)
@@ -309,7 +309,7 @@ matrixpls.plspm <-
                    # Again, parellel processing
                    
                    total.efs = get_bootDataFrame(effects(matrixpls.res)$Total[pathIndices[-1,]],
-                                                 t(mcmapply(function(x){
+                                                 t(parallel::mcmapply(function(x){
                                                    
                                                    beta <- matrix(0,nrow(nativeModel$inner),ncol(nativeModel$inner))
                                                    beta[nativeModel$inner == 1] <- boot.res$t[x,bootPathIndices]
