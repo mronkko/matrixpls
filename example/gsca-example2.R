@@ -47,7 +47,7 @@ if(require(ASGSCA)) {
   print(t(attr(matrixpls.res1,"beta")))
   
   
-  stop("Alternating least squares not implemented yet")
+  stop()
   
   # Estimate using alternative least squares
   

@@ -76,7 +76,7 @@
 #'@seealso 
 #'Weight algorithms: \code{\link{weight.pls}}; \code{\link{weight.fixed}}; \code{\link{weight.optim}}
 #'
-#'Parameter estimators: \code{\link{params.regression}}; \code{\link{params.plsregression}}; \code{\link{params.plsc}}
+#'Parameter estimators: \code{\link{params.regression}}; \code{\link{params.plsregression}}; \code{\link{params.plsc}}; \code{\link{params.tsls}}
 #'
 #'@return A named numeric vector of class \code{matrixpls} containing parameter estimates followed by weight.
 #'
@@ -1454,6 +1454,47 @@ optim.maximizePrediction <- function(matrixpls.res){
   -sum(diag(reflective %*% C %*% t(reflective)))
 }
 
+
+
+
+#'@title GSCA optimization criterion
+#'
+#'@details Optimization criterion for minimizing the sum of all residual
+#'variances in the model
+#'
+#'@param matrixpls.res An object of class \code{matrixpls} from which the
+#'criterion function is calculated
+#'
+#'@return Sum of residual variances.
+#'
+#'@family Weight optimization criteria
+#'
+#'@export
+#'
+
+optim.minimizeGSCA <- function(matrixpls.res){
+
+  C <- attr(matrixpls.res,"C")
+  IC <- attr(matrixpls.res,"IC")
+  nativeModel <- attr(matrixpls.res,"model")
+  
+  reflective <- nativeModel$reflective
+  reflective[which(reflective==1)] <- matrixpls.res[grep("=~",names(matrixpls.res))]
+
+  formative <- nativeModel$formative
+  formative[which(formative==1)] <- matrixpls.res[grep("<~",names(matrixpls.res))]
+      
+  f <- apply(nativeModel$formative != 0,1,any)
+  r <- apply(nativeModel$reflective != 0,1,any)
+  endo <- apply(nativeModel$inner != 0,1,any)
+  
+  inner_resid <- (1 - R2(matrixpls.res)[endo])
+  form_resid <- (1 - rowSums(IC[f,] * formative[f,]))
+  refl_resid <- (1 - rowSums(t(IC[,r]) * reflective[r,]))
+  
+  sum(inner_resid, form_resid, refl_resid)
+        
+}
 
 # =========== Utility functions ===========
 

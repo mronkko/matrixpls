@@ -57,6 +57,7 @@ export(outer.modeB)
 
 export(optim.maximizePrediction)
 export(optim.maximizeInnerR2)
+export(optim.minimizeGSCA)
 
 export(params.plsc)
 export(params.plsregression)
