@@ -5,9 +5,11 @@
 ^tests
 ^\.DS_Store
 ^\.R.*
-^\..git
+^\.git
 ^run_tests.R
 ^README.md
 ^dev
 ^example
 ^[^/]+.R$
+^man-roxygen
+.*\.tar\.gz
