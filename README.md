@@ -17,7 +17,7 @@ matrixpls has three development targets or main requirements
 2. matrixpls works as drop-in replacement for the most recent version of [plspm](http://cran.r-project.org/web/packages/plspm/)
 3. matrixpls works as drop-in replacement for the most recent version of [plsSEM](http://cran.r-project.org/web/packages/semPLS/)
 
-All simsem vignettes shoul work by just replacing the call to sim with a call to matrixpls.sim. Compatibility with plspm and semPLS should be as easy as substuting the calls to plspm function with matrixpls.plspm and semPLS with matrixpls.semPLS.
+All simsem vignettes should work by just replacing the call to sim with a call to matrixpls.sim. Compatibility with plspm and semPLS should be as easy as substuting the calls to plspm function with matrixpls.plspm and semPLS with matrixpls.semPLS.
 
 matrixpls uses test driven development with [Runit](http://cran.r-project.org/web/packages/RUnit/). This means that the tests are written first and then software is implemented to conform with the tests.
 
@@ -35,8 +35,8 @@ To check out the source code and install from local copy, run the following shel
 ```
 git clone https://github.com/mronkko/matrixpls.git
 R CMD BUILD matrixpls
-R CMD CHECK matrixpls_0.0.1.tar.gz
-R CMD INSTALL matrixpls_0.0.1.tar.gz
+R CMD CHECK matrixpls_0.4.0.tar.gz
+R CMD INSTALL matrixpls_0.4.0.tar.gz
 ```
 
 You may need to install development versions of Lavaan and SimSem to run the development verison of
