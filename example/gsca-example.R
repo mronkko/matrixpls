@@ -41,19 +41,35 @@ if(require(ASGSCA)) {
   # Compare thw weights
   print(GSCA.res$Weight)
   print(t(attr(matrixpls.res1,"W")))
+
+  print(GSCA.res$Weight - t(attr(matrixpls.res1,"W")))
+  
   
   # Compare the paths
   print(GSCA.res$Path)
   print(t(attr(matrixpls.res1,"beta")))
   
+  print(GSCA.res$Path-t(attr(matrixpls.res1,"beta")))
   
-  stop("Alternating least squares not implemented yet")
-  
-  # Estimate using alternative least squares
+  # Estimate using alternating least squares
   
   matrixpls.res2 <- matrixpls(cov(GenPhen),  model,
                               outerEstimators = outer.GSCA,
                               innerEstimator = inner.GSCA)
+
+  # Compare thw weights
+  print(GSCA.res$Weight)
+  print(t(attr(matrixpls.res2,"W")))
+
+  print(GSCA.res$Weight - t(attr(matrixpls.res2,"W")))
+  
+  
+  # Compare the paths
+  print(GSCA.res$Path)
+  print(t(attr(matrixpls.res2,"beta")))
+  
+  print(GSCA.res$Path-t(attr(matrixpls.res2,"beta")))
+  
   
 } else{
   print("This example requires the ASGSCA package")

@@ -22,8 +22,7 @@ Henseler, J., & Sarstedt, M. (2013). Goodness-of-fit indices for partial least s
 \seealso{
 Other post-estimation functions: \code{\link{AVE}};
   \code{\link{CR}}; \code{\link{R2}};
-  \code{\link{effects.matrixpls}};
-  \code{\link{loadings.matrixpls}};
+  \code{\link{effects.matrixpls}}; \code{\link{loadings}};
   \code{\link{predict.matrixpls}};
   \code{\link{residuals.matrixpls}}
 }

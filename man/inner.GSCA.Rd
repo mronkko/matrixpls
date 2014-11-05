@@ -39,7 +39,7 @@ that are not connected to other composites.
 # Run the example from plspm package using GSCA estimation
 
 if(require(ASGSCA)) {
-
+  
   # Run the GSCA example from the ASGSCA package
   
   #Scenario (g) in Romdhani et al. (2014): 4 SNPs mapped to 2 genes and 4 
@@ -60,31 +60,45 @@ if(require(ASGSCA)) {
   # on columns but matrixpls uses rows for dependent variables
   
   inner <- t(B0)
-  reflective <- W0
-  reflective[,1:2] <- 0
+  reflective <- matrix(0,8,4)
   formative <- t(W0)
-  formative[3:4,] <- 0
-
+  
   colnames(formative) <- rownames(reflective) <- names(GenPhen)
   colnames(inner) <- rownames(inner) <- rownames(formative) <- colnames(reflective) <- c("Gene1","Gene2","Clinical pathway 1","Clinical pathway 2")
-    
+  
   model <- list(inner = inner, 
                 reflective = reflective,
                 formative = formative)
-
+  
   # Estimate using direct minimization of the estimation criterion
   
   matrixpls.res1 <- matrixpls(cov(GenPhen),  model,
                               weightFunction = weight.optim,
                               optimCriterion = optim.minimizeGSCA)
-
-  stop()
+  
+  # Compare thw weights
+  print(GSCA.res$Weight)
+  print(t(attr(matrixpls.res1,"W")))
+  
+  # Compare the paths
+  print(GSCA.res$Path)
+  print(t(attr(matrixpls.res1,"beta")))
+  
   
   # Estimate using alternative least squares
-
+  
   matrixpls.res2 <- matrixpls(cov(GenPhen),  model,
-            outerEstimators = outer.GSCA,
-            innerEstimator = inner.GSCA)
+                              outerEstimators = outer.GSCA,
+                              innerEstimator = inner.GSCA)
+
+  # Compare thw weights
+  print(GSCA.res$Weight)
+  print(t(attr(matrixpls.res2,"W")))
+  
+  # Compare the paths
+  print(GSCA.res$Path)
+  print(t(attr(matrixpls.res2,"beta")))
+  
   
 } else{
   print("This example requires the ASGSCA package")

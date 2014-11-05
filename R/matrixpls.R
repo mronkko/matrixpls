@@ -449,7 +449,7 @@ weight.pls <- function(S, model, W.mod,
       # Get new inner weights from inner estimation
       
       if(! is.null(innerEstimator)){
-        E <- innerEstimator(S, W, inner.mod, ...)
+        E <- innerEstimator(S, W, inner.mod, model = model, ...)
       }
       
       # Get new weights from outer estimation
@@ -466,7 +466,7 @@ weight.pls <- function(S, model, W.mod,
         }
       }
       else{
-        W <- outerEstimators(S, W_old, E, W.mod, ...)
+        W <- outerEstimators(S, W_old, E, W.mod, model = model, ...)
       }	
       
       W <- scaleWeights(S, W)
@@ -595,15 +595,16 @@ weight.optim <- function(S, model, W.mod,
     
     optimCriterion(matrixpls.res)
   }, method = method, ...)
-
+  
   W[W.mod != 0] <- optim.res$par
   W <- scaleWeights(S, W)
   
+  attr(W,"S") <- S
   attr(W,"iterations") <- optim.res$counts[1]
   attr(W,"converged") <- optim.res$convergence == 0
   attr(W,"history") <- NA
   class(W) <-("matrixplsweights")
-
+  
   return(W)
   
 }
@@ -675,7 +676,8 @@ weight.fixed <- function(S, model, W.mod = NULL,
   if(standardize){
     W <- scaleWeights(S,W)
   }
-  
+
+  attr(W,"S") <- S
   attr(W,"iterations") <- 0
   attr(W,"converged") <- TRUE
   attr(W,"history") <- W
@@ -879,7 +881,7 @@ params.internal_generic <- function(S, model, W, pathEstimator){
   
   # Calculate the composite covariance matrix
   C <- W %*% S %*% t(W)
-
+  
   # Calculate the covariance matrix between indicators and composites
   IC <- W %*% S
   
@@ -991,7 +993,7 @@ params.internal_reflective <- function(C, IC, nativeModel){
 inner.centroid <- function(S, W, inner.mod, ignoreInnerModel = FALSE, ...){
   
   # Centroid is just the sign of factor weighting
-
+  
   E <- sign(inner.factor(S, W, inner.mod, ignoreInnerModel, ...))
   
   return(E)
@@ -1288,6 +1290,8 @@ outer.fixedWeights <- function(S, W, E, W.mod, ...){
 #'
 #'@inheritParams outer.modeA
 #'
+#'@param model A matrixpls model. See \code{\link{matrixpls} for details}
+#'
 #'@return A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.mod}.
 #'
 #'@references
@@ -1299,64 +1303,76 @@ outer.fixedWeights <- function(S, W, E, W.mod, ...){
 #'
 #'@export
 
-outer.GSCA <- function(S, W, E, W.mod, ...){
+outer.GSCA <- function(S, W, E, W.mod, model, ...){
   
+  nativeModel <- parseModelToNativeFormat(model)
   
-  Wpattern <- W.mod!=0
+  # Update the weights one composite at a time
   
-  # We will start by creating a function that returns the sum of squares of all the regressions
-  
-  ssFun <- function(Wvect){
+  for(row in 1:nrow(W.mod)){
     
-    W[Wpattern] <- Wvect
+    # We will start by creating a function that returns the sum of residual
+    # variances for all regressions where the composite is a predictor
     
-    # Start by standardizing the weights because optim does not know that the
+    ssFun <- function(Wvect){
+      
+      resid <- NULL
+      
+      W[row,W.mod[row,]!=0] <- Wvect
+      
+      # Start by standardizing the weights because optim does not know that the
+      # weights must result in a composite with unit variance
+      
+      W <- scaleWeights(S, W)
+      
+      # Calculate the covariance matrix between indicators and composites
+      IC <- W %*% S
+      
+      # Calculate the composite covariance matrix
+      C <- IC %*% t(W)
+      
+      # Regressions from composites to indicators, one indicator at a time
+      
+      for(i in which(nativeModel$reflective[,row] == 1)){
+        c <- which(nativeModel$reflective[i,] == 1)
+        coefs <- solve(C[c,c],IC[c,i])
+        resid <- c(resid,1 - sum(coefs*IC[c,i]))
+      }
+      
+      # Regressions from composites to composites, one composite at a time
+      # The current composite can be either an IV or a DV
+      
+      DVs <- which(nativeModel$inner[,row] == 1) # current is IV
+      if(any(nativeModel$inner[row,] != 0)) DVs <- c(DVs, row) # current is DV
+
+      for(i in DVs){
+        c <- which(nativeModel$inner[i,] == 1)
+        coefs <- solve(C[c,c],C[c,i])
+        resid <- c(resid,1 - sum(coefs*C[c,i]))
+      }
+      
+      return(sum(resid))
+    }	
+    
+    # The previous weights are used as starting values
+    
+    start <- W[row,W.mod[row,]!=0]
+    
+    # Then we will find the minimum using optim
+
+    Wvect <- optim(start, ssFun)$par
+    
+    # Update the weights based on the estimated parameters
+    
+    W[row,W.mod[row,]!=0] <- Wvect
+    
+    # Finally standardize the weights because optim does not know that the
     # weights must result in a composite with unit variance
     
     W <- scaleWeights(S, W)
     
-    # Calculate the covariance matrix between indicators and composites
-    IC <- W %*% S
-    
-    # Calculate the composite covariance matrix
-    C <- IC %*% t(W)
-    
-    # Sum of squares from regressions from composites to indicators
-    
-    # Sum of squares is the sum of residual variances. For indicators, residual variance is the
-    # difference between covariance between the composite and the indicator variances. 
-    # we will take a sum of these 
-    
-    indicatorIndices <- col(W.mod)[Wpattern]
-    ss_indicators <-sum (diag(S)[indicatorIndices]-IC[Wpattern])
-    
-    # Sum of squares from regressions between composites
-    
-    # Sum of squares is the sum of residual variances. For composites, residual variance is 
-    # 1 - R2 and we will take a sum of these 
-    
-    R2 <- rowSums(E * C)
-    ss_composites <- sum(1-R2)
-    
-    return(ss_composites + ss_indicators)
-  }	
-  
-  # The previous weights are used as starting values
-  
-  start <- W[Wpattern]
-  
-  # Then we will find the minimum using optim
-  
-  Wvect <- optim(start, ssFun)$par
-  
-  # Update the weights based on the estimated parameters
-  
-  W[Wpattern] <- Wvect
-  
-  # Finally standardize the weights because optim does not know that the
-  # weights must result in a composite with unit variance
-  
-  W <- scaleWeights(S, W)
+    # Proceed to next composite
+  }
   
   return(W)
 }
@@ -1473,17 +1489,17 @@ optim.maximizePrediction <- function(matrixpls.res){
 #'
 
 optim.minimizeGSCA <- function(matrixpls.res){
-
+  
   C <- attr(matrixpls.res,"C")
   IC <- attr(matrixpls.res,"IC")
   nativeModel <- attr(matrixpls.res,"model")
   
   reflective <- nativeModel$reflective
   reflective[which(reflective==1)] <- matrixpls.res[grep("=~",names(matrixpls.res))]
-
+  
   formative <- nativeModel$formative
   formative[which(formative==1)] <- matrixpls.res[grep("<~",names(matrixpls.res))]
-      
+  
   f <- apply(nativeModel$formative != 0,1,any)
   r <- apply(nativeModel$reflective != 0,1,any)
   endo <- apply(nativeModel$inner != 0,1,any)
@@ -1493,7 +1509,7 @@ optim.minimizeGSCA <- function(matrixpls.res){
   refl_resid <- (1 - rowSums(t(IC[,r]) * reflective[r,]))
   
   sum(inner_resid, form_resid, refl_resid)
-        
+  
 }
 
 # =========== Utility functions ===========

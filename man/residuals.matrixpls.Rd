@@ -31,8 +31,7 @@ Calantone, R. J. (2014). Common Beliefs and Reality About PLS Comments on Rönkk
 \seealso{
 Other post-estimation functions: \code{\link{AVE}};
   \code{\link{CR}}; \code{\link{GoF}}; \code{\link{R2}};
-  \code{\link{effects.matrixpls}};
-  \code{\link{loadings.matrixpls}};
+  \code{\link{effects.matrixpls}}; \code{\link{loadings}};
   \code{\link{predict.matrixpls}}
 }
 

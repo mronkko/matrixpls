@@ -22,7 +22,7 @@ export(CR)
 export(GoF)
 export(R2)
 export(fitSummary)
-export(loadings.matrixpls)
+export(loadings)
 
 export(signChange.construct)
 export(signChange.individual)

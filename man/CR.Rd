@@ -23,8 +23,7 @@ Fornell, C., & Larcker, D. F. (1981). Evaluating structural equation models with
 \seealso{
 Other post-estimation functions: \code{\link{AVE}};
   \code{\link{GoF}}; \code{\link{R2}};
-  \code{\link{effects.matrixpls}};
-  \code{\link{loadings.matrixpls}};
+  \code{\link{effects.matrixpls}}; \code{\link{loadings}};
   \code{\link{predict.matrixpls}};
   \code{\link{residuals.matrixpls}}
 }

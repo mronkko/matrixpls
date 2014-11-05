@@ -294,6 +294,11 @@ print.matrixplsgof <- function(x, digits=getOption("digits"), ...){
 #'@importFrom stats loadings
 #'
 #'@export
+#'
+loadings <- function(object, ...){
+  UseMethod("loadings")
+}
+
 #
 #'@S3method loadings matrixpls
 
