@@ -70,6 +70,9 @@ if(require(ASGSCA)) {
   
   print(GSCA.res$Path-t(attr(matrixpls.res2,"beta")))
   
+  # Check the criterion function values
+  print(optim.minimizeGSCA(matrixpls.res1))
+  print(optim.minimizeGSCA(matrixpls.res2))
   
 } else{
   print("This example requires the ASGSCA package")
