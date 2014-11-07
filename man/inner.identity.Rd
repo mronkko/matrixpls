@@ -34,7 +34,7 @@ Wold, H. (1982). Soft modeling - The Basic Design And Some Extensions. In K. G. 
 }
 \seealso{
 Other inner estimators: \code{\link{inner.GSCA}};
-  \code{\link{inner.centroid}}; \code{\link{inner.factor}};
-  \code{\link{inner.path}}
+  \code{\link{inner.Horst}}; \code{\link{inner.centroid}};
+  \code{\link{inner.factor}}; \code{\link{inner.path}}
 }
 

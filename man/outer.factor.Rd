@@ -29,6 +29,7 @@ indicator block and using the resulting estimates to calculate factor score weig
 }
 \seealso{
 Other outer estimators: \code{\link{outer.GSCA}};
+  \code{\link{outer.RGCCA}};
   \code{\link{outer.fixedWeights}};
   \code{\link{outer.modeA}}; \code{\link{outer.modeB}}
 }

@@ -48,8 +48,11 @@ export(inner.centroid)
 export(inner.factor)
 export(inner.identity)
 export(inner.path)
+export(inner.Horst)
+
 
 export(outer.GSCA)
+export(outer.RGCCA)
 export(outer.factor)
 export(outer.fixedWeights)
 export(outer.modeA)
@@ -57,7 +60,9 @@ export(outer.modeB)
 
 export(optim.maximizePrediction)
 export(optim.maximizeInnerR2)
-export(optim.minimizeGSCA)
+export(optim.GSCA)
+export(optim.GCCA)
+
 
 export(params.plsc)
 export(params.plsregression)

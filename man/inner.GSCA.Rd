@@ -79,13 +79,17 @@ if(require(ASGSCA)) {
   # Compare thw weights
   print(GSCA.res$Weight)
   print(t(attr(matrixpls.res1,"W")))
+
+  print(GSCA.res$Weight - t(attr(matrixpls.res1,"W")))
+  
   
   # Compare the paths
   print(GSCA.res$Path)
   print(t(attr(matrixpls.res1,"beta")))
   
+  print(GSCA.res$Path-t(attr(matrixpls.res1,"beta")))
   
-  # Estimate using alternative least squares
+  # Estimate using alternating least squares
   
   matrixpls.res2 <- matrixpls(cov(GenPhen),  model,
                               outerEstimators = outer.GSCA,
@@ -94,11 +98,19 @@ if(require(ASGSCA)) {
   # Compare thw weights
   print(GSCA.res$Weight)
   print(t(attr(matrixpls.res2,"W")))
+
+  print(GSCA.res$Weight - t(attr(matrixpls.res2,"W")))
+  
   
   # Compare the paths
   print(GSCA.res$Path)
   print(t(attr(matrixpls.res2,"beta")))
   
+  print(GSCA.res$Path-t(attr(matrixpls.res2,"beta")))
+  
+  # Check the criterion function values
+  print(optim.minimizeGSCA(matrixpls.res1))
+  print(optim.minimizeGSCA(matrixpls.res2))
   
 } else{
   print("This example requires the ASGSCA package")
@@ -109,8 +121,8 @@ if(require(ASGSCA)) {
 Hwang, H., & Takane, Y. (2004). Generalized structured component analysis. Psychometrika, 69(1), 81–99. doi:10.1007/BF02295841
 }
 \seealso{
-Other inner estimators: \code{\link{inner.centroid}};
-  \code{\link{inner.factor}}; \code{\link{inner.identity}};
-  \code{\link{inner.path}}
+Other inner estimators: \code{\link{inner.Horst}};
+  \code{\link{inner.centroid}}; \code{\link{inner.factor}};
+  \code{\link{inner.identity}}; \code{\link{inner.path}}
 }
 

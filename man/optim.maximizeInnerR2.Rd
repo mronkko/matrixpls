@@ -16,7 +16,8 @@ Negative mean R2.
 Optimization criterion to maximize the inner model mean R2
 }
 \seealso{
-Other Weight optimization criteria: \code{\link{optim.maximizePrediction}};
-  \code{\link{optim.minimizeGSCA}}
+Other Weight optimization criteria: \code{\link{optim.GCCA}};
+  \code{\link{optim.GSCA}};
+  \code{\link{optim.maximizePrediction}}
 }
 

@@ -1088,6 +1088,51 @@ inner.factor <- function(S, W, inner.mod, ignoreInnerModel = FALSE, ...){
   return(E)
 } 
 
+#'@title PLS inner estimation with the Horst scheme
+#'
+#'@description
+#'Calculates a set of inner weights based on the Horst scheme.
+#
+#'@details
+#'In the Hosrt scheme, inner weights are unit weights for
+#'composites that are connected in the model specified in \code{inner.mod} and zero otherwise.
+#'
+#'Falls back to to identity scheme for composites that are not connected to any other composites.
+#'
+#'@param S Covariance matrix of the data.
+#'
+#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'
+#'@param inner.mod A square matrix specifying the relationships of the composites in the model.
+
+#'@param ignoreInnerModel Should the inner model be ignored and all correlations be used.
+#'
+#'@param ... Other parameters are ignored
+#'
+#'@return A matrix of unscaled inner weights \code{E} with the same dimesions as \code{inner.mod}.
+#'
+#'@family inner estimators
+#'
+#'@references
+#'Tenenhaus, A., & Tenenhaus, M. (2011). Regularized Generalized Canonical 
+#'Correlation Analysis. Psychometrika, 76(2), 257–284. doi:10.1007/s11336-011-9206-8
+
+#'@export
+
+inner.Horst <- function(S, W, inner.mod, ignoreInnerModel = FALSE, ...){
+  
+  if(ignoreInnerModel){
+    E <- lower.tri(inner.mod) * 1
+  } 
+  else E <- inner.mod 
+  
+  # If we have LVs that are not connected to any other LVs, use identity scheme as fallback
+  diag(E)[rowSums(E) == 0] <- 1
+  
+  return(E)
+} 
+
+
 #'@title PLS inner estimation with the identity scheme
 #'
 #'@description
@@ -1121,7 +1166,6 @@ inner.factor <- function(S, W, inner.mod, ignoreInnerModel = FALSE, ...){
 inner.identity <- function(S, W, inner.mod, ...){
   return(diag(nrow(inner.mod)))
 }
-
 #'@title GSCA inner estimation
 #'
 #'@description
@@ -1377,6 +1421,62 @@ outer.GSCA <- function(S, W, E, W.mod, model, ...){
   return(W)
 }
 
+#'@title RGCCA outer estimation
+#'
+#'@description
+#'
+#'This implements the second step of the RGCCA estimation describe by Tenenhaus & Tenehaus (2011)
+#'
+#'@details
+#'
+#'The second step of RGCCA estimation method, as describe by Tenenhaus & Tenehaus (2011)
+#'@inheritParams outer.modeA
+#'
+#'@param tau The shrinkage parameter (0-1) 
+#'
+#'@return A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.mod}.
+#'
+#'@references
+#'Tenenhaus, A., & Tenenhaus, M. (2011). Regularized Generalized Canonical 
+#'Correlation Analysis. Psychometrika, 76(2), 257–284. 
+#'doi:10.1007/s11336-011-9206-8
+#'
+#'@example example/matrixpls.RGCCA-example.R
+#'
+#'@family outer estimators
+#'
+#'@export
+
+
+outer.RGCCA <- function(S, W, E, W.mod, ..., tau = 1){
+  
+  if(length(tau) == 1) tau <- rep(tau, nrow(W.mod))
+  else if(length(tau) != nrow(W.mod)) stop("Parameter tau of outer.RGCCA must be of length one or the number of composites.")
+  
+  # Calculate the covariance matrix between indicators and composites
+  IC <- E %*% W %*% S
+  
+  # Set up a weight pattern
+  W_new <- ifelse(W.mod==0,0,1)
+  
+  # Do the outer model regressions
+  
+  for(row in which(rowSums(W_new)>0, useNames = FALSE)){
+    
+    indicatorIndices <- W_new[row,]==1
+    # Tikhonov matrix
+    Gamma <- tau[row] * diag(sum(indicatorIndices))
+    
+    # Ridge regression
+    W_new[row,indicatorIndices] <- solve(S[indicatorIndices,indicatorIndices] + t(Gamma) %*% Gamma,IC[row,indicatorIndices])
+    
+    browser()
+  }
+  
+  return(W_new)
+  
+}
+
 #'@title Blockwise factor score outer estimation
 #'
 #'@description
@@ -1487,8 +1587,13 @@ optim.maximizePrediction <- function(matrixpls.res){
 #'
 #'@export
 #'
+#'@references
+#'
+#'Hwang, H., & Takane, Y. (2004). Generalized structured component analysis. 
+#'Psychometrika, 69(1), 81–99. doi:10.1007/BF02295841
+#'
 
-optim.minimizeGSCA <- function(matrixpls.res){
+optim.GSCA <- function(matrixpls.res){
   
   C <- attr(matrixpls.res,"C")
   IC <- attr(matrixpls.res,"IC")
@@ -1511,6 +1616,43 @@ optim.minimizeGSCA <- function(matrixpls.res){
   sum(inner_resid, form_resid, refl_resid)
   
 }
+
+#'@title GSCA optimization criterion
+#'
+#'@details Optimization criterion for maximixing the weighted sum of composite
+#'correlations
+#'
+#'@param matrixpls.res An object of class \code{matrixpls} from which the
+#'criterion function is calculated
+#'
+#'@inheritParams weight.pls
+#'
+#'@return Sum of residual variances.
+#'
+#'@family Weight optimization criteria
+#'
+#'@export
+#'
+#'@references
+#'
+#'Tenenhaus, A., & Tenenhaus, M. (2011). Regularized Generalized Canonical 
+#'Correlation Analysis. Psychometrika, 76(2), 257–284. doi:10.1007/s11336-011-9206-8
+#'
+
+optim.GCCA <- function(matrixpls.res, innerEstimator, ...){
+  
+  C <- attr(matrixpls.res,"C")
+  S <- attr(matrixpls.res,"S")
+  W <- attr(matrixpls.res,"W")
+  inner <- attr(matrixpls.res,"model")$inner.mod
+  
+  E <- function(S, W, inner.mod, ...)
+  
+  -sum(C * E)
+  
+}
+
+
 
 # =========== Utility functions ===========
 
