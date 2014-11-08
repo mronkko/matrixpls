@@ -17,13 +17,25 @@ GSCA optimization criterion
 }
 \details{
 Optimization criterion for minimizing the sum of all residual
-variances in the model
+variances in the model.
+
+The matrixpls implementation of the GSCA criterion extends the criterion
+presented by Huang and Takane by including also the minimization of the
+residual variances of the formative part of the model. The formative
+regressions in a model are typically specified to be identical to the
+weight pattern \code{W.mod} resulting zero residual variances by definition.
+However, it is possible to specify a formative model that does not completely
+overlap with the weight pattern leading to non-zero residuals that can be
+optimizes.
 }
 \references{
 Hwang, H., & Takane, Y. (2004). Generalized structured component analysis.
 Psychometrika, 69(1), 81–99. doi:10.1007/BF02295841
 }
 \seealso{
+Other GSCA functions: \code{\link{inner.GSCA}};
+  \code{\link{outer.GSCA}}
+
 Other Weight optimization criteria: \code{\link{optim.GCCA}};
   \code{\link{optim.maximizeInnerR2}};
   \code{\link{optim.maximizePrediction}}

@@ -1,4 +1,4 @@
-# Run the example from plspm package using GSCA estimation
+# Run the example from ASGSCA package using GSCA estimation
 
 if(require(ASGSCA)) {
   

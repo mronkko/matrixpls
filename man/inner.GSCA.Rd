@@ -5,35 +5,53 @@
 \usage{
 inner.GSCA(S, W, inner.mod, ...)
 }
-\arguments{
-\item{S}{Covariance matrix of the data.}
-
-\item{W}{Weight matrix, where the indicators are on colums and composites are on the rows.}
-
-\item{inner.mod}{A square matrix specifying the relationships of the composites in the model.}
-
-\item{...}{Other parameters are ignored}
-}
 \value{
 A matrix of unscaled inner weights \code{E} with the same dimesions as \code{inner.mod}.
 }
 \description{
-This implements the first step of the GSCA estimation describe by Hwang & Takane (2004). GSCA inner estimation should
-be used only with GSCA outer estimation.
+First step of the GSCA algorithm
 }
 \details{
-The first step of GSCA estimation method, as describe by Hwang & Takane (2004), involves estimating all model regressions,
-including also the relationships from composites toward indicators in the first step.
+The two step GSCA algorithm is designed to minimize.
 
-The implementation of GSCA in matrixpls differs from the Hwang & Takane (2004) version in that during the
-first step, only regressions between composites are estimated. The reason for this is that the
-relationhips from the composites to indicators are simple regressions that are simply the covariances between
+\code{SS(ZV-ZWA)}
+
+The parameter matrix \code{A} contains all model parameters including
+\code{inner}, reflective \code{inner}, and \code{formative}. The weight
+matrices \code{V} and \code{W}, which can contain duplicate elements,
+contain the indicator weights.
+
+The first step of GSCA estimation method is calculation of regressions
+coefficients \code{A} given weights \code{W} and \code{V}. The function
+\code{\link{inner.GSCA}} update the part of \code{A} corresponding to
+regressions between the composites, corresponding to \code{E} matrix in
+matrixpls. The regressions between composites and indicators are estimated
+in \code{\link{inner.GSCA}}.
+
+This algorithm for estimating the relationships between the composites
+is therefore identical to the PLS path weighting scheme with
+the exception that correlations are not used for inverse relationships and
+there is no falling back to identity scheme for composites that are not
+connected to other composites
+The second step of GSCA is calculating a new set of weights conditional on
+the regression coeffcients \code{A} to minimize the sum of error terms in
+the regressions. This step is implemented in \code{\link{inner.GSCA}} after
+updating the regresions between indicators and composites.
+The implementation of GSCA in matrixpls differs from the Hwang & Takane (2004)
+version in that during the first step, only regressions between composites are
+estimated. The regressions between composites and indicators are estimated by
+the second stage
 the indicators and compositess. Since these covariances need to be calculated in the second step, it is more
 efficient to not calculate them during the first step.
 
-This algorithm is therefore identical to the PLS path weighting scheme with the exception that correlations
-are not used for inverse relationships and there is no falling back to identity scheme for composites
-that are not connected to other composites.
+The matrixpls implementation of the GSCA algorithm extends the criterion
+presented by Hwang and Takane by including also the minimization of the
+residual variances of the formative part of the model. The formative
+regressions in a model are typically specified to be identical to the
+weight pattern \code{W.mod} resulting zero residual variances by definition.
+However, it is possible to specify a formative model that does not completely
+overlap with the weight pattern leading to non-zero residuals that can be
+optimized.
 }
 \examples{
 # Run the example from plspm package using GSCA estimation
@@ -121,6 +139,9 @@ if(require(ASGSCA)) {
 Hwang, H., & Takane, Y. (2004). Generalized structured component analysis. Psychometrika, 69(1), 81–99. doi:10.1007/BF02295841
 }
 \seealso{
+Other GSCA functions: \code{\link{optim.GSCA}};
+  \code{\link{outer.GSCA}}
+
 Other inner estimators: \code{\link{inner.Horst}};
   \code{\link{inner.centroid}}; \code{\link{inner.factor}};
   \code{\link{inner.identity}}; \code{\link{inner.path}}

@@ -15,39 +15,54 @@ outer.GSCA(S, W, E, W.mod, model, ...)
 \item{W.mod}{A matrix specifying the weight relationships and their starting values.}
 
 \item{model}{A matrixpls model. See \code{\link{matrixpls} for details}}
-
-\item{...}{Other parameters are ignored}
 }
 \value{
 A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.mod}.
 }
 \description{
-This implements the second step of the GSCA estimation describe by Hwang & Takane (2004). GSCA outer estimation should
-be used only with GSCA inner estimation.
+This implements the second step of the GSCA algorithm.
 }
 \details{
-The second step of GSCA estimation method, as describe by Hwang & Takane (2004), involves calculation of new
-weights given the regression estimates form the first step. In the second step, the following function is
-minimized (Hwang & Takane, 2004, eq. 7, first row):
+The two step GSCA algorithm is designed to minimize.
 
-\deqn{SS(Z[V-\Lambda])}{SS(Z[V-Lambda])}
+\code{SS(ZV-ZWA)}
 
-Because \eqn{\Lambda}{Lambda} is defined as \eqn{WA}{WA}, the function to be minimized is
-identical to the first step function (Hwang & Takane, 2004, eq. 4, first row):
+The parameter matrix \code{A} contains all model parameters including
+\code{inner}, reflective \code{inner}, and \code{formative}. The weight
+matrices \code{V} and \code{W}, which can contain duplicate elements,
+contain the indicator weights.
 
-\deqn{SS(ZV-ZWA)}{SS(ZV-ZWA)}
+The first step of GSCA estimation method is calculation of regressions
+coefficients \code{A} given weights \code{W} and \code{V}. The function
+\code{\link{inner.GSCA}} update the part of \code{A} corresponding to
+regressions between the composites, corresponding to \code{E} matrix in
+matrixpls. The regressions between composites and indicators are estimated
+in \code{\link{inner.GSCA}}.
 
-In the second step, this function is minimized in respect to weights \eqn{W}{W} and \eqn{V}{V}.
-This involves estimating each regression ananalysis in the model including
-regressions between the composites and from composites to indicators and to minimize the sum of all OLS
-dicrepancy functions simultaneously. Because one weight can be included in many regressions, these equations
-must be estimated simultaneously. The minimization algoritm is the Nelder-Mead algorithm implemented in the
-\code{\link{optim}} function.
+This algorithm for estimating the relationships between the composites
+is therefore identical to the PLS path weighting scheme with
+the exception that correlations are not used for inverse relationships and
+there is no falling back to identity scheme for composites that are not
+connected to other composites
+The second step of GSCA is calculating a new set of weights conditional on
+the regression coeffcients \code{A} to minimize the sum of error terms in
+the regressions. This step is implemented in \code{\link{inner.GSCA}} after
+updating the regresions between indicators and composites.
+The implementation of GSCA in matrixpls differs from the Hwang & Takane (2004)
+version in that during the first step, only regressions between composites are
+estimated. The regressions between composites and indicators are estimated by
+the second stage
+the indicators and compositess. Since these covariances need to be calculated in the second step, it is more
+efficient to not calculate them during the first step.
 
-The GSCA algoritm described by Hwang & Takane (2004) allows some indicators to be excluded from the second
-step, but in this implementation all indicators are always used so that each weight relation described in
-\code{W.mod} has always a corresponding regression relationship from a composite to a variable in the second
-step of GSCA estimation.
+The matrixpls implementation of the GSCA algorithm extends the criterion
+presented by Hwang and Takane by including also the minimization of the
+residual variances of the formative part of the model. The formative
+regressions in a model are typically specified to be identical to the
+weight pattern \code{W.mod} resulting zero residual variances by definition.
+However, it is possible to specify a formative model that does not completely
+overlap with the weight pattern leading to non-zero residuals that can be
+optimized.
 }
 \examples{
 # Run the example from plspm package using GSCA estimation
@@ -135,6 +150,9 @@ if(require(ASGSCA)) {
 Hwang, H., & Takane, Y. (2004). Generalized structured component analysis. \emph{Psychometrika}, 69(1), 81–99. doi:10.1007/BF02295841
 }
 \seealso{
+Other GSCA functions: \code{\link{inner.GSCA}};
+  \code{\link{optim.GSCA}}
+
 Other outer estimators: \code{\link{outer.RGCCA}};
   \code{\link{outer.factor}};
   \code{\link{outer.fixedWeights}};
