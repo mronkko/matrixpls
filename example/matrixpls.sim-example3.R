@@ -16,7 +16,7 @@ if(require(simsem)){
   #Define Simulation Parameters
   
   SAMPLE <- 100
-  REPLICATIONS <- 10
+  REPLICATIONS <- 100
   
   MODEL <- "
 A =~ .8*a1 + .7*a2 + .6*a3
