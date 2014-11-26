@@ -204,7 +204,13 @@ print.matrixpls <- function(x, ...){
     cat("\n Standard errors based on",boot.out$R,"bootstrap replications\n")
   }
   
-  print(attr(x,"W"), ...)
+  W <- attr(x,"W")
+  
+  attr(W,"iterations") <- attr(x,"iterations")
+  attr(W,"converged") <- attr(x,"converged")
+    
+  class(W) <- "matrixplsweights"
+  print(W, ...)
   
 }
 
@@ -335,17 +341,17 @@ weight.pls <- function(S, model, W.mod,
   if(validateInput){
     
     # All parameters must have values
-    assert_all_are_not_na(formals())
+    assertive::assert_all_are_not_na(formals())
     
     # S must be symmetric and a valid covariance matrix
-    assert_is_matrix(S)
-    assert_is_symmetric_matrix(S)
-    assert_is_identical_to_true(is.positive.semi.definite(S))
+    assertive::assert_is_matrix(S)
+    assertive::assert_is_symmetric_matrix(S)
+    assertive::assert_is_identical_to_true(is.positive.semi.definite(S))
     
     # W.mod must be a real matrix and each indicators must be
     # linked to at least one composite and each composite at least to one indicator
-    assert_is_matrix(W.mod)
-    assert_all_are_real(W.mod)
+    assertive::assert_is_matrix(W.mod)
+    assertive::assert_all_are_real(W.mod)
     
     if(! all(apply(W.mod!=0,1,any))){
       print(W.mod)	
@@ -366,24 +372,24 @@ weight.pls <- function(S, model, W.mod,
     # a function
     if(! is.null(outerEstimators)){
       if(is.list(outerEstimators)){
-        assert_is_identical_to_true(length(outerEstimators) == nrow(W.mod))
+        assertive::assert_is_identical_to_true(length(outerEstimators) == nrow(W.mod))
         for(outerEstimator in outerEstimators){
-          assert_is_function(outerEstimator)
+          assertive::assert_is_function(outerEstimator)
         }
       }
       else{
-        assert_is_function(outerEstimators)
+        assertive::assert_is_function(outerEstimators)
       }
     }
     
     if(! is.null(innerEstimator)){
-      assert_is_function(innerEstimator)
+      assertive::assert_is_function(innerEstimator)
     }
-    # tol must be positive
-    assert_all_are_positive(tol)
+    # tol must be non negative
+    assertive::assert_all_are_non_negative(tol)
     
     #iter must not be negative
-    assert_all_are_positive(iter)
+    assertive::assert_all_are_non_negative(iter)
   }
   
   nativeModel <- parseModelToNativeFormat(model)
@@ -423,7 +429,9 @@ weight.pls <- function(S, model, W.mod,
   
   weightHistory <- matrix(NA,iter+1,sum(weightPattern))
   weightHistory[1,] <- W[weightPattern]
-  rownames(weightHistory) <- c("start",1:iter)
+  
+  if(iter > 0) rownames(weightHistory) <- c("start",1:iter)
+  else rownames(weightHistory) <- "start"
   
   
   # If we are not using an outer estimator, do not perform iterative estimation
@@ -445,6 +453,11 @@ weight.pls <- function(S, model, W.mod,
     # =========== Start of iterative procedure ===========
     
     repeat {
+      
+      if(iteration == iter){
+        converged <- FALSE;
+        break;
+      }
       
       # Get new inner weights from inner estimation
       
@@ -480,10 +493,6 @@ weight.pls <- function(S, model, W.mod,
         converged <- TRUE
         break;
       }
-      else if(iteration == iter){
-        converged <- FALSE;
-        break;
-      }
       
     }
   }
@@ -491,6 +500,8 @@ weight.pls <- function(S, model, W.mod,
   # Mark the estimation as converged if not running iterations
   
   else converged <- TRUE	
+  
+  if(!converged) warning(paste("Iterative weight algorithm did not converge."))
   
   attr(W,"S") <- S
   attr(W,"E") <- E
@@ -598,6 +609,8 @@ weight.optim <- function(S, model, W.mod,
   
   W[W.mod != 0] <- optim.res$par
   W <- scaleWeights(S, W)
+  
+  if(optim.res$convergence) warning(paste("Weight optimization did not converge. Optim returned",optim.res$convergence))
   
   attr(W,"S") <- S
   attr(W,"iterations") <- optim.res$counts[1]
@@ -834,44 +847,6 @@ params.tsls <- function(S, model, W, ...){
   return(params.internal_generic(S,model, W, 
                                  TwoStageLeastSquaresWithCovarianceMatrixAndModelPattern))
 }
-params.internal_generic <- function(S, model, W, pathEstimator){
-  
-  nativeModel <- parseModelToNativeFormat(model)
-  
-  results <- c()
-  
-  # Calculate the composite covariance matrix
-  C <- W %*% S %*% t(W)
-  
-  # Calculate the covariance matrix between indicators and composites
-  IC <- W %*% S
-  
-  innerRegressionIndices <- which(nativeModel$inner==1, useNames = FALSE)
-  
-  # Choose the specified values and add names
-  if(length(innerRegressionIndices)>0){
-    inner <- pathEstimator(C,nativeModel$inner)
-    innerVect <- inner[innerRegressionIndices]
-    names(innerVect) <- paste(rownames(inner)[row(inner)[innerRegressionIndices]],"~",
-                              colnames(inner)[col(inner)[innerRegressionIndices]], sep="")
-    
-    results <- c(results, innerVect)
-  }
-  else{
-    inner <- matrix(0,nrow(nativeModel$inner), ncol(nativeModel$inner))
-  }
-  
-  results <- c(results, params.internal_reflective(C, IC, nativeModel))
-  results <- c(results,	params.internal_formative(S, IC, nativeModel))
-  
-  # Store these in the result object
-  attr(results,"C") <- C
-  attr(results,"IC") <- IC
-  attr(results,"beta") <- inner
-  
-  return(results)
-}
-
 
 params.internal_generic <- function(S, model, W, pathEstimator){
   
