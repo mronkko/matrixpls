@@ -84,7 +84,7 @@ outer.GSCA <- function(S, W, E, W.mod, model, ...){
   # E, formative, and reflective form the A matrix of GSCA. In this implementation,
   # the full A matrix is never calculated, but we use the elements of 
   # E, formative, and reflective directly.
-
+  
   # Composite correlations implied by A
   C <- W %*% S %*% t(W)
   
@@ -127,9 +127,9 @@ outer.GSCA <- function(S, W, E, W.mod, model, ...){
       ic <- cbind(ic, W[row,i] %*% S[i,i])
     }
     
-    # Indicators that this composite depends on
-    
-    for(j in which(reflective[row,]!=0)){
+    # Indicators that depend on this composite
+
+    for(j in which(reflective[,row]!=0)){
       ic <- cbind(ic, S[i,j])
     }
 
@@ -146,6 +146,7 @@ outer.GSCA <- function(S, W, E, W.mod, model, ...){
     
     W <- scaleWeights(S, W)
     
+
     # Proceed to next composite
   }
   
