@@ -92,7 +92,17 @@ outer.GSCA <- function(S, W, E, W.mod, model, ...){
   
   for(row in 1:nrow(W.mod)){
     
-    # TODO: Compare with the old implementation
+    #
+    # In Hwang, H., & Takane, Y. (2004), the weights for one composite are
+    # defined by specifying a series of regression analyses where the
+    # indicators are independent variables. These regressions are then estimated
+    # simulataneously by stacking the data so that the system of equations
+    # can be estimated with OLS estimator in one go.
+    #
+    # This is equivalent to collecting all covariances between the IVs and
+    # DVs into a matrix and then taking a mean over all DVs so that we 
+    # have a vector of mean covariances for each IV. 
+    #
     
     # Indicator indices
     i <- which(W.mod[row,]!=0)
