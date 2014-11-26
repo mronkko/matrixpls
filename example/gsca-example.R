@@ -1,6 +1,12 @@
 # Run the example from ASGSCA package using GSCA estimation
 
-if(require(ASGSCA)) {
+# library(Matrix)
+# library(MASS)
+# 
+# source("~/Downloads/ASGSCA/R/GSCAestim.R")
+# source("~/Downloads/ASGSCA/R/GSCAtest.R")
+
+ if(require(ASGSCA)) {
   
   # Run the GSCA example from the ASGSCA package
   
@@ -31,13 +37,15 @@ if(require(ASGSCA)) {
   model <- list(inner = inner, 
                 reflective = reflective,
                 formative = formative)
-  
-  # Estimate using direct minimization of the estimation criterion
+    
+  # Estimate using alternating least squares
   
   matrixpls.res1 <- matrixpls(cov(GenPhen),  model,
-                              weightFunction = weight.optim,
-                              optimCriterion = optim.minimizeGSCA)
-  
+                              outerEstimators = outer.GSCA,
+                              innerEstimator = inner.GSCA,
+                              tol = 0.000000000001)
+
+  print("Comparing alternating least squares estimates to original estimats")
   # Compare thw weights
   print(GSCA.res$Weight)
   print(t(attr(matrixpls.res1,"W")))
@@ -51,16 +59,20 @@ if(require(ASGSCA)) {
   
   print(GSCA.res$Path-t(attr(matrixpls.res1,"beta")))
   
-  # Estimate using alternating least squares
+  stop("done")
+  
+  # Estimate using direct minimization of the estimation criterion
   
   matrixpls.res2 <- matrixpls(cov(GenPhen),  model,
-                              outerEstimators = outer.GSCA,
-                              innerEstimator = inner.GSCA)
+                              weightFunction = weight.optim,
+                              optimCriterion = optim.GSCA)
 
+  print("Comparing numeric minimization estimates to original estimats")
+  
   # Compare thw weights
   print(GSCA.res$Weight)
   print(t(attr(matrixpls.res2,"W")))
-
+  
   print(GSCA.res$Weight - t(attr(matrixpls.res2,"W")))
   
   
@@ -70,9 +82,10 @@ if(require(ASGSCA)) {
   
   print(GSCA.res$Path-t(attr(matrixpls.res2,"beta")))
   
+  
   # Check the criterion function values
-  print(optim.minimizeGSCA(matrixpls.res1))
-  print(optim.minimizeGSCA(matrixpls.res2))
+  print(optim.GSCA(matrixpls.res1))
+  print(optim.GSCA(matrixpls.res2))
   
 } else{
   print("This example requires the ASGSCA package")

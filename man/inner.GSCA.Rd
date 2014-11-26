@@ -26,7 +26,7 @@ coefficients \code{A} given weights \code{W} and \code{V}. The function
 \code{\link{inner.GSCA}} update the part of \code{A} corresponding to
 regressions between the composites, corresponding to \code{E} matrix in
 matrixpls. The regressions between composites and indicators are estimated
-in \code{\link{inner.GSCA}}.
+in \code{\link{outer.GSCA}}.
 
 This algorithm for estimating the relationships between the composites
 is therefore identical to the PLS path weighting scheme with
@@ -35,7 +35,7 @@ there is no falling back to identity scheme for composites that are not
 connected to other composites
 The second step of GSCA is calculating a new set of weights conditional on
 the regression coeffcients \code{A} to minimize the sum of error terms in
-the regressions. This step is implemented in \code{\link{inner.GSCA}} after
+the regressions. This step is implemented in \code{\link{outer.GSCA}} after
 updating the regresions between indicators and composites.
 The implementation of GSCA in matrixpls differs from the Hwang & Takane (2004)
 version in that during the first step, only regressions between composites are
@@ -45,7 +45,7 @@ the indicators and compositess. Since these covariances need to be calculated in
 efficient to not calculate them during the first step.
 
 The matrixpls implementation of the GSCA algorithm extends the criterion
-presented by Hwang and Takane by including also the minimization of the
+presented by Hwang and Takane (2004) by including also the minimization of the
 residual variances of the formative part of the model. The formative
 regressions in a model are typically specified to be identical to the
 weight pattern \code{W.mod} resulting zero residual variances by definition.
@@ -54,9 +54,15 @@ overlap with the weight pattern leading to non-zero residuals that can be
 optimized.
 }
 \examples{
-# Run the example from plspm package using GSCA estimation
+# Run the example from ASGSCA package using GSCA estimation
 
-if(require(ASGSCA)) {
+# library(Matrix)
+# library(MASS)
+# 
+# source("~/Downloads/ASGSCA/R/GSCAestim.R")
+# source("~/Downloads/ASGSCA/R/GSCAtest.R")
+
+ if(require(ASGSCA)) {
   
   # Run the GSCA example from the ASGSCA package
   
@@ -87,13 +93,15 @@ if(require(ASGSCA)) {
   model <- list(inner = inner, 
                 reflective = reflective,
                 formative = formative)
-  
-  # Estimate using direct minimization of the estimation criterion
+    
+  # Estimate using alternating least squares
   
   matrixpls.res1 <- matrixpls(cov(GenPhen),  model,
-                              weightFunction = weight.optim,
-                              optimCriterion = optim.minimizeGSCA)
-  
+                              outerEstimators = outer.GSCA,
+                              innerEstimator = inner.GSCA,
+                              tol = 0.000000000001)
+
+  print("Comparing alternating least squares estimates to original estimats")
   # Compare thw weights
   print(GSCA.res$Weight)
   print(t(attr(matrixpls.res1,"W")))
@@ -107,16 +115,20 @@ if(require(ASGSCA)) {
   
   print(GSCA.res$Path-t(attr(matrixpls.res1,"beta")))
   
-  # Estimate using alternating least squares
+  stop("done")
+  
+  # Estimate using direct minimization of the estimation criterion
   
   matrixpls.res2 <- matrixpls(cov(GenPhen),  model,
-                              outerEstimators = outer.GSCA,
-                              innerEstimator = inner.GSCA)
+                              weightFunction = weight.optim,
+                              optimCriterion = optim.GSCA)
 
+  print("Comparing numeric minimization estimates to original estimats")
+  
   # Compare thw weights
   print(GSCA.res$Weight)
   print(t(attr(matrixpls.res2,"W")))
-
+  
   print(GSCA.res$Weight - t(attr(matrixpls.res2,"W")))
   
   
@@ -126,9 +138,10 @@ if(require(ASGSCA)) {
   
   print(GSCA.res$Path-t(attr(matrixpls.res2,"beta")))
   
+  
   # Check the criterion function values
-  print(optim.minimizeGSCA(matrixpls.res1))
-  print(optim.minimizeGSCA(matrixpls.res2))
+  print(optim.GSCA(matrixpls.res1))
+  print(optim.GSCA(matrixpls.res2))
   
 } else{
   print("This example requires the ASGSCA package")

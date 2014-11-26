@@ -60,67 +60,89 @@ outer.GSCA <- function(S, W, E, W.mod, model, ...){
   
   nativeModel <- parseModelToNativeFormat(model)
   
+  inner <- nativeModel$inner
+  
+  # Calculate the covariance matrix between indicators and composites
+  IC <- W %*% S
+  
+  # Estimate the reflective and formative parts of the model
+  
+  formative <- nativeModel$formative
+  
+  for(row in which(rowSums(formative!=0)>0)){
+    independents <- which(formative[row,] != 0)
+    formative[row,independents] <- solve(S[independents,independents],IC[row,independents])
+  }
+  
+  reflective <- nativeModel$reflective
+  
+  for(row in which(rowSums(reflective!=0)>0)){
+    independents <- which(reflective[row,] != 0)
+    reflective[row,independents] <- solve(S[independents,independents],IC[independents, row])
+  }  
+  
+  # E, formative, and reflective form the A matrix of GSCA. In this implementation,
+  # the full A matrix is never calculated, but we use the elements of 
+  # E, formative, and reflective directly.
+
+  # Composite correlations implied by A
+  C <- W %*% S %*% t(W)
+  
   # Update the weights one composite at a time
   
   for(row in 1:nrow(W.mod)){
     
-    # We will start by creating a function that returns the sum of residual
-    # variances for all regressions where the composite is a predictor
+    # TODO: Compare with the old implementation
     
-    ssFun <- function(Wvect){
-      
-      resid <- NULL
-      
-      W[row,W.mod[row,]!=0] <- Wvect
-      
-      # Start by standardizing the weights because optim does not know that the
-      # weights must result in a composite with unit variance
-      
-      W <- scaleWeights(S, W)
-      
-      # Calculate the covariance matrix between indicators and composites
-      IC <- W %*% S
-      
-      # Calculate the composite covariance matrix
-      C <- IC %*% t(W)
-      
-      # Regressions from composites to indicators, one indicator at a time
-      
-      for(i in which(nativeModel$reflective[,row] == 1)){
-        c <- which(nativeModel$reflective[i,] == 1)
-        coefs <- solve(C[c,c],IC[c,i])
-        resid <- c(resid,1 - sum(coefs*IC[c,i]))
-      }
-      
-      # Regressions from composites to composites, one composite at a time
-      # The current composite can be either an IV or a DV
-      
-      DVs <- which(nativeModel$inner[,row] == 1) # current is IV
-      if(any(nativeModel$inner[row,] != 0)) DVs <- c(DVs, row) # current is DV
-      
-      for(i in DVs){
-        c <- which(nativeModel$inner[i,] == 1)
-        coefs <- solve(C[c,c],C[c,i])
-        resid <- c(resid,1 - sum(coefs*C[c,i]))
-      }
-      
-      return(sum(resid))
-    }  
+    # Indicator indices
+    i <- which(W.mod[row,]!=0)
     
-    # The previous weights are used as starting values
+    # correlations between the indicators and dvs
+    ic <- NULL
+
+    # Calculate the covariance matrix between indicators and composites
+    # This needs to be recalculated for each composite because W is updated
+    # immediately
     
-    start <- W[row,W.mod[row,]!=0]
+    IC <- E %*% W %*% S
     
-    # Then we will find the minimum using optim
+    # The composite is dependent in inner model
     
-    Wvect <- optim(start, ssFun)$par
+    if(any(inner[row,]!=0)){
+      ic <- cbind(ic,IC[row,i])
+    }
+    
+    # Composites that this composite depends on
+    
+    for(j in which(inner[,row]!=0)){
+      ic <- cbind(ic,IC[j,i] * C[row,j])
+    }
+
+    # The composite is dependent in the formative model
+    # and the weight pattern and formative indicators do not
+    # overlap completely
+    
+    if(any(formative[row,]!=0) && 
+         ! identical((formative[row,] ==0), (W.mod[row,] == 0))){
+      ic <- cbind(ic, W[row,i] %*% S[i,i])
+    }
+    
+    # Indicators that this composite depends on
+    
+    for(j in which(reflective[row,]!=0)){
+      ic <- cbind(ic, S[i,j])
+    }
+
+    if(is.null(ic)) stop(paste("Composite '",rownames(inner)[row],
+                               "' is neither a dependent nor an independent variable in a GSCA outer model regressions. Estimation fails.",sep=""))
+    
+    Wvect <- solve(S[i,i],apply(ic,1,mean))
     
     # Update the weights based on the estimated parameters
     
     W[row,W.mod[row,]!=0] <- Wvect
     
-    # Finally standardize the weights because optim does not know that the
-    # weights must result in a composite with unit variance
+    # Finally standardize the weights 
     
     W <- scaleWeights(S, W)
     
