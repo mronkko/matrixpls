@@ -31,6 +31,18 @@
 #'
 #'@return An object of class \code{\link[simsem]{SimResult-class}}.
 #'
+
+#'@param outfun A function to be applied to the matrixpls output at each replication. 
+#'Output from this function in each replication will be saved in the simulation 
+#'output (SimResult),
+# and can be obtained using the getExtraOutput function.
+
+#'@param outfundata A function to be applied to the matrixpls output and the 
+#'generated data at each replication. Users can get the characteristics of the 
+#'generated data and also compare the characteristics with the generated output. 
+#'The output from this function in each replication will be saved in the 
+#'simulation output (SimResult), and can be obtained using the getExtraOutput function.
+
 #'@inheritParams simsem::sim
 #'
 # @example example/matrixpls.sim-example.R
@@ -48,7 +60,8 @@
 
 matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.95,
                           citype=c("norm","basic", "stud", "perc", "bca"), 
-                          boot.R = 500, fitIndices = fitSummary){
+                          boot.R = 500, fitIndices = fitSummary,
+                          outfundata = NULL, outfun = NULL){
   
   if(! requireNamespace("simsem")) stop("matrixpls.sim requires the simsem package")
   
@@ -249,6 +262,16 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
       ret$fit <- fitlist
     }
     else ret$fit <- c()
+    
+    # Apply the outfun
+    if(!is.null(outfundata)){
+      
+      if(! is.null(outfun)) warn("Both outfundata and outfun were specified. Only outfundata is applied")
+      ret$extra <- outfundata(ret$extra, data)
+    }
+    else if(!is.null(outfun)){
+      ret$extra <- outfun(ret$extra)      
+    }
     
     return(ret)
   }
