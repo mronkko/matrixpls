@@ -266,7 +266,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
     # Apply the outfun
     if(!is.null(outfundata)){
       
-      if(! is.null(outfun)) warn("Both outfundata and outfun were specified. Only outfundata is applied")
+      if(! is.null(outfun)) warning("Both outfundata and outfun were specified. Only outfundata is applied")
       ret$extra <- outfundata(ret$extra, data)
     }
     else if(!is.null(outfun)){

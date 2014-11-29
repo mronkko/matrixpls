@@ -302,7 +302,7 @@ loadings <- function(object, ...){
 #
 #'@S3method loadings matrixpls
 
-loadings.matrixpls <- function(x, ...) {
+loadings <- function(x, ...) {
   nativeModel <- attr(x,"model")
   IC <- attr(x,"IC")
   
@@ -345,7 +345,7 @@ CR <- function(object, ...){
 
 CR.matrixpls <- function(object, ...) {
   
-  loadings <- loadings.matrixpls(object)
+  loadings <- loadings(object)
   reflectiveModel <- attr(object, "model")$reflective
   
   result <- unlist(lapply(1:ncol(loadings), function(col){	
@@ -468,7 +468,7 @@ AVE <- function(object, ...){
 
 AVE.matrixpls <- function(object, ...) {
   
-  loadings <- loadings.matrixpls(object, standardized = TRUE)
+  loadings <- loadings(object, standardized = TRUE)
   reflectiveModel <- attr(object, "model")$reflective
   
   aves <- unlist(lapply(1:ncol(loadings), function(col){

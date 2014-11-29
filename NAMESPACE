@@ -3,7 +3,6 @@ S3method(CR,matrixpls)
 S3method(GoF,matrixpls)
 S3method(R2,matrixpls)
 S3method(effects,matrixpls)
-S3method(loadings,matrixpls)
 S3method(predict,matrixpls)
 S3method(print,matrixplfitsummary)
 S3method(print,matrixpls)
@@ -17,12 +16,14 @@ S3method(print,matrixplssummary)
 S3method(print,matrixplsweights)
 S3method(residuals,matrixpls)
 S3method(summary,matrixpls)
+
 export(AVE)
 export(CR)
 export(GoF)
 export(R2)
 export(fitSummary)
 export(loadings)
+
 
 export(signChange.construct)
 export(signChange.individual)
@@ -71,7 +72,6 @@ export(params.tsls)
 
 
 importFrom(stats,effects)
-importFrom(stats,loadings)
 
 importFrom(lavaan,lavaanify)
 

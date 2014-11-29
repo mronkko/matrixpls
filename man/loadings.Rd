@@ -3,12 +3,12 @@
 \alias{loadings}
 \title{Factor loadings matrix from matrixpls results}
 \usage{
-loadings(object, ...)
+loadings(x, ...)
 }
 \arguments{
-\item{...}{All other arguments are ignored.}
-
 \item{x}{An object of class \code{matrixpls}}
+
+\item{...}{All other arguments are ignored.}
 }
 \value{
 A matrix of factor loadings.

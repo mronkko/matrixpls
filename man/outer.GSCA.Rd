@@ -15,6 +15,8 @@ outer.GSCA(S, W, E, W.mod, model, ...)
 \item{W.mod}{A matrix specifying the weight relationships and their starting values.}
 
 \item{model}{A matrixpls model. See \code{\link{matrixpls} for details}}
+
+\item{...}{Other parameters are ignored}
 }
 \value{
 A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.mod}.
@@ -67,12 +69,6 @@ optimized.
 \examples{
 # Run the example from ASGSCA package using GSCA estimation
 
-# library(Matrix)
-# library(MASS)
-# 
-# source("~/Downloads/ASGSCA/R/GSCAestim.R")
-# source("~/Downloads/ASGSCA/R/GSCAtest.R")
-
  if(require(ASGSCA)) {
   
   # Run the GSCA example from the ASGSCA package
@@ -89,7 +85,8 @@ optimized.
   B0 <- matrix(c(rep(0,8),rep(1,2),rep(0,3),1,rep(0,2)),nrow=4,ncol=4)
   
   #Estimation only
-  GSCA.res <- GSCA(GenPhen,W0, B0,estim=TRUE,path.test=FALSE, latent.names=c("Gene1","Gene2","Clinical pathway 1","Clinical pathway 2"))
+  GSCA.res <- GSCA(GenPhen,W0, B0,estim=TRUE,path.test=FALSE, 
+                   latent.names=c("Gene1","Gene2","Clinical pathway 1","Clinical pathway 2"))
   
   # Setup matrixpls to estimate the same model. Note GSCA places dependent variables
   # on columns but matrixpls uses rows for dependent variables
@@ -99,7 +96,8 @@ optimized.
   formative <- t(W0)
   
   colnames(formative) <- rownames(reflective) <- names(GenPhen)
-  colnames(inner) <- rownames(inner) <- rownames(formative) <- colnames(reflective) <- c("Gene1","Gene2","Clinical pathway 1","Clinical pathway 2")
+  colnames(inner) <- rownames(inner) <- rownames(formative) <- colnames(reflective) <-
+    c("Gene1","Gene2","Clinical pathway 1","Clinical pathway 2")
   
   model <- list(inner = inner, 
                 reflective = reflective,
@@ -125,8 +123,6 @@ optimized.
   print(t(attr(matrixpls.res1,"beta")))
   
   print(GSCA.res$Path-t(attr(matrixpls.res1,"beta")))
-  
-  stop("done")
   
   # Estimate using direct minimization of the estimation criterion
   

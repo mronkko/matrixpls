@@ -5,7 +5,7 @@
 \usage{
 matrixpls.sim(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.95,
   citype = c("norm", "basic", "stud", "perc", "bca"), boot.R = 500,
-  fitIndices = fitSummary)
+  fitIndices = fitSummary, outfundata = NULL, outfun = NULL)
 }
 \arguments{
 \item{nRep}{Number of replications. If any of the \code{n}, \code{pmMCAR}, or \code{pmMAR} arguments are specified as lists, the number of replications will default to the length of the list(s), and \code{nRep} need not be specified.}
@@ -29,6 +29,16 @@ in the model.}
 \item{boot.R}{Number of bootstrap replications to use to estimate standard errors or \code{FALSE} to disable bootstrapping.}
 
 \item{fitIndices}{A function that returns a list of fit indices for the model. Setting this argument to \code{NULL} disables fit indices.}
+
+\item{outfundata}{A function to be applied to the matrixpls output and the
+generated data at each replication. Users can get the characteristics of the
+generated data and also compare the characteristics with the generated output.
+The output from this function in each replication will be saved in the
+simulation output (SimResult), and can be obtained using the getExtraOutput function.}
+
+\item{outfun}{A function to be applied to the matrixpls output at each replication.
+Output from this function in each replication will be saved in the simulation
+output (SimResult),}
 }
 \value{
 An object of class \code{\link[simsem]{SimResult-class}}.

@@ -25,17 +25,19 @@ model <- list(inner = inner,
               reflective = reflective,
               formative = formative)
 
-# Estimate using direct minimization of the estimation criterion
-
-matrixpls.res1 <- matrixpls(cov(maleData),  model,
-                            weightFunction = weight.optim,
-                            optimCriterion = optim.minimizeGSCA)
-
 # Estimate using alternating least squares
 
 matrixpls.res2 <- matrixpls(cov(maleData),  model,
                             outerEstimators = outer.GSCA,
                             innerEstimator = inner.GSCA)
+
+
+# Estimate using direct minimization of the estimation criterion
+
+matrixpls.res1 <- matrixpls(cov(maleData),  model,
+                            weightFunction = weight.optim,
+                            optimCriterion = optim.GSCA)
+
 
 # Compare the weights
 print(t(attr(matrixpls.res1,"W")))
