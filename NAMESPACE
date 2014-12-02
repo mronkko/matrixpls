@@ -65,11 +65,16 @@ export(optim.GSCA)
 export(optim.GCCA)
 
 
-export(params.plsc)
 export(params.plsregression)
 export(params.regression)
-export(params.tsls)
 
+export(estimator.CFALoadings)
+export(estimator.PLScLoadings)
+export(estimator.EFALoadings)
+export(estimator.regression)
+export(estimator.tsls)
+
+export(reliability.weightLoadingProduct)
 
 importFrom(stats,effects)
 

@@ -63,12 +63,9 @@
 #'a model specification \code{model}, and a weight pattern \code{W.mod} and 
 #' returns a named vector of parameter estimates. The default is \code{\link{weight.pls}}
 #'
-#'@param parameterEstimator A function that takes three  or more arguments, the data covariance matrix \code{S},
+#'@param parameterEstimator A function that takes three or more arguments, the data covariance matrix \code{S},
 #'model specification \code{model}, and weights \code{W} and returns a named vector of parameter estimates. The default is \code{\link{params.regression}}
-#'
-#'@param standardize \code{TRUE} (default) or \code{FALSE} indicating whether S should be converted
-#' to a correlation matrix.
-#'
+#'#'
 #'@param validateInput A boolean indicating whether the arguments should be validated.
 #' 
 #'@param ... All other arguments are passed through to \code{weightFunction} and \code{parameterEstimator}.
@@ -87,7 +84,8 @@
 #'@export
 
 
-matrixpls <- function(S, model, W.mod = NULL, weightFunction = weight.pls, parameterEstimator = params.regression,
+matrixpls <- function(S, model, W.mod = NULL, weightFunction = weight.pls,
+                      parameterEstimator = params.regression,
                       ..., validateInput = TRUE, standardize = TRUE) {
   
   
@@ -801,6 +799,20 @@ convCheck.absolute <- function(Wnew, Wold){
 #'
 #'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
 #'
+#'@param parametersInner A function that takes three or more arguments, the data covariance matrix \code{S},
+#'model specification \code{model}, and weights \code{W} and returns a named vector of parameter estimates. The default is \code{\link{params.regression}}
+#'
+#'@param parametersReflective A function that takes three or more arguments, the data covariance matrix \code{S},
+#'model specification \code{model}, and weights \code{W} and returns a named vector of parameter estimates. The default is \code{\link{params.regression}}
+#'
+#'@param parametersFormative A function that takes three or more arguments, the data covariance matrix \code{S},
+#'model specification \code{model}, and weights \code{W} and returns a named vector of parameter estimates. The default is \code{\link{params.regression}}
+#'
+#'@param disattenuate \code{TRUE} or \code{FALSE} (default) indicating whether C should be disattenuated before applying \code{parametersInner}.
+#'
+#'@param reliabilities A function that takes three or more arguments, the data covariance matrix \code{S},
+#'matrix of estimated loadings \code{loadings}, and weights \code{W} and returns a named vector of 
+#'estimated composite reliabilities. The default is \code{\link{reliability.weightLoadingProduct}}
 #'@inheritParams matrixpls
 #'
 #'@return A named vector of parameter estimates.
@@ -809,47 +821,13 @@ convCheck.absolute <- function(Wnew, Wold){
 #'
 #'@export
 
-params.regression <- function(S, model, W, ...){
-  
-  return(params.internal_generic(S,model, W,
-                                 regressionsWithCovarianceMatrixAndModelPattern))
-}
-
-
-#'@title Parameter estimation with two-stage least squares
-#'
-#'@description
-#'Estimates the model parameters with weighted composites using two-stage least squares
-#'
-#'@details
-#'\code{params.tsls} estimates the statistical model described by \code{model} with the
-#'following steps. If \code{model} is not in the native format, it is converted to the native
-#'format containing matrices \code{inner}, \code{reflective}, and \code{formative}. The
-#'weights \code{W} and the data covariance matrix \code{S} are used to calculate the composite
-#'covariance matrix \code{C} and the indicator-composite covariance matrix \code{IC}. These
-#'are used to estimate multiple regression models with two-stage least squares for
-#'inner model and OLS regressions for the outer model.
-#'
-#'@param S Covariance matrix of the data.
-#'
-#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
-#'
-#'@inheritParams matrixpls
-#'
-#'@return A named vector of parameter estimates.
-#'
-#'@family parameter estimators
-#'
-#'@export
-
-params.tsls <- function(S, model, W, ...){
-  
-  return(params.internal_generic(S,model, W, 
-                                 TwoStageLeastSquaresWithCovarianceMatrixAndModelPattern))
-}
-
-params.internal_generic <- function(S, model, W, pathEstimator){
-  
+params.regression <- function(S, model, W, ...,
+                              parametersInner = estimator.regression,
+                              parametersReflective = estimator.regression,
+                              parametersFormative = estimator.regression,
+                              disattenuate = FALSE,
+                              reliabilities = reliability.weightLoadingProduct){
+    
   nativeModel <- parseModelToNativeFormat(model)
   
   results <- c()
@@ -860,86 +838,180 @@ params.internal_generic <- function(S, model, W, pathEstimator){
   # Calculate the covariance matrix between indicators and composites
   IC <- W %*% S
   
-  innerRegressionIndices <- which(nativeModel$inner==1, useNames = FALSE)
+  reflectiveEstimates <- parametersReflective(C, IC, nativeModel$reflective)
   
-  # Choose the specified values and add names
-  if(length(innerRegressionIndices)>0){
-    inner <- pathEstimator(C,nativeModel$inner)
-    innerVect <- inner[innerRegressionIndices]
-    names(innerVect) <- paste(rownames(inner)[row(inner)[innerRegressionIndices]],"~",
-                              colnames(inner)[col(inner)[innerRegressionIndices]], sep="")
+  if(disattenuate){
     
-    results <- c(results, innerVect)
-  }
-  else{
-    inner <- matrix(0,nrow(nativeModel$inner), ncol(nativeModel$inner))
+    # TODO: Non-factor indicators are assumed to be perfectly reliable and not corrected
+     
+    Q <- reliabilities(S, reflectiveEstimates, W, ...)
+    C <- C / sqrt(Q) %*% t(sqrt(Q))
+    diag(C) <- 1
+    
+    # Fix the IC matrix. Start by replacing correlations with the corrected loadings
+    tL <- t(reflectiveEstimates)
+    IC[tL!=0] <- tL[tL!=0]
+    
+    # Disattenuate the remaining correlations
+    IC[tL==0] <- (IC/sqrt(Q))[tL==0]
   }
   
-  results <- c(results, params.internal_reflective(C, IC, nativeModel))
-  results <- c(results,	params.internal_formative(S, IC, nativeModel))
+  formativeEstimates <- parametersFormative(S, IC, nativeModel$formative)  
+  innerEstimates <- parametersInner(C, C, nativeModel$inner)
+    
+  estimatesMatrixToVector <- function(est, m, sep, reverse = FALSE){
+    
+    ind <- which(m != 0)
+    ret <- est[ind]
+    
+    if(reverse){
+      names(ret) <- paste(colnames(m)[col(m)[ind]],
+                          rownames(m)[row(m)[ind]], sep=sep)
+    }
+    else{
+      names(ret) <- paste(rownames(m)[row(m)[ind]],
+                          colnames(m)[col(m)[ind]], sep=sep)
+    }
+    
+    ret
+  }
+  
+  results <- c(estimatesMatrixToVector(innerEstimates, nativeModel$inner, "~"),
+               estimatesMatrixToVector(reflectiveEstimates, nativeModel$reflective, "=~", reverse = TRUE),
+               estimatesMatrixToVector(reflectiveEstimates, nativeModel$formative, "<~"))
+  
+  # Copy all non-standard attributes from the estimates objects
+  
+  allAttributes <- c(attributes(W),attributes(estimates))
+  
+  for(object in list(innerEstimates, reflectiveEstimates, formattiveEstimates)){
+    for(a in setdiff(names(allAttributes), c("dim", "dimnames", "class", "names"))){
+      attr(ret,a) <- allAttributes[[a]]
+      attr(W,a) <- NULL
+    }
+  }
   
   # Store these in the result object
   attr(results,"C") <- C
   attr(results,"IC") <- IC
-  attr(results,"beta") <- inner
-  
-  return(results)
-}
-params.internal_formative <- function(S, IC, nativeModel){
-  
-  results <-c()
-  
-  for(row in 1:nrow(nativeModel$formative)){
-    
-    independents <- which(nativeModel$formative[row,]!=0, useNames = FALSE)
-    
-    if(length(independents)>0){
-      if(length(independents)==1){
-        # Simple regresion is the covariance divided by the variance of the predictor, which are standardized
-        thisResults <- IC[row,independents]
-      }
-      else{
-        thisResults <- solve(S[independents,independents],IC[row,independents])
-      }
-      
-      names(thisResults) <- paste(rownames(nativeModel$formative)[row], "<~",
-                                  names(thisResults), sep = "")
-      
-      results <- c(results, thisResults)
-    }
-  }
-  return(results)
-}
+  attr(results,"beta") <- innerEstimates
 
-params.internal_reflective <- function(C, IC, nativeModel){	
-  
-  results <-c()
-  
-  for(row in 1:nrow(nativeModel$reflective)){
-    
-    independents <- which(nativeModel$reflective[row,]!=0, useNames = FALSE)
-    
-    if(length(independents)>0){
-      if(length(independents)==1){
-        # Simple regresion is the covariance divided by the variance of the predictor, which are standardized
-        coefs <- IC[independents,row]
-      }
-      else{
-        coefs <- solve(C[independents,independents],IC[independents,row])
-      }
-      
-      names(coefs) <- paste(colnames(nativeModel$reflective)[independents], "=~",
-                            rownames(nativeModel$reflective)[row], sep = "")
-      
-      results <- c(results,coefs)
-      
-    }
+  if(disattenuate){
+    attr(results,"Q") <- Q
   }
   
   return(results)
 }
 
+estimator.regression <- function(covIV, covDV, model, ...){
+  
+  # Ensure that covIV, covDV and model have right order
+  covIV <- covIV[colnames(model),colnames(model)]
+  covDV <- covDV[rownames(model),colnames(model)]
+    
+  for(row in 1:nrow(model)){
+    
+    independents <- which(model[row,]!=0, useNames = FALSE)
+    
+    if(length(independents)==1){
+      # Simple regresion is the covariance divided by the variance of the predictor
+      model[row,independents] <- covDV[row,independents]/covIV[independents,independents]
+    }
+    if(length(independents)>1){
+      coefs <- solve(covIV[independents,independents],covDV[row,independents])
+      model[row,independents] <- coefs
+    }
+  }
+  
+  return(model)
+}
 
+estimator.tsls <- function(covIV, covDV, model, ...){
+
+  # The estimator is defined only for full covariance matrices
+  assertive::assert_all_are_true(equal(covIV, covDV))
+  
+  # Ensure that S and model have right order
+  S <- covIV[rownames(model),colnames(model)]
+  
+  exog <- apply(model == 0, 1, all)
+  endog <- ! exog
+  
+  # Use all exogenous variables as instruments
+  
+  instruments <- which(exog) 
+  for(row in 1:nrow(model)){
+    
+    independents <- which(model[row,]!=0, useNames = FALSE)
+    
+    
+    # Check if this variable is endogenous
+    
+    if(length(independents) > 0 ){
+      
+      # Stage 1
+      
+      needInstruments <- which(model[row,]!=0 & endog, useNames = FALSE)
+      
+      # This is a matrix that will transform the instruments into independent
+      # variables. By default, all variables are instrumented by themselves
+      
+      stage1Model <- diag(nrow(model))
+      
+      for(toBeInstrumented in needInstruments){
+        # Regress the variable requiring instruments on its predictors excluding the current DV
+        
+        coefs1 <- solve(S[instruments, instruments],S[toBeInstrumented, instruments])
+        
+        stage1Model[toBeInstrumented, toBeInstrumented] <- 0
+        stage1Model[toBeInstrumented, instruments] <- coefs1
+      }
+      
+      
+      # Stage 2
+      
+      S2 <- stage1Model %*% S %*% t(stage1Model)
+      
+      if(length(independents)==1){
+        # Simple regresion is the covariance divided by the variance of the predictor
+        model[row,independents] <- S2[row,independents]/S2[independents,independents]
+      }
+      if(length(independents)>1){
+        coefs2 <- solve(S2[independents,independents],S2[row,independents])
+        model[row,independents] <- coefs2
+      }
+      
+    }
+    # Continue to the next equation
+  }
+  
+  return(model)
+}
+
+# =========== Reliability estimators ===========
+
+#'@title Reliabilities as products of weights and loadings
+#'
+#'@description
+#'Calculates reliabilities as a matrix product of loadings and weidhts
+#'
+#'@param S the data covariance matrix
+#'
+#'@param loadings matrix of factor loading estimates
+#'
+#'@param weights matrix of weights
+#'
+#'
+#'@returna named vector of estimated composite reliabilities.
+#'
+#'@family reliability estimators
+#'
+#'@export
+
+reliability.weightLoadingProduct <- function(S, loadings, W, ...){
+  W %*% loadings
+}
+  
 # =========== Inner estimators ===========
 
 #'@title PLS inner estimation with the centroid scheme
@@ -1768,27 +1840,10 @@ is.matrixpls.model <- function(model) {
 # Runs regressions defined by model
 # using covariance matrix S and places the results in model
 #
+# TODO: Deprecated
 
 regressionsWithCovarianceMatrixAndModelPattern <- function(S,model){
-  
-  # Ensure that S and model have right order
-  S <- S[rownames(model),colnames(model)]
-  
-  for(row in 1:nrow(model)){
-    
-    independents <- which(model[row,]!=0, useNames = FALSE)
-    
-    if(length(independents)==1){
-      # Simple regresion is the covariance divided by the variance of the predictor
-      model[row,independents] <- S[row,independents]/S[independents,independents]
-    }
-    if(length(independents)>1){
-      coefs <- solve(S[independents,independents],S[row,independents])
-      model[row,independents] <- coefs
-    }
-  }
-  
-  return(model)
+  estimator.regression(S,S,model)
 }
 
 #
