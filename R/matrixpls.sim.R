@@ -61,7 +61,8 @@
 matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.95,
                           citype=c("norm","basic", "stud", "perc", "bca"), 
                           boot.R = 500, fitIndices = fitSummary,
-                          outfundata = NULL, outfun = NULL){
+                          outfundata = NULL, outfun = NULL,
+                          prefun = NULL){
   
   if(! requireNamespace("simsem")) stop("matrixpls.sim requires the simsem package")
   
@@ -162,15 +163,21 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
     # Indices for parameters excluding weights
     
     parameterIndices <- 1:(sum(nativeModel$inner) + sum(nativeModel$reflective) + sum(nativeModel$formative))
+
     
     # Convert the data to matrix for efficiency
-    
     if(boot.R == FALSE){
       S <- cov(data)
-      matrixpls.res <- do.call(matrixpls, c(list(S), matrixplsArgs))
+      
+      if(! is.null(prefun)){
+        extraArgs <- prefun(data)
+      }
+      else extraArgs <- list()
+      
+      matrixpls.res <- do.call(matrixpls, c(list(S), matrixplsArgs,extraArgs))
     }
     else{
-      boot.out <- do.call(matrixpls.boot, c(list(as.matrix(data)), matrixplsArgs))
+      boot.out <- do.call(matrixpls.boot, c(list(as.matrix(data)), matrixplsArgs, list(prefun = prefun)))
       matrixpls.res  <- boot.out$t0
     }
     
