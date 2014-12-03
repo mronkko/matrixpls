@@ -79,9 +79,7 @@
 #'
 #'@export
 
-estimator.PLScLoadings <- function(S,  model, W, ...){
-  
-  nativeModel <- parseModelToNativeFormat(model)
+estimator.PLScLoadings <- function(S, model, W,  ...){
   
   ab <- nrow(W) #number of blocks
   ai <- ncol(W) #total number of indicators
@@ -112,7 +110,7 @@ estimator.PLScLoadings <- function(S,  model, W, ...){
   c <- sqrt(c2)
   
   # Determination of consistent estimates of the loadings, see (13) of Dijkstra, April 7, 2011.
-  L <- nativeModel$reflective
+  L <- model
   
   for (i in 1:ab) {
     idx <- p[[i]]
@@ -124,11 +122,9 @@ estimator.PLScLoadings <- function(S,  model, W, ...){
   return(L)
 }
 
-estimator.EFALoadings <- function(S,  model, W,  ...){
+estimator.EFALoadings <- function(S, model, W,  ...){
   
-  nativeModel <- parseModelToNativeFormat(model)
-  
-  Lp <- nativeModel$reflective
+  Lp <- model
   
   # Loop over factors and use EFA
   
@@ -146,11 +142,10 @@ estimator.EFALoadings <- function(S,  model, W,  ...){
   return(Lp)
 }
 
-estimator.CFALoadings <- function(S,  model, W,  ...){
+estimator.CFALoadings <- function(S, model, W,  ..., estimator = "default",
+                                  WLS.V = NULL, slotSampleStats = NULL){
   
-  nativeModel <- parseModelToNativeFormat(model)
-  
-  Lp <- nativeModel$reflective # Loading pattern
+  Lp <- model # Loading pattern
   
   # Loadings
   parTable <- data.frame(lhs = colnames(Lp)[col(Lp)[Lp!=0]], op = "=~",  rhs = rownames(Lp)[row(Lp)[Lp!=0]], stringsAsFactors = F)
@@ -177,11 +172,14 @@ estimator.CFALoadings <- function(S,  model, W,  ...){
                     unco = as.integer(ifelse(1:nrow(parTable)<=(nrow(parTable)-ncol(Lp)),1:nrow(parTable),0)),
                     stringsAsFactors = FALSE)
   
-  
   cfa.res <- lavaan::lavaan(parTable, sample.cov = S,
                             sample.nobs = 100, # this does not matter, but is required by lavaan
                             se="none",
-                            sample.cov.rescale = FALSE, ...)
+                            sample.cov.rescale = FALSE,
+                            estimator = estimator,
+                            meanstructure = FALSE,
+                            WLS.V = WLS.V,
+                            slotSampleStats = slotSampleStats)
   
   Lp[Lp==1] <- coef(cfa.res)[1:sum(Lp!=0)]
   

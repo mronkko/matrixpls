@@ -344,7 +344,7 @@ weight.pls <- function(S, model, W.mod,
     # S must be symmetric and a valid covariance matrix
     assertive::assert_is_matrix(S)
     assertive::assert_is_symmetric_matrix(S)
-    assertive::assert_is_identical_to_true(is.positive.semi.definite(S))
+    assertive::assert_is_identical_to_true(matrixcalc:::is.positive.semi.definite(S))
     
     # W.mod must be a real matrix and each indicators must be
     # linked to at least one composite and each composite at least to one indicator
@@ -838,7 +838,7 @@ params.regression <- function(S, model, W, ...,
   # Calculate the covariance matrix between indicators and composites
   IC <- W %*% S
   
-  reflectiveEstimates <- parametersReflective(C, IC, nativeModel$reflective)
+  reflectiveEstimates <- parametersReflective(S, nativeModel$reflective, W, ..., C = C, IC = t(IC))  
   
   if(disattenuate){
     
@@ -856,8 +856,8 @@ params.regression <- function(S, model, W, ...,
     IC[tL==0] <- (IC/sqrt(Q))[tL==0]
   }
   
-  formativeEstimates <- parametersFormative(S, IC, nativeModel$formative)  
-  innerEstimates <- parametersInner(C, C, nativeModel$inner)
+  formativeEstimates <- parametersFormative(S, nativeModel$formative, W, ..., IC = IC)  
+  innerEstimates <- parametersInner(S, nativeModel$inner, W, ..., C = C)  
     
   estimatesMatrixToVector <- function(est, m, sep, reverse = FALSE){
     
@@ -878,15 +878,13 @@ params.regression <- function(S, model, W, ...,
   
   results <- c(estimatesMatrixToVector(innerEstimates, nativeModel$inner, "~"),
                estimatesMatrixToVector(reflectiveEstimates, nativeModel$reflective, "=~", reverse = TRUE),
-               estimatesMatrixToVector(reflectiveEstimates, nativeModel$formative, "<~"))
+               estimatesMatrixToVector(formativeEstimates, nativeModel$formative, "<~"))
   
   # Copy all non-standard attributes from the estimates objects
   
-  allAttributes <- c(attributes(W),attributes(estimates))
-  
-  for(object in list(innerEstimates, reflectiveEstimates, formattiveEstimates)){
-    for(a in setdiff(names(allAttributes), c("dim", "dimnames", "class", "names"))){
-      attr(ret,a) <- allAttributes[[a]]
+  for(object in list(innerEstimates, reflectiveEstimates, formativeEstimates)){
+    for(a in setdiff(names(attributes(object)), c("dim", "dimnames", "class", "names"))){
+      attr(results,a) <- attr(object,a)
       attr(W,a) <- NULL
     }
   }
@@ -903,12 +901,32 @@ params.regression <- function(S, model, W, ...,
   return(results)
 }
 
-estimator.regression <- function(covIV, covDV, model, ...){
-  
-  # Ensure that covIV, covDV and model have right order
-  covIV <- covIV[colnames(model),colnames(model)]
-  covDV <- covDV[rownames(model),colnames(model)]
+estimator.regression <- function(S, model, W, ..., C = NULL, IC = NULL){
     
+  covIV <- covDV <- NULL
+  
+  # Covariances between the independent variables
+  for(m in list(S, C)){
+    if(all(colnames(model) %in% colnames(m))){
+      covIV <- m[colnames(model),colnames(model)]
+      break()
+    }
+  }
+  
+  if(is.null(covIV)) browser()
+  
+  # Covariances between IVs and DVS
+
+  for(m in list(S, C, IC)){
+    if(all(rownames(model) %in% rownames(m)) &&
+         all(colnames(model) %in% colnames(m))){
+      covDV <- m[rownames(model),colnames(model)]
+      break()
+    }
+  }
+
+  if(is.null(covDV)) browser()
+  
   for(row in 1:nrow(model)){
     
     independents <- which(model[row,]!=0, useNames = FALSE)
@@ -926,13 +944,10 @@ estimator.regression <- function(covIV, covDV, model, ...){
   return(model)
 }
 
-estimator.tsls <- function(covIV, covDV, model, ...){
-
-  # The estimator is defined only for full covariance matrices
-  assertive::assert_all_are_true(equal(covIV, covDV))
+estimator.tsls <- function(S, model, W, C, ...){
   
   # Ensure that S and model have right order
-  S <- covIV[rownames(model),colnames(model)]
+  S <- C[rownames(model),colnames(model)]
   
   exog <- apply(model == 0, 1, all)
   endog <- ! exog
@@ -1009,7 +1024,7 @@ estimator.tsls <- function(covIV, covDV, model, ...){
 #'@export
 
 reliability.weightLoadingProduct <- function(S, loadings, W, ...){
-  W %*% loadings
+  diag(W %*% loadings)
 }
   
 # =========== Inner estimators ===========
