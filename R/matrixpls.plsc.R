@@ -122,7 +122,7 @@ estimator.PLScLoadings <- function(S, model, W,  ...){
   return(L)
 }
 
-estimator.EFALoadings <- function(S, model, W,  ...){
+estimator.EFALoadings <- function(S, model, W,  ... , fm = "minres"){
   
   Lp <- model
   
