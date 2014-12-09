@@ -859,23 +859,6 @@ params.regression <- function(S, model, W, ...,
   formativeEstimates <- parametersFormative(S, nativeModel$formative, W, ..., IC = IC)  
   innerEstimates <- parametersInner(S, nativeModel$inner, W, ..., C = C)  
     
-  estimatesMatrixToVector <- function(est, m, sep, reverse = FALSE){
-    
-    ind <- which(m != 0)
-    ret <- est[ind]
-    
-    if(reverse){
-      names(ret) <- paste(colnames(m)[col(m)[ind]],
-                          rownames(m)[row(m)[ind]], sep=sep)
-    }
-    else{
-      names(ret) <- paste(rownames(m)[row(m)[ind]],
-                          colnames(m)[col(m)[ind]], sep=sep)
-    }
-    
-    ret
-  }
-  
   results <- c(estimatesMatrixToVector(innerEstimates, nativeModel$inner, "~"),
                estimatesMatrixToVector(reflectiveEstimates, nativeModel$reflective, "=~", reverse = TRUE),
                estimatesMatrixToVector(formativeEstimates, nativeModel$formative, "<~"))
@@ -902,7 +885,7 @@ params.regression <- function(S, model, W, ...,
 }
 
 estimator.regression <- function(S, model, W, ..., C = NULL, IC = NULL){
-    
+
   covIV <- covDV <- NULL
   
   # Covariances between the independent variables
@@ -1726,6 +1709,24 @@ optim.GSCA <- function(matrixpls.res){
 
 
 # =========== Utility functions ===========
+
+estimatesMatrixToVector <- function(est, m, sep, reverse = FALSE){
+  
+  ind <- which(m != 0)
+  ret <- est[ind]
+  
+  if(reverse){
+    names(ret) <- paste(colnames(m)[col(m)[ind]],
+                        rownames(m)[row(m)[ind]], sep=sep)
+  }
+  else{
+    names(ret) <- paste(rownames(m)[row(m)[ind]],
+                        colnames(m)[col(m)[ind]], sep=sep)
+  }
+  
+  ret
+}
+
 
 #
 # Scales the weight matrix so that the resulting composites have unit variance
