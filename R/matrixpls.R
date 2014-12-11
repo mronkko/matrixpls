@@ -1007,7 +1007,7 @@ estimator.tsls <- function(S, model, W, C, ...){
 #'@export
 
 reliability.weightLoadingProduct <- function(S, loadings, W, ...){
-  diag(W %*% loadings)
+  diag(W %*% loadings)^2
 }
   
 # =========== Inner estimators ===========
@@ -1859,7 +1859,7 @@ is.matrixpls.model <- function(model) {
 # TODO: Deprecated
 
 regressionsWithCovarianceMatrixAndModelPattern <- function(S,model){
-  estimator.regression(S,S,model)
+  estimator.regression(S,model)
 }
 
 #
