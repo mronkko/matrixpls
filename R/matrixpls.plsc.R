@@ -142,8 +142,7 @@ estimator.EFALoadings <- function(S, model, W,  ... , fm = "minres"){
   return(Lp)
 }
 
-estimator.CFALoadings <- function(S, model, W,  ..., estimator = "default",
-                                  WLS.V = NULL, slotSampleStats = NULL){
+estimator.CFALoadings <- function(S, model, W, ...){
   
   Lp <- model # Loading pattern
   
@@ -172,15 +171,19 @@ estimator.CFALoadings <- function(S, model, W,  ..., estimator = "default",
                     unco = as.integer(ifelse(1:nrow(parTable)<=(nrow(parTable)-ncol(Lp)),1:nrow(parTable),0)),
                     stringsAsFactors = FALSE)
   
-  cfa.res <- lavaan::lavaan(parTable, sample.cov = S,
-                            sample.nobs = 100, # this does not matter, but is required by lavaan
-                            se="none",
-                            sample.cov.rescale = FALSE,
-                            estimator = estimator,
-                            meanstructure = FALSE,
-                            WLS.V = WLS.V,
-                            slotSampleStats = slotSampleStats)
+  args <- list(model= parTable, sample.cov = S,
+           sample.nobs = 100, # this does not matter, but is required by lavaan
+           se="none",
+           sample.cov.rescale = FALSE,
+           meanstructure = FALSE)
   
+  e <- list(...)
+  f <- formals(lavaan::lavaan)
+  include <- intersect(names(f), names(e))
+  args[include] <- e[include]
+  
+  cfa.res <- do.call(lavaan::lavaan, args)
+                            
   Lp[Lp==1] <- coef(cfa.res)[1:sum(Lp!=0)]
   
   return(Lp)
