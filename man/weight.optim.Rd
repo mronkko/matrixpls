@@ -22,8 +22,7 @@ the weight patter is defined based on the relationships in the \code{reflective}
 elements of \code{model}.}
 
 \item{parameterEstimator}{A function that takes three or more arguments, the data covariance matrix \code{S},
-model specification \code{model}, and weights \code{W} and returns a named vector of parameter estimates. The default is \code{\link{params.regression}}
-#'}
+model specification \code{model}, and weights \code{W} and returns a named vector of parameter estimates. The default is \code{\link{params.regression}}}
 
 \item{optimCriterion}{A function that taking an object of class class
 \code{matrixpls} and returning a scalar. The default is \code{\link{optim.maximizeInnerR2}}}

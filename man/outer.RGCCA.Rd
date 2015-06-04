@@ -73,7 +73,7 @@ doi:10.1007/s11336-011-9206-8
 }
 \seealso{
 Other outer estimators: \code{\link{outer.GSCA}};
-  \code{\link{outer.PLSF}}; \code{\link{outer.factor}};
+  \code{\link{outer.factor}};
   \code{\link{outer.fixedWeights}};
   \code{\link{outer.modeA}}; \code{\link{outer.modeB}}
 }

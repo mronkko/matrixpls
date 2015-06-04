@@ -120,7 +120,9 @@ Huang, W. (2013). PLSe: Efficient Estimators and Tests for Partial Least Squares
 Dijkstra, T. K. (2011). Consistent Partial Least Squares estimators for linear and polynomial factor models. A report of a belated, serious and not even unsuccessful attempt. Comments are invited. Retrieved from http://www.rug.nl/staff/t.k.dijkstra/consistent-pls-estimators.pdf
 }
 \seealso{
-Other parameter estimators: \code{\link{params.plsregression}};
+Other parameter estimators: \code{\link{estimator.CFALoadings}};
+  \code{\link{estimator.EFALoadings}};
+  \code{\link{params.plsregression}};
   \code{\link{params.regression}}
 }
 

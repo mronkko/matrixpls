@@ -25,8 +25,7 @@ Returns the starting weights as outer estimates.
 }
 \seealso{
 Other outer estimators: \code{\link{outer.GSCA}};
-  \code{\link{outer.PLSF}}; \code{\link{outer.RGCCA}};
-  \code{\link{outer.factor}}; \code{\link{outer.modeA}};
-  \code{\link{outer.modeB}}
+  \code{\link{outer.RGCCA}}; \code{\link{outer.factor}};
+  \code{\link{outer.modeA}}; \code{\link{outer.modeB}}
 }
 

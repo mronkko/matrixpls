@@ -38,7 +38,9 @@ Sanchez, G. (2013). \emph{PLS Path Modeling with R.} Retrieved from http://www.g
 Bjørn-Helge Mevik, & Ron Wehrens. (2007). The pls Package:  Principal Component and Partial Least Squares Regression in R. \emph{Journal of Statistical Software}, 18. Retrieved from http://www.jstatsoft.org/v18/i02/paper
 }
 \seealso{
-Other parameter estimators: \code{\link{estimator.PLScLoadings}};
+Other parameter estimators: \code{\link{estimator.CFALoadings}};
+  \code{\link{estimator.EFALoadings}};
+  \code{\link{estimator.PLScLoadings}};
   \code{\link{params.regression}}
 }
 

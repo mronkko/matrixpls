@@ -59,7 +59,9 @@ This approach of estimating the inner and outer models separately with separate
 OLS regression analyses is the standard way of estimation in the PLS literature.
 }
 \seealso{
-Other parameter estimators: \code{\link{estimator.PLScLoadings}};
+Other parameter estimators: \code{\link{estimator.CFALoadings}};
+  \code{\link{estimator.EFALoadings}};
+  \code{\link{estimator.PLScLoadings}};
   \code{\link{params.plsregression}}
 }
 

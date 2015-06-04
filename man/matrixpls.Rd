@@ -26,8 +26,7 @@ a model specification \code{model}, and a weight pattern \code{W.mod} and
 returns a named vector of parameter estimates. The default is \code{\link{weight.pls}}}
 
 \item{parameterEstimator}{A function that takes three or more arguments, the data covariance matrix \code{S},
-model specification \code{model}, and weights \code{W} and returns a named vector of parameter estimates. The default is \code{\link{params.regression}}
-#'}
+model specification \code{model}, and weights \code{W} and returns a named vector of parameter estimates. The default is \code{\link{params.regression}}}
 
 \item{...}{All other arguments are passed through to \code{weightFunction} and \code{parameterEstimator}.}
 

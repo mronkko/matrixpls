@@ -122,6 +122,18 @@ estimator.PLScLoadings <- function(S, model, W,  ...){
   return(L)
 }
 
+#'@title Parameter estimation with per-block exploratory factor analysis
+#'
+#'@param fm factoring method for estimating the factor loadings. Passed through to \code{\link[psych]{fa}}.
+#'
+#'@inheritParams matrixpls 
+#'
+#'@return A named vector of parameter estimates.
+#'
+#'@family parameter estimators
+#'
+#'@export
+
 estimator.EFALoadings <- function(S, model, W,  ... , fm = "minres"){
   
   Lp <- model
@@ -141,6 +153,18 @@ estimator.EFALoadings <- function(S, model, W,  ... , fm = "minres"){
   
   return(Lp)
 }
+
+#'@title Parameter estimation with confirmatory factor analysis of the full model
+#'
+#'@details Estimates a maximum likelihood confirmatory factor analysis with \code{\link[lavaan]{lavaan}}
+#'
+#'@inheritParams matrixpls 
+#'
+#'@return A named vector of parameter estimates.
+#'
+#'@family parameter estimators
+#'
+#'@export
 
 estimator.CFALoadings <- function(S, model, W, ...){
   

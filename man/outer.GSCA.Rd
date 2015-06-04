@@ -163,8 +163,8 @@ Hwang, H., & Takane, Y. (2004). Generalized structured component analysis. \emph
 Other GSCA functions: \code{\link{inner.GSCA}};
   \code{\link{optim.GSCA}}
 
-Other outer estimators: \code{\link{outer.PLSF}};
-  \code{\link{outer.RGCCA}}; \code{\link{outer.factor}};
+Other outer estimators: \code{\link{outer.RGCCA}};
+  \code{\link{outer.factor}};
   \code{\link{outer.fixedWeights}};
   \code{\link{outer.modeA}}; \code{\link{outer.modeB}}
 }
