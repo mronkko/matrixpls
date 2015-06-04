@@ -28,8 +28,8 @@ B =~ .8*b1 + .7*b2 + .6*b3
 b1~~(1-.8^2)*b1
 b2~~(1-.7^2)*b2
 b3~~(1-.6^2)*b3
-B ~ .3*A
-B~~(1-.3^2)*B
+B ~ .0*A
+B~~(1-.0^2)*B
 "
   
   modeA <- matrixpls.sim(nRep = REPLICATIONS, model = MODEL, n = SAMPLE, 

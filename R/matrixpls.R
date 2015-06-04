@@ -65,7 +65,7 @@
 #'
 #'@param parameterEstimator A function that takes three or more arguments, the data covariance matrix \code{S},
 #'model specification \code{model}, and weights \code{W} and returns a named vector of parameter estimates. The default is \code{\link{params.regression}}
-#'#'
+#'
 #'@param validateInput A boolean indicating whether the arguments should be validated.
 #' 
 #'@param ... All other arguments are passed through to \code{weightFunction} and \code{parameterEstimator}.
@@ -130,7 +130,6 @@ matrixpls <- function(S, model, W.mod = NULL, weightFunction = weight.pls,
   ##################################################################################################
   
   if(standardize){
-    v <- diag(1/sqrt(diag(S)))
     S <- cov2cor(S)
     # cov2cor can result in non.symmetrix matrix because of computational inaccuracy
     S[lower.tri(S)] <- t(S)[lower.tri(S)]
@@ -146,7 +145,7 @@ matrixpls <- function(S, model, W.mod = NULL, weightFunction = weight.pls,
   # Apply the parameter estimator and return the results
   
   estimates <- parameterEstimator(S, model, W, ...)
-  
+
   ##################################################################################################
   #
   # Construct the return object
@@ -310,6 +309,10 @@ print.matrixplssummary <- function(x, ...){
 #'function calculates the differences between each cell of old and new weights and returns the largest
 #'absolute difference.
 #'
+#'@param signAmbiquityCorrection A boolean indicating whether the signs of the weights should be
+#'adjusted so that the majority of the indicators are positively correlated with the composite
+#'as proposed by Wold (1985).
+#'
 #'@param tol Decimal value indicating the tolerance criterion for the
 #'iterations. 
 #'
@@ -328,12 +331,17 @@ print.matrixplssummary <- function(x, ...){
 #'
 #'Convergence checks: \code{\link{convCheck.absolute}}, \code{\link{convCheck.square}}, and \code{\link{convCheck.relative}}.
 #'
+#'@references
+#'Wold, H. (1985). Partial Least Squares. In S. Kotz & N. L. Johnson (Eds.), Encyclopedia  of 
+#'statistical sciences (Vol. 6, pp. 581–591). New York: Wiley.
+
 #'@export
 
 weight.pls <- function(S, model, W.mod,
                        outerEstimators = NULL, 
                        innerEstimator = inner.path, ..., 
                        convCheck = convCheck.absolute,
+                       signAmbiquityCorrection = FALSE,
                        tol = 1e-05, iter = 100, validateInput = TRUE) {
   
   if(validateInput){
@@ -462,7 +470,7 @@ weight.pls <- function(S, model, W.mod,
       if(! is.null(innerEstimator)){
         E <- innerEstimator(S, W, inner.mod, model = model, ...)
       }
-      
+
       # Get new weights from outer estimation
       
       W_old <- W
@@ -500,6 +508,15 @@ weight.pls <- function(S, model, W.mod,
   else converged <- TRUE	
   
   if(!converged) warning(paste("Iterative weight algorithm did not converge."))
+  
+  # Correct the weight signs if requested. Based on Wold 1985
+  
+  if(signAmbiquityCorrection){
+    # Calculate the covariance matrix between indicators and composites
+    IC <- W %*% S
+    signSums <- rowSums(sign(IC * weightPattern))
+    W <- sweep(W, 1,ifelse(signSums<0, -1, 1),"*")
+  }
   
   attr(W,"S") <- S
   attr(W,"E") <- E
@@ -1000,7 +1017,7 @@ estimator.tsls <- function(S, model, W, C, ...){
 #'@param weights matrix of weights
 #'
 #'
-#'@returna named vector of estimated composite reliabilities.
+#'@return a named vector of estimated composite reliabilities.
 #'
 #'@family reliability estimators
 #'
@@ -1428,6 +1445,7 @@ outer.factor <- function(S, W, E, W.mod, fm="minres", ...){
   
   return(W_new)
 }
+
 
 #'@title GSCA outer estimation
 #'

@@ -49,7 +49,7 @@ Eta3~~.57*Eta3  # error tem is calculated as 1-(.5*(.5 + -.3*-.3) + -.3*(-.3 + -
 library(matrixpls)
 
 sim.PLSf1 <- matrixpls.sim(nRep = REPLICATIONS, model = MODEL, n = SAMPLE, #General setup
-                           parameterEstimator = params.plsc,
+                           disattenuate = TRUE,
                            fm = "minres", # Setup disattenuation with minres factor analysis
                            outerEstimator = outer.factor, # Use factor scores as proxies.
                            innerEstimator = NULL, # Factor score proxies do not use inner estimation
@@ -58,7 +58,7 @@ sim.PLSf1 <- matrixpls.sim(nRep = REPLICATIONS, model = MODEL, n = SAMPLE, #Gene
 
 
 sim.PLSf2 <- matrixpls.sim(nRep = REPLICATIONS, model = MODEL, n = SAMPLE, #General setup
-                           parameterEstimator = params.plsc, 
+                           disattenuate = TRUE,
                            fm = "minres", # Setup disattenuation with minres factor analysis
                            outerEstimator = outer.fixedWeights, # Use equal weights
                            innerEstimator = NULL, # Equal weightproxies do not use inner estimation
@@ -66,7 +66,7 @@ sim.PLSf2 <- matrixpls.sim(nRep = REPLICATIONS, model = MODEL, n = SAMPLE, #Gene
                            multicore = MULTICORE, fitIndices = NULL, stopOnError = TRUE)
 
 sim.PLSc <- matrixpls.sim(nRep = REPLICATIONS, model = MODEL, n = SAMPLE, #General setup
-                          parameterEstimator = params.plsc, # Setup PLSc disattenuation 
+                          disattenuate = TRUE,
                           boot.R = FALSE, # We are not interested in bootstrap
                           multicore = MULTICORE, fitIndices = NULL, stopOnError = TRUE)
 

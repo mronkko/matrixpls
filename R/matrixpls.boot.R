@@ -28,7 +28,7 @@
 #'@export
 #'
 
-matrixpls.boot <- function(data, R = 500, ..., 
+matrixpls.boot <- function(data, ..., R = 500,
                            signChangeCorrection = NULL,
                            parallel = c("no", "multicore", "snow"),
                            ncpus = getOption("boot.ncpus", 1L),
