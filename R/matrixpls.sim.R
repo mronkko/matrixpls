@@ -91,11 +91,11 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
     
     # Derive a SimSem model from lavaan parameter table by fitting a model to a diagonal matrix
     
-    cvMat <- diag(nrow(nativeModel$reflective))
-    colnames(cvMat) <- rownames(cvMat) <- rownames(nativeModel$reflective)
-    fit <- lavaan::lavaan(model, sample.cov = cvMat, sample.nobs = 100)
-    simsemArgs$generate <- simsem::model.lavaan(fit)
-    
+#    cvMat <- diag(nrow(nativeModel$reflective))
+#    colnames(cvMat) <- rownames(cvMat) <- rownames(nativeModel$reflective)
+#    fit <- lavaan::lavaan(model, sample.cov = cvMat, sample.nobs = 100)
+#    simsemArgs$generate <- simsem::model.lavaan(fit)
+    simsemArgs$generate <- model
   }
   
   if(!"W.mod" %in% names(matrixplsArgs)) matrixplsArgs$W.mod<- defaultWeightModelWithModel(model)
@@ -230,6 +230,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
       R <- sign(r) * r^2
       names(R) <- colnames(lvScores)
       attr(matrixpls.res, "R") <- R
+      
     }
     
     # Store CIs and SEs if bootstrapping was done
@@ -283,10 +284,10 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
     return(ret)
   }
   
-  simsemArgs <- c(list(nRep = nRep, model = modelFun, n = n, saveLatentVar = TRUE, 
+  simsemArgs <- c(list(nRep = nRep, model = modelFun, n = n,
                        outfun = function(x){x$extra}),
                   simsemArgs)
-  
+
   ret <- do.call(simsem::sim, simsemArgs)
   
   ret
