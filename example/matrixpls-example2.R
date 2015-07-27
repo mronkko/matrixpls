@@ -20,5 +20,5 @@ model <- '
     y6 ~~ y8
 '
 
-fit <- matrixpls(cov(PoliticalDemocracy),model)
-summary(fit)
+matrixpls.out <- matrixpls(cov(PoliticalDemocracy),model)
+summary(matrixpls.out)
