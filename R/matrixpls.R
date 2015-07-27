@@ -1774,7 +1774,8 @@ lavaanParTableToNativeFormat <- function(partable){
   
   # Parse the variables
   latentVariableNames <- unique(c(factorLoadings$lhs, formativeLoadings$lhs))
-  observedVariableNames <- setdiff(unique(c(partable$rhs,partable$lhs)), latentVariableNames)
+  observedVariableNames <- setdiff(unique(c(factorLoadings$rhs,formativeLoadings$rhs,
+                                            regressions$lhs,regressions$rhs)), latentVariableNames)
   
   # Set up empty model tables
   
@@ -1814,7 +1815,6 @@ lavaanParTableToNativeFormat <- function(partable){
   indices <- rows + (cols-1)*nrow(formative) 
   
   formative[indices] <- 1
-  
   return(list(inner=inner, reflective=reflective, formative=formative))
 }
 
