@@ -240,7 +240,7 @@ matrixpls.plspm <-
         uniq <- 1
       }
       else{
-        uniq <- (1-smc(C[regressors,regressors]))
+        uniq <- (1-psych::smc(C[regressors,regressors]))
       }
       df <- nrow(params$x)-sum(regressors)-1
       se <- sqrt((1-R2[row])/(df))*c(1,sqrt(1/uniq))
@@ -313,12 +313,13 @@ matrixpls.plspm <-
                                                    
                                                    beta <- matrix(0,nrow(nativeModel$inner),ncol(nativeModel$inner))
                                                    beta[nativeModel$inner == 1] <- boot.res$t[x,bootPathIndices]
+
+                                                   # Create a face matrixpls object to calculate total effects
                                                    
-                                                   obj <- c()
+                                                   obj <- numeric()
                                                    class(obj) <- "matrixpls"
                                                    attr(obj,"beta") <- beta
-                                                   attr(obj,"model") <- nativeModel$inner
-                                                   
+                                                   attr(obj,"model") <- nativeModel
                                                    effects.matrixpls(obj)$Total[pathIndices[-1,]]
                                                    
                                                  },1:params$br)),
