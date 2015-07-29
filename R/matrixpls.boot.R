@@ -71,13 +71,17 @@ matrixpls.boot <- function(data, ..., R = 500,
                      arguments <- c(list(S),arguments)
                      
                      if(stopOnError){
-                       do.call(matrixpls, arguments)
+                       boot.rep <- do.call(matrixpls, arguments)
                      }
                      else{
                        tryCatch(
-                         do.call(matrixpls, arguments)
+                         boot.rep <- do.call(matrixpls, arguments)
                        )
                      }
+                     # If the indices are not sorted, then this is not the original sample
+                     # and we can safely omit all attributes to save memory
+                     if(is.unsorted(indices)) attributes(boot.rep) <- NULL
+                     boot.rep
                    },
                    R, parallel = parallel, ncpus = ncpus)
   
