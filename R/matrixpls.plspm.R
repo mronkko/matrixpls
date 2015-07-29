@@ -393,17 +393,17 @@ matrixpls.plspm <-
                           direct = effs$Direct[pathIndices[-1,]],
                           indirect = effs$Indirect[pathIndices[-1,]], 
                           total = effs$Total[pathIndices[-1,]])
-    
+
     unidim <- data.frame(Mode = params$modes,
                          MVs = blocks,
                          C.alpha = ifelse(params$modes == "A",
                                           sapply(params$outer,function(indices){
-                                            alpha(S[indices,indices])$total[[2]]
+                                            psych::alpha(S[indices,indices])$total[[2]]
                                           }, simplify = TRUE),
                                           0),
                          DG.rho = ifelse(params$modes == "A",
                                          sapply(params$outer,function(indices){
-                                           pc <- principal(S[indices,indices])
+                                           pc <- psych::principal(S[indices,indices])
                                            std.loads <- pc$loadings
                                            numer.rho <- sum(std.loads)^2
                                            denom.rho <- numer.rho + (length(indices) - sum(std.loads^2))
