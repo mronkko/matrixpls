@@ -197,8 +197,9 @@ matrixpls.sempls <-
     result$outer_loadings[Wnew==0] <- 0
     
     # Start of matrixpls code
-    result$total_effects <- cbind(0,t(effects(matrixpls.res)$Total))
-    colnames(result$total_effects) <- rownames(result$total_effects)
+    result$total_effects <- result$path_coefficients
+    endo <- which(apply(matrixpls.model$inner != 0,1,any))
+    result$total_effects[,endo] <- t(effects(matrixpls.res)$Total)
     # End of matrixpls code
     
     result$inner_weights <- innerWeights
