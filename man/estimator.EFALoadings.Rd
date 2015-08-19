@@ -24,6 +24,14 @@ A named vector of parameter estimates.
 \description{
 Parameter estimation with per-block exploratory factor analysis
 }
+\details{
+Estimates the factor loading parameters one latent variable at at time with exploratory
+factor analysis using the \code{\link[psych]{fa}} function from the \code{psych} package.
+
+Estimating an unconstrained single factor model requires three indicators. The loadings of
+single indicator factors are estimated as 1 and two indicator factors as estimated by the
+square root of the indicator correlation.
+}
 \seealso{
 Other parameter estimators: \code{\link{estimator.CFALoadings}};
   \code{\link{estimator.PLScLoadings}};

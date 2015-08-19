@@ -112,7 +112,8 @@ Outer estimators: \code{\link{outer.modeA}}; \code{\link{outer.modeB}}; \code{\l
 
 Convergence checks: \code{\link{convCheck.absolute}}, \code{\link{convCheck.square}}, and \code{\link{convCheck.relative}}.
 
-Other Weight algorithms: \code{\link{weight.fixed}};
-  \code{\link{weight.optim}}
+Other Weight algorithms: \code{\link{weight.factor}};
+  \code{\link{weight.fixed}}; \code{\link{weight.optim}};
+  \code{\link{weight.principal}}
 }
 

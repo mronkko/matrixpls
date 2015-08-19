@@ -85,6 +85,8 @@ optimized.
   GSCA.res <- GSCA(GenPhen,W0, B0,estim=TRUE,path.test=FALSE, 
                    latent.names=c("Gene1","Gene2","Clinical pathway 1","Clinical pathway 2"))
   
+  stop()
+  
   # Setup matrixpls to estimate the same model. Note GSCA places dependent variables
   # on columns but matrixpls uses rows for dependent variables
   
@@ -112,14 +114,15 @@ optimized.
   print(GSCA.res$Weight)
   print(t(attr(matrixpls.res1,"W")))
 
+  print("difference:")
   print(GSCA.res$Weight - t(attr(matrixpls.res1,"W")))
   
   
   # Compare the paths
   print(GSCA.res$Path)
-  print(t(attr(matrixpls.res1,"beta")))
+  print(t(attr(matrixpls.res1,"inner")))
   
-  print(GSCA.res$Path-t(attr(matrixpls.res1,"beta")))
+  print(GSCA.res$Path-t(attr(matrixpls.res1,"inner")))
   
   # Estimate using direct minimization of the estimation criterion
   
@@ -138,9 +141,9 @@ optimized.
   
   # Compare the paths
   print(GSCA.res$Path)
-  print(t(attr(matrixpls.res2,"beta")))
+  print(t(attr(matrixpls.res2,"inner")))
   
-  print(GSCA.res$Path-t(attr(matrixpls.res2,"beta")))
+  print(GSCA.res$Path-t(attr(matrixpls.res2,"inner")))
   
   
   # Check the criterion function values
