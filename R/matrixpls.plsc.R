@@ -234,7 +234,7 @@ estimator.CFALoadings <- function(S, model, W, ...){
 
   cfa.res <- do.call(lavaan::lavaan, args)
                             
-  L[L==1] <- coef(cfa.res)[1:sum(L!=0)]
+  L[L==1] <- lavaan::coef(cfa.res)[1:sum(L!=0)]
   return(L)
   
 }
