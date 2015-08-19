@@ -31,6 +31,22 @@ if(require(RGCCA) & require(Matrix)) {
   print(W.rgcca)
   print(W.matrixpls)
   
+  # Try a different tau value
+  
+  tau2 <- .5
+  result.rgcca2 <- rgcca(A, C, tau =rep(tau2,3), scheme = "factorial", scale = TRUE)
+  
+  W.matrixpls2 <- weight.pls(S, list(inner = C,
+                                    reflective = t(W.mod),
+                                    formative = matrix(0,nrow(W.mod), ncol(W.mod))),
+                            W.mod = W.mod,
+                            innerEstimator = inner.factor,
+                            outerEstimators = outer.RGCCA, tau = tau2)
+  
   # Do we get perfect correlations for the composites
-  cor(do.call(cbind,result.rgcca$Y), do.call(cbind,A) %*% t(W.matrixpls))
+  cor(cbind(do.call(cbind,result.rgcca$Y), 
+            do.call(cbind,A) %*% t(W.matrixpls),
+      do.call(cbind,result.rgcca2$Y), 
+      do.call(cbind,A) %*% t(W.matrixpls2))
+  )
 }

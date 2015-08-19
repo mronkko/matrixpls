@@ -4,9 +4,9 @@
 \alias{matrixpls}
 \title{Partial Least Squares and other composite variable models.}
 \usage{
-matrixpls(S, model, W.mod = NULL, weightFunction = weight.pls,
-  parameterEstimator = params.regression, ..., validateInput = TRUE,
-  standardize = TRUE)
+matrixpls(S, model, W.model = NULL, weightFunction = weight.pls,
+  parameterEstimator = params.regression, weightSignCorrection = NULL, ...,
+  validateInput = TRUE, standardize = TRUE)
 }
 \arguments{
 \item{S}{Covariance matrix of the data.}
@@ -16,13 +16,13 @@ table, or 2. a list containing three matrices
 \code{inner}, \code{reflective}, and \code{formative} defining the free regression paths
 in the model.}
 
-\item{W.mod}{An optional numeric matrix representing the weight patter and starting weights
+\item{W.model}{An optional numeric matrix representing the weight patter and starting weights
 (i.e. the how the indicators are combined to form the composite variables). If this argument is not specified,
 the weight patter is defined based on the relationships in the \code{reflective} and  \code{formative}
 elements of \code{model}.}
 
 \item{weightFunction}{A function that takes three or more arguments, the data covariance matrix \code{S},
-a model specification \code{model}, and a weight pattern \code{W.mod} and
+a model specification \code{model}, and a weight pattern \code{W.model} and
 returns a named vector of parameter estimates. The default is \code{\link{weight.pls}}}
 
 \item{parameterEstimator}{A function that takes three or more arguments, the data covariance matrix \code{S},
@@ -31,6 +31,8 @@ model specification \code{model}, and weights \code{W} and returns a named vecto
 \item{...}{All other arguments are passed through to \code{weightFunction} and \code{parameterEstimator}.}
 
 \item{validateInput}{A boolean indicating whether the arguments should be validated.}
+
+\item{standardize}{A boolean indicating whether \code{S} is standardized}
 }
 \value{
 A named numeric vector of class \code{matrixpls} containing parameter estimates followed by weight.
@@ -73,13 +75,13 @@ the original restrictions of \code{reflective}. The only restrictions that matri
 imposes on \code{inner}, \code{reflective}, and \code{formative} is that these must be
 binary matrices and that the diagonal of \code{inner} must be zeros.
 
-The argument \code{W.mod} is a (\code{l x k}) matrix that indicates
+The argument \code{W.model} is a (\code{l x k}) matrix that indicates
 how the indicators are combined to form the composites. The original papers about
 Partial Least Squares as well as all current PLS implementations define this as
 \code{t(reflective) | formative}, which means that the weight patter must match the
 model specified in \code{reflective} and \code{formative}. Matrixpls does not
-require that \code{W.mod} needs to match \code{reflective} and \code{formative}, but
-accepts any numeric matrix. If this argument is not specified, \code{W.mod} is
+require that \code{W.model} needs to match \code{reflective} and \code{formative}, but
+accepts any numeric matrix. If this argument is not specified, \code{W.model} is
 defined as \code{t(reflective) | formative}.
 }
 \references{

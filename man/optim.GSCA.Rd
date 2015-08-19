@@ -24,7 +24,7 @@ The matrixpls implementation of the GSCA criterion extends the criterion
 presented by Huang and Takane by including also the minimization of the
 residual variances of the formative part of the model. The formative
 regressions in a model are typically specified to be identical to the
-weight pattern \code{W.mod} resulting zero residual variances by definition.
+weight pattern \code{W.model} resulting zero residual variances by definition.
 However, it is possible to specify a formative model that does not completely
 overlap with the weight pattern leading to non-zero residuals that can be
 optimizes.

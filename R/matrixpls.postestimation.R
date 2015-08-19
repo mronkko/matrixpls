@@ -32,7 +32,7 @@
 
 effects.matrixpls <- function(object,  ...) {
   
-  A <- attr(object,"beta")
+  A <- attr(object,"inner")
   endog <- rowSums(attr(object,"model")$inner)!=0 
   
   I <- diag(endog)
@@ -55,11 +55,11 @@ print.matrixplseffects <- function(x, ...){
   select <- !(apply(Total, 2, function(x) all( x == 0)) & 
                 apply(Direct, 2, function(x) all( x == 0)) & 
                 apply(Indirect, 2, function(x) all( x == 0)))
-  print(Total[, select], ...)
+  print(Total[, select, drop = FALSE], ...)
   cat("\n Direct Effects\n")
-  print(Direct[, select], ...)
+  print(Direct[, select, drop = FALSE], ...)
   cat("\n Indirect Effects\n")
-  print(Indirect[, select], ...)
+  print(Indirect[, select, drop = FALSE], ...)
   invisible(x)
 }
 
@@ -120,7 +120,7 @@ residuals.matrixpls <- function(object, ...) {
   
   P[P==1] <- object[grepl("=~", names(object), fixed=TRUE)]
   
-  B <- attr(object,"beta")
+  B <- attr(object,"inner")
   
   # Lohmoller is not clear whether R should be based on the estimated betas or calculated scores
   # The scores are used here because this results in less complex code
@@ -133,11 +133,11 @@ residuals.matrixpls <- function(object, ...) {
   H <- P %*% R %*% t(P) # eq 2.96
   
   I <- diag(S)
-  H2 <- (I * H)  %*% ginv(I * S) # eq 2.9	
+  H2 <- (I * H)  %*% MASS::ginv(I * S) # eq 2.9	
   
   F <- P %*% B %*% R %*% t(B) %*% t(P) # eq 2.104
   
-  F2 <- (I * F) %*% ginv(I * S) # eq 2.105
+  F2 <- (I * F) %*% MASS::ginv(I * S) # eq 2.105
   
   R2 <- R2(object)
   
@@ -153,8 +153,8 @@ residuals.matrixpls <- function(object, ...) {
   
   RMS <- function(num) sqrt(sum(num^2)/length(num))
   
-  indices <- list(Communality = tr(H2)/k, # eq 2.109
-                  Redundancy = tr(F2)/k,  # eq 2.110
+  indices <- list(Communality = psych::tr(H2)/k, # eq 2.109
+                  Redundancy = psych::tr(F2)/k,  # eq 2.110
                   SMC = sum(R2)/h,         # eq 2.111
                   "RMS outer residual covariance" = RMS(C[lower.tri(C)]), # eq 2.118
                   "RMS inner residual covariance" = RMS(C[lower.tri(Q)]), # eq 2.118
@@ -211,7 +211,7 @@ R2 <- function(object, ...){
 
 R2.matrixpls <- function(object, ...){
   
-  R2 <- rowSums(attr(object,"beta") * attr(object,"C"))
+  R2 <- rowSums(attr(object,"inner") * attr(object,"C"))
   names(R2) <- colnames(attr(object,"model")$inner)
   class(R2) <- "matrixplsr2"
   R2
@@ -403,7 +403,7 @@ predict.matrixpls <- function(object, newdata, ...){
   nativeModel <- attr(object,"model")
   exog <- rowSums(nativeModel$inner)==0
   W <- attr(object,"W")
-  beta <- attr(object,"beta")
+  inner <- attr(object,"inner")
   
   reflective <- nativeModel$reflective
   reflective[which(reflective==1)] <- object[grep("=~",names(object))]
@@ -425,8 +425,8 @@ predict.matrixpls <- function(object, newdata, ...){
   LVScores <- as.matrix(data) %*% t(W)
     
   # Predict endog LVs usign reduced from equations
-  Beta <- beta[! exog, ! exog]
-  Gamma <- beta[! exog, exog]
+  Beta <- inner[! exog, ! exog]
+  Gamma <- inner[! exog, exog]
   
   LVScoresEndo <- (LVScores[,exog] %*% t(Gamma)) %*% solve(diag(nrow(Beta))- t(Beta))
   
@@ -504,5 +504,49 @@ print.matrixplsave <- function(x, ...){
   print.table(x$AVE, ...)
   cat("\n AVE - largest squared correlation\n")
   print.table(x$AVE_correlation, ...)
+}
+
+#'@title Heterotrait-monotrait ratio 
+#'
+#'@description 
+#'
+#'The \code{HTMT} function \code{AVE} Heterotrait-monotrait ratio 
+#'for the model using the formula presented by Henseler et al (2014).
+#'
+#'@param object matrixpls estimation result object produced by the \code{\link{matrixpls}} function.
+#'
+#'@param ... All other arguments are ignored.
+#'
+#'@return Heterotrait-monotrait ratio as a scalar
+#'
+#'
+#'@references
+#'
+#'Henseler, J., Ringle, C. M., & Sarstedt, M. (2015). A new criterion for assessing discriminant validity in variance-based structural equation modeling. \emph{Journal of the Academy of Marketing Science}, 43(1), 115–135.
+#'
+#'@family post-estimation functions
+#'
+#'@export
+#'
+
+HTMT <- function(object, ...){
+  
+  S <- attr(object,"S")
+  reflective <- attr(object,"reflective")!=0
+  
+  # Mean within- and between-block correlations
+
+  meanBlockCor <- (t(reflective) %*% (S*lower.tri(S)) %*% reflective) / 
+    (t(reflective) %*% lower.tri(S) %*% reflective)
+  
+  # Choose the blocks that have at least two reflective indicators
+  i <- which(colSums(reflective) > 1)
+  meanBlockCor <- meanBlockCor[i,i]
+  
+  # Calculate the indices
+  htmt <- meanBlockCor*lower.tri(meanBlockCor) /
+    sqrt(diag(meanBlockCor) %o% diag(meanBlockCor))
+
+  htmt
 }
 

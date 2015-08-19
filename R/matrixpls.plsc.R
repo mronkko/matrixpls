@@ -80,11 +80,17 @@
 #'@export
 
 estimator.PLScLoadings <- function(S, model, W,  ...){
-  
+
   ab <- nrow(W) #number of blocks
   ai <- ncol(W) #total number of indicators
-  p <- lapply(1:nrow(W),function(x){which(W[x,]!=0)}) # indicator indices
   
+  L <- model
+  
+  # Indicator indices based on the reflective model. Coerced to list to avoid the problem that
+  # apply can return a list or a matrix depending on whether the number of indicators is equal
+  # between the LVs
+  
+  p_refl <- apply(L, 2, function(x){list(which(x!=0))})
   
   # Calculation of the correlations between the PLS proxies, C:
   C <- W %*% S %*% t(W)	
@@ -97,7 +103,7 @@ estimator.PLScLoadings <- function(S, model, W,  ...){
   # Determination of the correction factors, based on (11) of Dijkstra, April 7, 2011.
   c2 <- rep(1,ab)
   for (i in 1:ab) {
-    idx <- p[[i]]
+    idx <- p_refl[[i]][[1]]
     if (length(idx) > 1) { # only for latent factors, no need to correct for the single indicator for the phantom LV
       c2[i] <- t(W[i,idx])%*%(S[idx,idx]-diag(diag(S[idx,idx])))%*%W[i,idx]
       c2[i] <- c2[i]/(t(W[i,idx])%*%(W[i,idx]%*%t(W[i,idx])-diag(diag(W[i,idx]%*%t(W[i,idx]))))%*%W[i,idx])
@@ -110,19 +116,27 @@ estimator.PLScLoadings <- function(S, model, W,  ...){
   c <- sqrt(c2)
   
   # Determination of consistent estimates of the loadings, see (13) of Dijkstra, April 7, 2011.
-  L <- model
-  
-  for (i in 1:ab) {
-    idx <- p[[i]]
-    L[idx,i] <- c[i]*W[i,idx]
+
+    for (i in 1:ab) {
+    idx <- p_refl[[i]][[1]]
+    
+    if(length(idx) > 1){
+      L[idx,i] <- c[i]*W[i,idx]
+    }
   }
   
   attr(L,"c") <- c
-
   return(L)
 }
 
 #'@title Parameter estimation with per-block exploratory factor analysis
+#'
+#'@detail Estimates the factor loading parameters one latent variable at at time with exploratory
+#'factor analysis using the \code{\link[psych]{fa} function from the \code{psych} package.
+#'
+#'Estimating an unconstrained single factor model requires three indicators. The loadings of 
+#'single indicator factors are estimated as 1 and two indicator factors as estimated by the
+#'square root of the indicator correlation.
 #'
 #'@param fm factoring method for estimating the factor loadings. Passed through to \code{\link[psych]{fa}}.
 #'
@@ -136,22 +150,30 @@ estimator.PLScLoadings <- function(S, model, W,  ...){
 
 estimator.EFALoadings <- function(S, model, W,  ... , fm = "minres"){
   
-  Lp <- model
+  L <- model
   
-  # Loop over factors and use EFA
-  
-  # indicator indices based on the reflective model. Coerced to list to avoid the problem that
+  # Indicator indices based on the reflective model. Coerced to list to avoid the problem that
   # apply can return a list or a matrix depending on whether the number of indicators is equal
   # between the LVs
   
-  p_refl <- apply(Lp, 2, function(x){list(which(x!=0))})
+  p_refl <- apply(L, 2, function(x){list(which(x!=0))})
   
-  for (i in 1:ncol(Lp)) {
+  # Loop over factors and use EFA
+  
+  for (i in 1:ncol(L)) {
     idx <- p_refl[[i]][[1]]
-    Lp[idx,i] <- fa(S[idx,idx], fm = fm)$loadings
+    
+    if(length(idx) == 1){ # Single indicator
+      L[idx,i] <- 1
+    }
+    else if(length(idx) == 2){ # Two indicators
+      L[idx,i] <- sqrt(S[idx,idx][2])
+    }
+    else if(length(idx) >= 3){ # Three or more indicators
+      L[idx,i] <- psych::fa(S[idx,idx], fm = fm)$loadings
+    }
   }
-  
-  return(Lp)
+  return(L)
 }
 
 #'@title Parameter estimation with confirmatory factor analysis of the full model
@@ -168,31 +190,35 @@ estimator.EFALoadings <- function(S, model, W,  ... , fm = "minres"){
 
 estimator.CFALoadings <- function(S, model, W, ...){
   
-  Lp <- model # Loading pattern
+  L <- model # Loading pattern
   
+  hasReflIndicators <- which(apply(L!=0,2,any))
   # Loadings
-  parTable <- data.frame(lhs = colnames(Lp)[col(Lp)[Lp!=0]], op = "=~",  rhs = rownames(Lp)[row(Lp)[Lp!=0]], stringsAsFactors = F)
+  parTable <- data.frame(lhs = colnames(L)[col(L)[L!=0]], op = "=~",  rhs = rownames(L)[row(L)[L!=0]], stringsAsFactors = F)
   
   # Errors
-  parTable <- rbind(parTable,data.frame(lhs = rownames(Lp)[row(Lp)[Lp!=0]], op = "~~",  rhs = rownames(Lp)[row(Lp)[Lp!=0]], stringsAsFactors = F))
+  parTable <- rbind(parTable,data.frame(lhs = rownames(L)[row(L)[L!=0]], op = "~~",  rhs = rownames(L)[row(L)[L!=0]], stringsAsFactors = F))
   
   # Factor covariances
-  a <- matrix(0,ncol(Lp),ncol(Lp))
-  parTable <- rbind(parTable,data.frame(lhs = colnames(Lp)[col(a)[lower.tri(a)]], op = "~~",  rhs = colnames(Lp)[row(a)[lower.tri(a)]], stringsAsFactors = F))
+  if(length(hasReflIndicators)>1){
+    a <- matrix(0,length(hasReflIndicators),length(hasReflIndicators))
+    parTable <- rbind(parTable,data.frame(lhs = colnames(L)[hasReflIndicators][col(a)[lower.tri(a)]],
+                                          op = "~~",  rhs = colnames(L)[hasReflIndicators][row(a)[lower.tri(a)]], stringsAsFactors = F))
+  }
   
   # Factor variances
-  parTable <- rbind(parTable,data.frame(lhs = colnames(Lp), op = "~~",  rhs = colnames(Lp), stringsAsFactors = F))
+  parTable <- rbind(parTable,data.frame(lhs = colnames(L)[hasReflIndicators], op = "~~",  rhs = colnames(L)[hasReflIndicators], stringsAsFactors = F))
   
   parTable <- cbind(id = as.integer(1:nrow(parTable)), 
                     parTable,
-                    user = as.integer(ifelse(1:nrow(parTable)<=sum(Lp!=0),1,0)),
+                    user = as.integer(ifelse(1:nrow(parTable)<=sum(L!=0),1,0)),
                     group = as.integer(1),
-                    free = as.integer(ifelse(1:nrow(parTable)<=(nrow(parTable)-ncol(Lp)),1:nrow(parTable),0)),
-                    ustart = as.integer(ifelse(1:nrow(parTable)<=(nrow(parTable)-ncol(Lp)),NA,1)),
+                    free = as.integer(ifelse(1:nrow(parTable)<=(nrow(parTable)-length(hasReflIndicators)),1:nrow(parTable),0)),
+                    ustart = as.integer(ifelse(1:nrow(parTable)<=(nrow(parTable)-length(hasReflIndicators)),NA,1)),
                     exo = as.integer(0),
                     label = "",
                     eq.id = as.integer(0),
-                    unco = as.integer(ifelse(1:nrow(parTable)<=(nrow(parTable)-ncol(Lp)),1:nrow(parTable),0)),
+                    unco = as.integer(ifelse(1:nrow(parTable)<=(nrow(parTable)-length(hasReflIndicators)),1:nrow(parTable),0)),
                     stringsAsFactors = FALSE)
   
   args <- list(model= parTable, sample.cov = S,
@@ -205,12 +231,11 @@ estimator.CFALoadings <- function(S, model, W, ...){
   f <- formals(lavaan::lavaan)
   include <- intersect(names(f), names(e))
   args[include] <- e[include]
-  
+
   cfa.res <- do.call(lavaan::lavaan, args)
                             
-  Lp[Lp==1] <- coef(cfa.res)[1:sum(Lp!=0)]
-  
-  return(Lp)
+  L[L==1] <- coef(cfa.res)[1:sum(L!=0)]
+  return(L)
   
 }
 

@@ -1,6 +1,6 @@
 library(lavaan)
 
-## The industrialization and Political Democracy Example 
+## The industrialization and Political Democracy example 
 ## Bollen (1989), page 332. (Adopted from the lavaan package.)
 model <- ' 
   # latent variable definitions
@@ -21,4 +21,4 @@ model <- '
 '
 
 matrixpls.out <- matrixpls(cov(PoliticalDemocracy),model)
-summary(matrixpls.out)
+print(matrixpls.out)

@@ -4,7 +4,7 @@
 \alias{outer.RGCCA}
 \title{RGCCA outer estimation (Experimental)}
 \usage{
-outer.RGCCA(S, W, E, W.mod, ..., tau = 1)
+outer.RGCCA(S, W, E, W.model, ..., tau = 1)
 }
 \arguments{
 \item{S}{Covariance matrix of the data.}
@@ -13,14 +13,14 @@ outer.RGCCA(S, W, E, W.mod, ..., tau = 1)
 
 \item{E}{Inner weight matrix. A square matrix of inner estimates between the composites.}
 
-\item{W.mod}{A matrix specifying the weight relationships and their starting values.}
+\item{W.model}{A matrix specifying the weight relationships and their starting values.}
 
 \item{...}{Other parameters are ignored}
 
 \item{tau}{The shrinkage parameter (0-1)}
 }
 \value{
-A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.mod}.
+A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.model}.
 }
 \description{
 Implements the second step of the RGCCA estimation describe by Tenenhaus & Tenehaus (2011)

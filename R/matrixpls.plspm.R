@@ -172,7 +172,7 @@ matrixpls.plspm <-
     C <- attr(matrixpls.res,"C") 
     IC <- attr(matrixpls.res,"IC")
     W <- attr(matrixpls.res,"W") 
-    beta <- attr(matrixpls.res,"beta")
+    inner <- attr(matrixpls.res,"inner")
     
     IC_std <- IC %*% (diag(1/sqrt(diag(S))))
     colnames(IC_std) <- colnames(IC)
@@ -223,16 +223,16 @@ matrixpls.plspm <-
     
     rownames(outer.mod.dataframe) <- NULL
     
-    lvScoreFittedValues <- lvScores_std %*% t(beta)
+    lvScoreFittedValues <- lvScores_std %*% t(inner)
     intercepts <- apply(lvScores_std-lvScoreFittedValues,2,mean)
     
     inner.mod <- sapply(lvNames[!exogenousLVs], function(lvName){
       
       # Recalculate the regressions to get standard errors and intercepts
       row <- which(lvNames == lvName)
-      regressors <- beta[row,]!=0
+      regressors <- inner[row,]!=0
       
-      beta <- c(intercepts[lvName],beta[row,regressors]) 
+      inner <- c(intercepts[lvName],inner[row,regressors]) 
       
       # Calculating of SEs adapted from mat.regress from the psych package
       
@@ -244,10 +244,10 @@ matrixpls.plspm <-
       }
       df <- nrow(params$x)-sum(regressors)-1
       se <- sqrt((1-R2[row])/(df))*c(1,sqrt(1/uniq))
-      tvalue <- beta/se
+      tvalue <- inner/se
       prob <- 2*(1- pt(abs(tvalue),df))
       
-      ret <- cbind(beta, se, tvalue, prob)
+      ret <- cbind(inner, se, tvalue, prob)
       
       rownames(ret) <- c("Intercept",lvNames[regressors])
       colnames(ret) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
@@ -297,11 +297,11 @@ matrixpls.plspm <-
                                              W <- matrix(0,nrow(W.mod),ncol(W.mod))
                                              W[W.mod==1] <- boot.res$t[x,bootWeightIndices]
                                              C <- W %*% S %*% t(W)
-                                             beta <- matrix(0,nrow(nativeModel$inner),ncol(nativeModel$inner))
-                                             beta[nativeModel$inner == 1] <- boot.res$t[x,bootPathIndices]
+                                             inner <- matrix(0,nrow(nativeModel$inner),ncol(nativeModel$inner))
+                                             inner[nativeModel$inner == 1] <- boot.res$t[x,bootPathIndices]
                                              
                                              # Calculate R2 values
-                                             rowSums(beta[!exogenousLVs,]*C[!exogenousLVs,])
+                                             rowSums(inner[!exogenousLVs,]*C[!exogenousLVs,])
                                              
                                            },1:params$br)),
                                            lvNames[!exogenousLVs]),
@@ -311,14 +311,14 @@ matrixpls.plspm <-
                    total.efs = get_bootDataFrame(effects(matrixpls.res)$Total[pathIndices[-1,]],
                                                  t(parallel::mcmapply(function(x){
                                                    
-                                                   beta <- matrix(0,nrow(nativeModel$inner),ncol(nativeModel$inner))
-                                                   beta[nativeModel$inner == 1] <- boot.res$t[x,bootPathIndices]
+                                                   inner <- matrix(0,nrow(nativeModel$inner),ncol(nativeModel$inner))
+                                                   inner[nativeModel$inner == 1] <- boot.res$t[x,bootPathIndices]
 
                                                    # Create a face matrixpls object to calculate total effects
                                                    
                                                    obj <- numeric()
                                                    class(obj) <- "matrixpls"
-                                                   attr(obj,"beta") <- beta
+                                                   attr(obj,"inner") <- inner
                                                    attr(obj,"model") <- nativeModel
                                                    effects.matrixpls(obj)$Total[pathIndices[-1,]]
                                                    
@@ -430,7 +430,7 @@ matrixpls.plspm <-
     
     res = list(outer_model = outer.mod.dataframe, 
                inner_model = inner.mod, 
-               path_coefs = beta, 
+               path_coefs = inner, 
                scores = lvScores_std,
                crossloadings = crossloadings,
                inner_summary = inner.sum, 
@@ -565,8 +565,8 @@ get_plsr1 <-function(C, nc=NULL, scaled=TRUE)
     
   }
   Ws <- Wh %*% solve(t(Ph)%*%Wh)# modified weights
-  Bs <- as.vector(Ws %*% ch) # std beta coeffs    
-  Br <- Bs * C[1,1]/diag(C)[2:nrow(C)]   # beta coeffs
+  Bs <- as.vector(Ws %*% ch) # std inner coeffs    
+  Br <- Bs * C[1,1]/diag(C)[2:nrow(C)]   # inner coeffs
   
   return(Br)
 }

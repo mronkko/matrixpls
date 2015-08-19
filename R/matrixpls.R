@@ -38,13 +38,13 @@
 #'imposes on \code{inner}, \code{reflective}, and \code{formative} is that these must be
 #'binary matrices and that the diagonal of \code{inner} must be zeros.
 #'
-#'The argument \code{W.mod} is a (\code{l x k}) matrix that indicates
+#'The argument \code{W.model} is a (\code{l x k}) matrix that indicates
 #'how the indicators are combined to form the composites. The original papers about
 #'Partial Least Squares as well as all current PLS implementations define this as
 #'\code{t(reflective) | formative}, which means that the weight patter must match the
 #'model specified in \code{reflective} and \code{formative}. Matrixpls does not
-#'require that \code{W.mod} needs to match \code{reflective} and \code{formative}, but
-#'accepts any numeric matrix. If this argument is not specified, \code{W.mod} is
+#'require that \code{W.model} needs to match \code{reflective} and \code{formative}, but
+#'accepts any numeric matrix. If this argument is not specified, \code{W.model} is
 #'defined as \code{t(reflective) | formative}.
 #'
 #'@param S Covariance matrix of the data.
@@ -54,19 +54,21 @@
 #'\code{inner}, \code{reflective}, and \code{formative} defining the free regression paths
 #'in the model.
 #'
-#'@param W.mod An optional numeric matrix representing the weight patter and starting weights
+#'@param W.model An optional numeric matrix representing the weight patter and starting weights
 #'(i.e. the how the indicators are combined to form the composite variables). If this argument is not specified,
 #'the weight patter is defined based on the relationships in the \code{reflective} and  \code{formative}
 #'elements of \code{model}.
 
 #'@param weightFunction A function that takes three or more arguments, the data covariance matrix \code{S},
-#'a model specification \code{model}, and a weight pattern \code{W.mod} and 
+#'a model specification \code{model}, and a weight pattern \code{W.model} and 
 #' returns a named vector of parameter estimates. The default is \code{\link{weight.pls}}
 #'
 #'@param parameterEstimator A function that takes three or more arguments, the data covariance matrix \code{S},
 #'model specification \code{model}, and weights \code{W} and returns a named vector of parameter estimates. The default is \code{\link{params.regression}}
 #'
 #'@param validateInput A boolean indicating whether the arguments should be validated.
+#'
+#'@param standardize A boolean indicating whether \code{S} is standardized
 #' 
 #'@param ... All other arguments are passed through to \code{weightFunction} and \code{parameterEstimator}.
 #'
@@ -84,8 +86,8 @@
 #'@export
 
 
-matrixpls <- function(S, model, W.mod = NULL, weightFunction = weight.pls,
-                      parameterEstimator = params.regression,
+matrixpls <- function(S, model, W.model = NULL, weightFunction = weight.pls,
+                      parameterEstimator = params.regression, weightSignCorrection = NULL,
                       ..., validateInput = TRUE, standardize = TRUE) {
   
   
@@ -119,9 +121,9 @@ matrixpls <- function(S, model, W.mod = NULL, weightFunction = weight.pls,
   }
   
   # If the weight patter is not defined, calculate it based on the model.
-  if(is.null(W.mod)) W.mod <- defaultWeightModelWithModel(nativeModel)
-  if(! identical(colnames(W.mod), colnames(S))) stop("Column names of W.mod do not match the variable names")
-  if(! identical(rownames(W.mod), lvNames)) stop("Row names of W.mod do not match the latent variable names")
+  if(is.null(W.model)) W.model <- defaultWeightModelWithModel(nativeModel)
+  if(! identical(colnames(W.model), colnames(S))) stop("Column names of W.model do not match the variable names")
+  if(! identical(rownames(W.model), lvNames)) stop("Row names of W.model do not match the latent variable names")
   
   ##################################################################################################
   #
@@ -131,21 +133,24 @@ matrixpls <- function(S, model, W.mod = NULL, weightFunction = weight.pls,
   
   if(standardize){
     S <- cov2cor(S)
-    # cov2cor can result in non.symmetrix matrix because of computational inaccuracy
+    # cov2cor can result in nonsymmetrix matrix because of computational inaccuracy
     S[lower.tri(S)] <- t(S)[lower.tri(S)]
   }
   
   # Calculate weight.
   
-  W <- weightFunction(S, W.mod = W.mod,
+  W <- weightFunction(S, W.model = W.model,
                       model = nativeModel, parameterEstimator = params.regression,
                       ..., validateInput = validateInput, standardize = standardize)
   
+  # Correct the signs of the weights
+  
+  if(!is.null(weightSignCorrection)) W <- weightSignCorrection(W)
   
   # Apply the parameter estimator and return the results
   
   estimates <- parameterEstimator(S, model, W, ...)
-
+  
   ##################################################################################################
   #
   # Construct the return object
@@ -153,7 +158,7 @@ matrixpls <- function(S, model, W.mod = NULL, weightFunction = weight.pls,
   ##################################################################################################
   
   # Construct the return vector by combining estimates with weights in a named vector
-  indices <- W.mod!=0
+  indices <- W.model!=0
   WVect <- W[indices]
   
   names(WVect) <- paste(rownames(nativeModel$formative)[row(W)[indices]],"=+",colnames(nativeModel$formative)[col(W)[indices]], sep="")
@@ -205,7 +210,7 @@ print.matrixpls <- function(x, ...){
   
   attr(W,"iterations") <- attr(x,"iterations")
   attr(W,"converged") <- attr(x,"converged")
-    
+  
   class(W) <- "matrixplsweights"
   print(W, ...)
   
@@ -279,13 +284,13 @@ print.matrixplssummary <- function(x, ...){
 #'binary matrices and that the diagonal of \code{inner} must be zeros.
 #'
 #'
-#'The argument \code{W.mod} is a (\code{l x k}) matrix that indicates
+#'The argument \code{W.model} is a (\code{l x k}) matrix that indicates
 #'how the indicators are combined to form the composites. The original papers about
 #'Partial Least Squares as well as all current PLS implementations define this as
 #'\code{t(reflective) | formative}, which means that the weight patter must match the
 #'model specified in \code{reflective} and \code{formative}. Matrixpls does not
-#'require that \code{W.mod} needs to match \code{reflective} and \code{formative}, but
-#'accepts any numeric matrix. If this argument is not specified, \code{W.mod} is
+#'require that \code{W.model} needs to match \code{reflective} and \code{formative}, but
+#'accepts any numeric matrix. If this argument is not specified, \code{W.model} is
 #'defined as \code{t(reflective) | formative}.
 #'
 #'@inheritParams matrixpls
@@ -294,7 +299,7 @@ print.matrixplssummary <- function(x, ...){
 #'the value of this parameter is a function, the same function is applied to all
 #'composites. If the value of the parameter is a list, the composite \code{n} is estimated
 #'with the estimator in the \code{n}th position in the list. If this argument is
-#'\code{NULL} the starting weights specified in \code{W.mod} will be returned. The default is \code{\link{outer.modeA}} 
+#'\code{NULL} the starting weights specified in \code{W.model} will be returned. The default is \code{\link{outer.modeA}} 
 #'(PLS Mode A estimation).
 #'
 #'@param innerEstimator A function used for inner estimation. Setting this argument to
@@ -309,9 +314,6 @@ print.matrixplssummary <- function(x, ...){
 #'function calculates the differences between each cell of old and new weights and returns the largest
 #'absolute difference.
 #'
-#'@param signAmbiquityCorrection A boolean indicating whether the signs of the weights should be
-#'adjusted so that the majority of the indicators are positively correlated with the composite
-#'as proposed by Wold (1985).
 #'
 #'@param tol Decimal value indicating the tolerance criterion for the
 #'iterations. 
@@ -325,23 +327,20 @@ print.matrixplssummary <- function(x, ...){
 #'@template weights-return
 #'
 #'@seealso 
-#'Inner estimators: \code{\link{inner.path}}; \code{\link{inner.centroid}}; \code{\link{inner.factor}}; \code{\link{inner.GSCA}}; \code{\link{inner.identity}}
+#'Inner estimators: \code{\link{inner.path}}; \code{\link{inner.centroid}}; \code{\link{inner.factor}}; \code{\link{inner.GSCA}}; \code{\link{inner.identity}}; \code{\link{inner.Horst}};
 #'
 #'Outer estimators: \code{\link{outer.modeA}}; \code{\link{outer.modeB}}; \code{\link{outer.GSCA}}; \code{\link{outer.factor}}; \code{\link{outer.fixedWeights}}
 #'
 #'Convergence checks: \code{\link{convCheck.absolute}}, \code{\link{convCheck.square}}, and \code{\link{convCheck.relative}}.
 #'
-#'@references
-#'Wold, H. (1985). Partial Least Squares. In S. Kotz & N. L. Johnson (Eds.), Encyclopedia  of 
-#'statistical sciences (Vol. 6, pp. 581–591). New York: Wiley.
 
 #'@export
 
-weight.pls <- function(S, model, W.mod,
+weight.pls <- function(S, model, W.model,
                        outerEstimators = NULL, 
                        innerEstimator = inner.path, ..., 
                        convCheck = convCheck.absolute,
-                       signAmbiquityCorrection = FALSE,
+                       signAmbiquityCorrection = FALSE, # TODO: make this a function
                        tol = 1e-05, iter = 100, validateInput = TRUE) {
   
   if(validateInput){
@@ -354,23 +353,23 @@ weight.pls <- function(S, model, W.mod,
     assertive::assert_is_symmetric_matrix(S)
     assertive::assert_is_identical_to_true(matrixcalc:::is.positive.semi.definite(S))
     
-    # W.mod must be a real matrix and each indicators must be
+    # W.model must be a real matrix and each indicators must be
     # linked to at least one composite and each composite at least to one indicator
-    assertive::assert_is_matrix(W.mod)
-    assertive::assert_all_are_real(W.mod)
+    assertive::assert_is_matrix(W.model)
+    assertive::assert_all_are_real(W.model)
     
-    if(! all(apply(W.mod!=0,1,any))){
-      print(W.mod)	
+    if(! all(apply(W.model!=0,1,any))){
+      print(W.model)	
       stop("All constructs must have at least one indicator")	
     }
-    if(! all(apply(W.mod!=0,2,any))){
-      print(W.mod)	
+    if(! all(apply(W.model!=0,2,any))){
+      print(W.model)	
       stop("All indicators must be linked to at least one construct")	
     }
     
     
-    if(ncol(S)!=ncol(W.mod)){
-      print(list(S=S,W.mod = W.mod))
+    if(ncol(S)!=ncol(W.model)){
+      print(list(S=S,W.model = W.model))
       stop("Data matrix column count does not match weight patter column count")
     }
     
@@ -378,7 +377,7 @@ weight.pls <- function(S, model, W.mod,
     # a function
     if(! is.null(outerEstimators)){
       if(is.list(outerEstimators)){
-        assertive::assert_is_identical_to_true(length(outerEstimators) == nrow(W.mod))
+        assertive::assert_is_identical_to_true(length(outerEstimators) == nrow(W.model))
         for(outerEstimator in outerEstimators){
           assertive::assert_is_function(outerEstimator)
         }
@@ -429,8 +428,8 @@ weight.pls <- function(S, model, W.mod,
   
   # The initial weight matrix
   
-  weightPattern <- W.mod!=0
-  W <- scaleWeights(S, W.mod)
+  weightPattern <- W.model!=0
+  W <- scaleWeights(S, W.model)
   iteration <- 0
   
   weightHistory <- matrix(NA,iter+1,sum(weightPattern))
@@ -439,84 +438,65 @@ weight.pls <- function(S, model, W.mod,
   if(iter > 0) rownames(weightHistory) <- c("start",1:iter)
   else rownames(weightHistory) <- "start"
   
+  # Set up outer estimators
   
-  # If we are not using an outer estimator, do not perform iterative estimation
-  
-  if(!is.null(outerEstimators)){
-    
-    # Set up outer estimators
-    
-    if(is.list(outerEstimators)){
-      uniqueOuterEstimators <- unique(outerEstimators)
-      outerEstimatorIndices <- lapply(uniqueOuterEstimators, function(x){
-        sapply(outerEstimators, function(y){
-          identical(y,x)})
-      })
-    }
-    
-    E <- NULL
-    
-    # =========== Start of iterative procedure ===========
-    
-    repeat {
-      
-      if(iteration == iter){
-        converged <- FALSE;
-        break;
-      }
-      
-      # Get new inner weights from inner estimation
-      
-      if(! is.null(innerEstimator)){
-        E <- innerEstimator(S, W, inner.mod, model = model, ...)
-      }
-
-      # Get new weights from outer estimation
-      
-      W_old <- W
-      if(is.list(outerEstimators)){
-        
-        # Run each estimator separately
-        
-        for(i in 1:length(uniqueOuterEstimators)){
-          W.modForThisEstimator <- W.mod
-          W.modForThisEstimator[!outerEstimatorIndices[[i]],] <- 0
-          W[outerEstimatorIndices[[i]],] <- uniqueOuterEstimators[[i]](S, W_old, E, W.modForThisEstimator,...)[outerEstimatorIndices[[i]]]
-        }
-      }
-      else{
-        W <- outerEstimators(S, W_old, E, W.mod, model = model, ...)
-      }	
-      
-      W <- scaleWeights(S, W)
-      
-      iteration <- iteration +1 
-      weightHistory[iteration+1,] <- W[weightPattern]
-      
-      # Check convergence. If we are not using inner estimator, converge to the first iteration
-      
-      if(is.null(innerEstimator) || convCheck(W,W_old) < tol){
-        converged <- TRUE
-        break;
-      }
-      
-    }
+  if(is.list(outerEstimators)){
+    uniqueOuterEstimators <- unique(outerEstimators)
+    outerEstimatorIndices <- lapply(uniqueOuterEstimators, function(x){
+      sapply(outerEstimators, function(y){
+        identical(y,x)})
+    })
   }
   
-  # Mark the estimation as converged if not running iterations
+  E <- NULL
   
-  else converged <- TRUE	
+  # =========== Start of iterative procedure ===========
+  
+  repeat {
+    
+    if(iteration == iter){
+      converged <- FALSE;
+      break;
+    }
+    
+    # Get new inner weights from inner estimation
+    
+    if(! is.null(innerEstimator)){
+      E <- innerEstimator(S, W, inner.mod, model = model, ...)
+    }
+    
+    # Get new weights from outer estimation
+    
+    W_old <- W
+    if(is.list(outerEstimators)){
+      
+      # Run each estimator separately
+      
+      for(i in 1:length(uniqueOuterEstimators)){
+        W.modelForThisEstimator <- W.model
+        W.modelForThisEstimator[!outerEstimatorIndices[[i]],] <- 0
+        W[outerEstimatorIndices[[i]],] <- uniqueOuterEstimators[[i]](S, W_old, E, W.modelForThisEstimator,...)[outerEstimatorIndices[[i]]]
+      }
+    }
+    else{
+      W <- outerEstimators(S, W_old, E, W.model, model = model, ...)
+    }	
+    
+    W <- scaleWeights(S, W)
+    
+    iteration <- iteration +1 
+    weightHistory[iteration+1,] <- W[weightPattern]
+    
+    # Check convergence. If we are not using inner estimator, converge to the first iteration
+    
+    if(is.null(innerEstimator) || convCheck(W,W_old) < tol){
+      converged <- TRUE
+      break;
+    }
+    
+  }
   
   if(!converged) warning(paste("Iterative weight algorithm did not converge."))
-  
-  # Correct the weight signs if requested. Based on Wold 1985
-  
-  if(signAmbiquityCorrection){
-    # Calculate the covariance matrix between indicators and composites
-    IC <- W %*% S
-    signSums <- rowSums(sign(IC * weightPattern))
-    W <- sweep(W, 1,ifelse(signSums<0, -1, 1),"*")
-  }
   
   attr(W,"S") <- S
   attr(W,"E") <- E
@@ -573,13 +553,13 @@ weight.pls <- function(S, model, W.mod,
 #'binary matrices and that the diagonal of \code{inner} must be zeros.
 #'
 #'
-#'The argument \code{W.mod} is a (\code{l x k}) matrix that indicates
+#'The argument \code{W.model} is a (\code{l x k}) matrix that indicates
 #'how the indicators are combined to form the composites. The original papers about
 #'Partial Least Squares as well as all current PLS implementations define this as
 #'\code{t(reflective) | formative}, which means that the weight patter must match the
 #'model specified in \code{reflective} and \code{formative}. Matrixpls does not
-#'require that \code{W.mod} needs to match \code{reflective} and \code{formative}, but
-#'accepts any numeric matrix. If this argument is not specified, \code{W.mod} is
+#'require that \code{W.model} needs to match \code{reflective} and \code{formative}, but
+#'accepts any numeric matrix. If this argument is not specified, \code{W.model} is
 #'defined as \code{t(reflective) | formative}.
 #'
 #'@inheritParams matrixpls
@@ -603,17 +583,17 @@ weight.pls <- function(S, model, W.mod,
 
 
 
-weight.optim <- function(S, model, W.mod,
+weight.optim <- function(S, model, W.model,
                          parameterEstimator = params.regression, 
                          optimCriterion = optim.maximizeInnerR2, method = "BFGS",
                          ..., 
                          validateInput = TRUE,
                          standardize = TRUE) {
   
-  W <- W.mod
+  W <- W.model
   
-  optim.res <- optim(W.mod[W.mod != 0], fn = function(par, ...){
-    W[W.mod != 0] <- par
+  optim.res <- optim(W.model[W.model != 0], fn = function(par, ...){
+    W[W.model != 0] <- par
     # Use fixed weights estimation
     matrixpls.res <- matrixpls(S, model, W, weightFunction = weight.fixed,
                                parameterEstimator = params.regression,
@@ -622,7 +602,7 @@ weight.optim <- function(S, model, W.mod,
     optimCriterion(matrixpls.res)
   }, method = method, ...)
   
-  W[W.mod != 0] <- optim.res$par
+  W[W.model != 0] <- optim.res$par
   W <- scaleWeights(S, W)
   
   if(optim.res$convergence) warning(paste("Weight optimization did not converge. Optim returned",optim.res$convergence))
@@ -645,48 +625,12 @@ weight.optim <- function(S, model, W.mod,
 #'@details
 #'
 #'Returns the starting weights specified
-#'in \code{W.mod}. If \code{standardize} is \code{TRUE} the weights are
+#'in \code{W.model}. If \code{standardize} is \code{TRUE} the weights are
 #'standardized so that the composites have unit variances.
-#'
-#'
-#'Model can be specified in the lavaan format or the native matrixpls format.
-#'The native model format is a list of three binary matrices, \code{inner}, \code{reflective},
-#'and \code{formative} specifying the free parameters of a model: \code{inner} (\code{l x l}) specifies the 
-#'regressions between composites, \code{reflective} (\code{k x l}) specifies the regressions of observed
-#'data on composites, and \code{formative} (\code{l x k}) specifies the regressions of composites on the
-#'observed data. Here \code{k} is the number of observed variables and \code{l} is the number of composites.
-#'
-#'If the model is specified in lavaan format, the native
-#'format model is derived from this model by assigning all regressions between latent
-#'variables to \code{inner}, all factor loadings to \code{reflective}, and all regressions
-#'of latent variables on observed variables to \code{formative}. Regressions between
-#'observed variables and all free covariances are ignored. All parameters that are
-#'specified in the model will be treated as free parameters. If model is specified in
-#'lavaan syntax, the model that is passed to the \code{parameterEstimator} will be that
-#'model and not the native format model.
-#'
-#'The original papers about Partial Least Squares, as well as many of the current PLS
-#'implementations, impose restrictions on the matrices \code{inner},
-#'\code{reflective}, and \code{formative}: \code{inner} must be a lower triangular matrix,
-#'\code{reflective} must have exactly one non-zero value on each row and must have at least
-#'one non-zero value on each column, and \code{formative} must only contain zeros.
-#'Some PLS implementations allow \code{formative} to contain non-zero values, but impose a
-#'restriction that the sum of \code{reflective} and \code{t(formative)} must satisfy
-#'the original restrictions of \code{reflective}. The only restrictions that matrixpls
-#'imposes on \code{inner}, \code{reflective}, and \code{formative} is that these must be
-#'binary matrices and that the diagonal of \code{inner} must be zeros.
-#'
-#'
-#'The argument \code{W.mod} is a (\code{l x k}) matrix that indicates
-#'how the indicators are combined to form the composites. The original papers about
-#'Partial Least Squares as well as all current PLS implementations define this as
-#'\code{t(reflective) | formative}, which means that the weight patter must match the
-#'model specified in \code{reflective} and \code{formative}. Matrixpls does not
-#'require that \code{W.mod} needs to match \code{reflective} and \code{formative}, but
-#'accepts any numeric matrix. If this argument is not specified, \code{W.mod} is
-#'defined as \code{t(reflective) | formative}.
-#'
+#
 #'@inheritParams matrixpls
+#'
+#'@param model Ignored by \code{weight.fixed}
 #'
 #'@param ... All other arguments are ignored.
 #'
@@ -695,16 +639,16 @@ weight.optim <- function(S, model, W.mod,
 #'@export
 
 
-weight.fixed <- function(S, model, W.mod = NULL,
+weight.fixed <- function(S, model, W.model = NULL,
                          ..., 
                          standardize = TRUE) {
   
-  W <- W.mod 
+  W <- W.model 
   
   if(standardize){
     W <- scaleWeights(S,W)
   }
-
+  
   attr(W,"S") <- S
   attr(W,"iterations") <- 0
   attr(W,"converged") <- TRUE
@@ -714,6 +658,105 @@ weight.fixed <- function(S, model, W.mod = NULL,
   return(W)
   
 }
+
+#'@title Blockwise factor score weights
+#'
+#'@description
+#'
+#'Calculates weights by estimating a common factor analysis model with a single factor for each 
+#'indicator block and using the resulting estimates to calculate factor score weights
+#'
+#'@inheritParams matrixpls
+#'
+#'@param model Ignored by \code{weight.factor}
+#'
+#'@param fm factoring method for estimating the common factor model. Possible values are
+#'\code{minres}, \code{wls}, \code{gls}, \code{pa}, and \code{ml}. The parameter is passed through to
+#' to \code{\link[psych]{fa}}.
+#'
+#'@param ... All other arguments are ignored.
+#'
+#'@template weights-return
+#'
+#'@export
+
+
+
+weight.factor <- function(S, model, W.model = NULL, ..., fm ="minres",
+                         standardize = TRUE) {
+  
+  # Set up a weight pattern
+  W <- ifelse(W.model==0,0,1)
+  
+  # Do the factor analyses
+  
+  for(row in which(rowSums(W)>0, useNames = FALSE)){
+    indicatorIndices <- W[row,]==1
+    fa.res <- psych::fa(S[indicatorIndices,indicatorIndices], fm=fm)
+    # Calculate the factor score weights based on the loadings and indicator covariance matrix
+    W[row,indicatorIndices] <- solve(S[indicatorIndices,indicatorIndices])%*%fa.res$loading
+    
+  }
+  
+  if(standardize){
+    W <- scaleWeights(S,W)
+  }
+  
+  attr(W,"S") <- S
+  attr(W,"iterations") <- 0
+  attr(W,"converged") <- TRUE
+  attr(W,"history") <- W
+  class(W) <-("matrixplsweights")
+  
+  return(W)
+  
+}
+
+#'@title Blockwise principal component weights
+#'
+#'@description
+#'
+#'Calculates weights by calculating a principal component analysis for each 
+#'indicator block and returning the weights for the first principal component.
+#'
+#'@inheritParams matrixpls
+#'
+#'@param model Ignored by \code{weight.principal}
+#'
+#'@param ... All other arguments are ignored.
+#'
+#'@template weights-return
+#'
+#'@export
+
+weight.principal <- function(S, model, W.model = NULL, ..., 
+                          standardize = TRUE) {
+  
+  # Set up a weight pattern
+  W <- ifelse(W.model==0,0,1)
+  
+  # Do the factor analyses
+  
+  for(row in which(rowSums(W)>0, useNames = FALSE)){
+    indicatorIndices <- W[row,]==1
+    principal.res <- psych::principal(S[indicatorIndices,indicatorIndices], ...)
+    W[row,indicatorIndices] <- principal.res$weights
+    
+  }
+  
+  if(standardize){
+    W <- scaleWeights(S,W)
+  }
+  
+  attr(W,"S") <- S
+  attr(W,"iterations") <- 0
+  attr(W,"converged") <- TRUE
+  attr(W,"history") <- W
+  class(W) <-("matrixplsweights")
+  
+  return(W)
+}
+
 
 #'@S3method print matrixplsweights
 
@@ -788,6 +831,58 @@ convCheck.absolute <- function(Wnew, Wold){
   max(abs(Wold-Wnew))
 }
 
+# =========== Weight sign corrections ===========
+
+#'@title Wold's sign ambiguity correction
+#'
+#'@description Adjust the signs of W so that the majority of the indicators are positively 
+#'correlated with the composite as proposed by Wold (1985).
+#'
+#'@inheritParams inner.factor
+#'
+#'@return W after sign correction.
+#'
+#'@family Sign corrections
+#'@seealso 
+#'\code{\link{matrixpls}};
+#'
+#'
+#'@references
+#'Wold, H. (1985). Partial Least Squares. In S. Kotz & N. L. Johnson (Eds.), Encyclopedia  of 
+#'statistical sciences (Vol. 6, pp. 581–591). New York: Wiley.
+#'
+#'@export
+
+weightSign.Wold1985 <- function(W,S){
+  # Calculate the covariance matrix between indicators and composites
+  IC <- W %*% S
+  signSums <- rowSums(sign(IC * weightPattern))
+  sweep(W, 1,ifelse(signSums<0, -1, 1),"*")
+}
+
+#'@title Dominant indicator sign ambiguity correction
+#'
+#'@description Adjust the signs of W so that the first indicator of each composite has positive
+#'weight.
+#'
+#'@inheritParams inner.factor
+#'
+#'@return W after sign correction.
+#'
+#'@family Sign corrections
+#'@seealso 
+#'\code{\link{matrixpls}};
+#'
+#'@export
+
+weightSign.dominantIndicator <- function(W,S){
+  # Calculate the covariance matrix between indicators and composites
+  signs <- apply(W,1,function(x){
+    i <- min(which(x!=0))
+    sign(x[i])
+  })
+  sweep(W, 1,signs,"*")
+}
 
 # =========== Parameter estimators ===========
 
@@ -844,7 +939,7 @@ params.regression <- function(S, model, W, ...,
                               parametersFormative = estimator.regression,
                               disattenuate = FALSE,
                               reliabilities = reliability.weightLoadingProduct){
-    
+  
   nativeModel <- parseModelToNativeFormat(model)
   
   results <- c()
@@ -859,9 +954,8 @@ params.regression <- function(S, model, W, ...,
   
   if(disattenuate){
     
-    # TODO: Non-factor indicators are assumed to be perfectly reliable and not corrected
-     
     Q <- reliabilities(S, reflectiveEstimates, W, ...)
+
     C <- C / sqrt(Q) %*% t(sqrt(Q))
     diag(C) <- 1
     
@@ -875,7 +969,7 @@ params.regression <- function(S, model, W, ...,
   
   formativeEstimates <- parametersFormative(S, nativeModel$formative, W, ..., IC = IC)  
   innerEstimates <- parametersInner(S, nativeModel$inner, W, ..., C = C)  
-    
+  
   results <- c(estimatesMatrixToVector(innerEstimates, nativeModel$inner, "~"),
                estimatesMatrixToVector(reflectiveEstimates, nativeModel$reflective, "=~", reverse = TRUE),
                estimatesMatrixToVector(formativeEstimates, nativeModel$formative, "<~"))
@@ -892,8 +986,10 @@ params.regression <- function(S, model, W, ...,
   # Store these in the result object
   attr(results,"C") <- C
   attr(results,"IC") <- IC
-  attr(results,"beta") <- innerEstimates
-
+  attr(results,"inner") <- innerEstimates
+  attr(results,"reflective") <- reflectiveEstimates
+  attr(results,"formative") <- formativeEstimates
+  
   if(disattenuate){
     attr(results,"Q") <- Q
   }
@@ -902,7 +998,7 @@ params.regression <- function(S, model, W, ...,
 }
 
 estimator.regression <- function(S, model, W, ..., C = NULL, IC = NULL){
-
+  
   covIV <- covDV <- NULL
   
   # Covariances between the independent variables
@@ -916,7 +1012,7 @@ estimator.regression <- function(S, model, W, ..., C = NULL, IC = NULL){
   if(is.null(covIV)) browser()
   
   # Covariances between IVs and DVS
-
+  
   for(m in list(S, C, IC)){
     if(all(rownames(model) %in% rownames(m)) &&
          all(colnames(model) %in% colnames(m))){
@@ -924,7 +1020,7 @@ estimator.regression <- function(S, model, W, ..., C = NULL, IC = NULL){
       break()
     }
   }
-
+  
   if(is.null(covDV)) browser()
   
   for(row in 1:nrow(model)){
@@ -1024,9 +1120,15 @@ estimator.tsls <- function(S, model, W, C, ...){
 #'@export
 
 reliability.weightLoadingProduct <- function(S, loadings, W, ...){
-  diag(W %*% loadings)^2
-}
   
+  Q <- diag(W %*% loadings)^2
+  
+  # Any composite with no reflective indicators is fixed to be perfectly reliable
+  Q[apply(loadings==0,2,all)] <- 1
+  
+  Q
+}
+
 # =========== Inner estimators ===========
 
 #'@title PLS inner estimation with the centroid scheme
@@ -1150,49 +1252,6 @@ inner.factor <- function(S, W, inner.mod, ignoreInnerModel = FALSE, ...){
   return(E)
 } 
 
-#'@title PLS inner estimation with the Horst scheme
-#'
-#'@description
-#'Calculates a set of inner weights based on the Horst scheme.
-#
-#'@details
-#'In the Hosrt scheme, inner weights are unit weights for
-#'composites that are connected in the model specified in \code{inner.mod} and zero otherwise.
-#'
-#'Falls back to to identity scheme for composites that are not connected to any other composites.
-#'
-#'@param S Covariance matrix of the data.
-#'
-#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
-#'
-#'@param inner.mod A square matrix specifying the relationships of the composites in the model.
-
-#'@param ignoreInnerModel Should the inner model be ignored and all correlations be used.
-#'
-#'@param ... Other parameters are ignored
-#'
-#'@return A matrix of unscaled inner weights \code{E} with the same dimesions as \code{inner.mod}.
-#'
-#'@family inner estimators
-#'
-#'@references
-#'Tenenhaus, A., & Tenenhaus, M. (2011). Regularized Generalized Canonical 
-#'Correlation Analysis. Psychometrika, 76(2), 257–284. doi:10.1007/s11336-011-9206-8
-
-#'@export
-
-inner.Horst <- function(S, W, inner.mod, ignoreInnerModel = FALSE, ...){
-  
-  if(ignoreInnerModel){
-    E <- lower.tri(inner.mod) * 1
-  } 
-  else E <- inner.mod 
-  
-  # If we have LVs that are not connected to any other LVs, use identity scheme as fallback
-  diag(E)[rowSums(E) == 0] <- 1
-  
-  return(E)
-} 
 
 
 #'@title PLS inner estimation with the identity scheme
@@ -1278,24 +1337,24 @@ inner.GSCA <- function(S, W, inner.mod, ...){
 #'
 #'@param E Inner weight matrix. A square matrix of inner estimates between the composites.
 #'
-#'@param W.mod A matrix specifying the weight relationships and their starting values.
+#'@param W.model A matrix specifying the weight relationships and their starting values.
 #'
 #'@inheritParams inner.centroid
 #'
-#'@return A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.mod}.
+#'@return A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.model}.
 #'
 #'@family outer estimators  
 #'
 #'@export
 
 
-outer.modeA <- function(S, W, E, W.mod, ...){
+outer.modeA <- function(S, W, E, W.model, ...){
   
   # Calculate the covariance matrix between indicators and composites
   W_new <- E %*% W %*% S
   
   # Set the non-existing weight relations to zero
-  W_new[W.mod == 0] <- 0
+  W_new[W.model == 0] <- 0
   
   return(W_new)
 }
@@ -1308,20 +1367,20 @@ outer.modeA <- function(S, W, E, W.mod, ...){
 #'
 #'@inheritParams outer.modeA
 #'
-#'@return A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.mod}.
+#'@return A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.model}.
 #'
 #'@family outer estimators
 #'
 #'@export
 
 
-outer.modeB <- function(S, W, E, W.mod, ...){
+outer.modeB <- function(S, W, E, W.model, ...){
   
   # Calculate the covariance matrix between indicators and composites
   IC <- E %*% W %*% S
   
   # Set up a weight pattern
-  W_new <- ifelse(W.mod==0,0,1)
+  W_new <- ifelse(W.model==0,0,1)
   
   # Do the outer model regressions
   
@@ -1334,117 +1393,6 @@ outer.modeB <- function(S, W, E, W.mod, ...){
   
 }
 
-#'@title PLS outer estimation with fixed weights
-#'
-#'@description
-#'
-#'Returns the starting weights as outer estimates.
-#'
-#'@inheritParams outer.modeA
-#'
-#'@return A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.mod}.
-#'
-#'@family outer estimators
-#'
-#'@export
-
-outer.fixedWeights <- function(S, W, E, W.mod, ...){
-  return(W.mod)
-}
-
-
-#'@title RGCCA outer estimation (Experimental)
-#'
-#'@description
-#'
-#'Implements the second step of the RGCCA estimation describe by Tenenhaus & Tenehaus (2011)
-#'
-#'@details
-#'
-#'The second step of RGCCA estimation method, as describe by Tenenhaus & Tenehaus (2011)
-#'@inheritParams outer.modeA
-#'
-#'@param tau The shrinkage parameter (0-1) 
-#'
-#'@return A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.mod}.
-#'
-#'@references
-#'Tenenhaus, A., & Tenenhaus, M. (2011). Regularized Generalized Canonical 
-#'Correlation Analysis. Psychometrika, 76(2), 257–284. 
-#'doi:10.1007/s11336-011-9206-8
-#'
-#'@example example/matrixpls.RGCCA-example.R
-#'
-#'@family outer estimators
-#'
-#'@export
-
-
-outer.RGCCA <- function(S, W, E, W.mod, ..., tau = 1){
-  
-  if(length(tau) == 1) tau <- rep(tau, nrow(W.mod))
-  else if(length(tau) != nrow(W.mod)) stop("Parameter tau of outer.RGCCA must be of length one or the number of composites.")
-  
-  # Calculate the covariance matrix between indicators and composites
-  IC <- E %*% W %*% S
-  
-  # Set up a weight pattern
-  W_new <- ifelse(W.mod==0,0,1)
-  
-  # Do the outer model regressions
-  
-  for(row in which(rowSums(W_new)>0, useNames = FALSE)){
-    
-    indicatorIndices <- W_new[row,]==1
-    # Tikhonov matrix
-    Gamma <- tau[row] * diag(sum(indicatorIndices))
-    
-    # Ridge regression
-    W_new[row,indicatorIndices] <- solve(S[indicatorIndices,indicatorIndices] + t(Gamma) %*% Gamma,IC[row,indicatorIndices])
-    
-  }
-  
-  return(W_new)
-  
-}
-
-#'@title Blockwise factor score outer estimation
-#'
-#'@description
-#'
-#'Calculates outer weights by estimating a common factor analysis model with a single factor for each 
-#'indicator block and using the resulting estimates to calculate factor score weights
-#'
-#'
-#'@inheritParams outer.modeA
-#'
-#'@param fm factoring method for estimating the common factor model. Possible values are
-#'\code{minres}, \code{wls}, \code{gls}, \code{pa}, and \code{ml}. The parameter is passed through to
-#' to \code{\link[psych]{fa}}.
-
-#'@return A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.mod}.
-#'
-#'@family outer estimators
-#'
-#'@export
-
-outer.factor <- function(S, W, E, W.mod, fm="minres", ...){
-  
-  # Set up a weight pattern
-  W_new <- ifelse(W.mod==0,0,1)
-  
-  # Do the factor analyses
-  
-  for(row in which(rowSums(W_new)>0, useNames = FALSE)){
-    indicatorIndices <- W_new[row,]==1
-    fa.res <- fa(S[indicatorIndices,indicatorIndices], fm = fm)
-    # Calculate the factor score weights based on the loadings and indicator covariance matrix
-    W_new[row,indicatorIndices] <- solve(S[indicatorIndices,indicatorIndices])%*%fa.res$loading
-    
-  }
-  
-  return(W_new)
-}
 
 
 #'@title GSCA outer estimation
@@ -1459,7 +1407,7 @@ outer.factor <- function(S, W, E, W.mod, fm="minres", ...){
 #'
 #'@param model A matrixpls model. See \code{\link{matrixpls} for details}
 #'
-#'@return A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.mod}.
+#'@return A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.model}.
 #'
 #'@references
 #'Hwang, H., & Takane, Y. (2004). Generalized structured component analysis. \emph{Psychometrika}, 69(1), 81–99. doi:10.1007/BF02295841
@@ -1472,7 +1420,7 @@ outer.factor <- function(S, W, E, W.mod, fm="minres", ...){
 #'
 #'@export
 
-outer.GSCA <- function(S, W, E, W.mod, model, ...){
+outer.GSCA <- function(S, W, E, W.model, model, ...){
   
   nativeModel <- parseModelToNativeFormat(model)
   
@@ -1506,7 +1454,7 @@ outer.GSCA <- function(S, W, E, W.mod, model, ...){
   
   # Update the weights one composite at a time
   
-  for(row in 1:nrow(W.mod)){
+  for(row in 1:nrow(W.model)){
     
     #
     # In Hwang, H., & Takane, Y. (2004), the weights for one composite are
@@ -1521,7 +1469,7 @@ outer.GSCA <- function(S, W, E, W.mod, model, ...){
     #
     
     # Indicator indices
-    i <- which(W.mod[row,]!=0)
+    i <- which(W.model[row,]!=0)
     
     # correlations between the indicators and dvs
     ic <- NULL
@@ -1549,7 +1497,7 @@ outer.GSCA <- function(S, W, E, W.mod, model, ...){
     # overlap completely
     
     if(any(formative[row,]!=0) && 
-         ! identical((formative[row,] ==0), (W.mod[row,] == 0))){
+         ! identical((formative[row,] ==0), (W.model[row,] == 0))){
       ic <- cbind(ic, W[row,i] %*% S[i,i])
     }
     
@@ -1566,7 +1514,7 @@ outer.GSCA <- function(S, W, E, W.mod, model, ...){
     
     # Update the weights based on the estimated parameters
     
-    W[row,W.mod[row,]!=0] <- Wvect
+    W[row,W.model[row,]!=0] <- Wvect
     
     # Finally standardize the weights 
     
@@ -1615,18 +1563,20 @@ optim.maximizeInnerR2 <- function(matrixpls.res){
 
 optim.maximizePrediction <- function(matrixpls.res){
   
+  # TODO: convert to using the predict function
+  
   C <- attr(matrixpls.res,"C")
   nativeModel <- attr(matrixpls.res,"model")
   exog <- rowSums(nativeModel$inner)==0
   W <- attr(matrixpls.res,"W")
-  beta <- attr(matrixpls.res,"beta")
+  inner <- attr(matrixpls.res,"inner")
   
   reflective <- nativeModel$reflective
   reflective[which(reflective==1)] <- matrixpls.res[grep("=~",names(matrixpls.res))]
   
   # Predict endog LVs using reduced from equations
-  Beta <- beta[! exog, ! exog]
-  Gamma <- beta[! exog, exog]
+  Beta <- inner[! exog, ! exog]
+  Gamma <- inner[! exog, exog]
   
   invBeta <- solve(diag(nrow(Beta)) - Beta)
   endogC <- invBeta %*% Gamma %*% C[exog,exog] %*% t(Gamma) %*% t(invBeta)
@@ -1638,41 +1588,6 @@ optim.maximizePrediction <- function(matrixpls.res){
 
 #'@title GSCA optimization criterion
 #'
-#'@details Optimization criterion for maximixing the weighted sum of composite
-#'correlations
-#'
-#'@param matrixpls.res An object of class \code{matrixpls} from which the
-#'criterion function is calculated
-#'
-#'@inheritParams weight.pls
-#'
-#'@return Sum of residual variances.
-#'
-#'@family Weight optimization criteria
-#'
-#'@export
-#'
-#'@references
-#'
-#'Tenenhaus, A., & Tenenhaus, M. (2011). Regularized Generalized Canonical 
-#'Correlation Analysis. Psychometrika, 76(2), 257–284. doi:10.1007/s11336-011-9206-8
-#'
-
-optim.GCCA <- function(matrixpls.res, innerEstimator, ...){
-  
-  C <- attr(matrixpls.res,"C")
-  S <- attr(matrixpls.res,"S")
-  W <- attr(matrixpls.res,"W")
-  inner <- attr(matrixpls.res,"model")$inner.mod
-  
-  E <- function(S, W, inner.mod, ...)
-  
-  -sum(C * E)
-  
-}
-
-#'@title GSCA optimization criterion
-#'
 #'@details Optimization criterion for minimizing the sum of all residual
 #'variances in the model. 
 #'
@@ -1680,7 +1595,7 @@ optim.GCCA <- function(matrixpls.res, innerEstimator, ...){
 #'presented by Huang and Takane by including also the minimization of the
 #'residual variances of the formative part of the model. The formative
 #'regressions in a model are typically specified to be identical to the 
-#'weight pattern \code{W.mod} resulting zero residual variances by definition.
+#'weight pattern \code{W.model} resulting zero residual variances by definition.
 #'However, it is possible to specify a formative model that does not completely
 #'overlap with the weight pattern leading to non-zero residuals that can be
 #'optimizes.
@@ -1851,15 +1766,15 @@ parseModelToNativeFormat <- function(model){
 defaultWeightModelWithModel <- function(model){
   
   nativeModel <- parseModelToNativeFormat(model)
-  W.mod <- matrix(0,nrow(nativeModel$formative), ncol(nativeModel$formative))
+  W.model <- matrix(0,nrow(nativeModel$formative), ncol(nativeModel$formative))
   
-  colnames(W.mod) <- colnames(nativeModel$formative)
-  rownames(W.mod) <- rownames(nativeModel$formative)
+  colnames(W.model) <- colnames(nativeModel$formative)
+  rownames(W.model) <- rownames(nativeModel$formative)
   
-  W.mod[nativeModel$formative!=0] <- 1 
-  W.mod[t(nativeModel$reflective)!=0] <- 1 
+  W.model[nativeModel$formative!=0] <- 1 
+  W.model[t(nativeModel$reflective)!=0] <- 1 
   
-  return(W.mod)
+  return(W.model)
   
 }
 

@@ -189,7 +189,7 @@ matrixpls.sempls <-
     ifelse(pairwise, use <- "pairwise.complete.obs", use <- "everything")
     
     # Start of matrixpls code
-    result$path_coefficients <- t(attr(matrixpls.res,"beta"))
+    result$path_coefficients <- t(attr(matrixpls.res,"inner"))
     result$cross_loadings <- t(attr(matrixpls.res,"IC"))
     # End of matrixpls code
     
@@ -245,8 +245,8 @@ matrixpls.sempls <-
     coefNames <- paste("lam",col(ref)[ref==1],unlist(apply(ref,2,function(x) 1:sum(x))),sep="_")
     
     pathNames <- c(pathNames, paste(rownames(inn)[row(inn)[inn==1]], "->", colnames(inn)[col(inn)[inn==1]]))
-    estimates <- c(estimates, t(attr(matrixpls.res,"beta"))[inn==1])
-    coefNames <- c(coefNames, paste("beta",row(inn)[inn==1],col(inn)[inn==1],sep="_"))
+    estimates <- c(estimates, t(attr(matrixpls.res,"inner"))[inn==1])
+    coefNames <- c(coefNames, paste("inner",row(inn)[inn==1],col(inn)[inn==1],sep="_"))
     
     # Start of matrixpls code
     

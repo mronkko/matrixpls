@@ -4,7 +4,7 @@
 \alias{weight.optim}
 \title{Optimized weights}
 \usage{
-weight.optim(S, model, W.mod, parameterEstimator = params.regression,
+weight.optim(S, model, W.model, parameterEstimator = params.regression,
   optimCriterion = optim.maximizeInnerR2, method = "BFGS", ...,
   validateInput = TRUE, standardize = TRUE)
 }
@@ -16,7 +16,7 @@ table, or 2. a list containing three matrices
 \code{inner}, \code{reflective}, and \code{formative} defining the free regression paths
 in the model.}
 
-\item{W.mod}{An optional numeric matrix representing the weight patter and starting weights
+\item{W.model}{An optional numeric matrix representing the weight patter and starting weights
 (i.e. the how the indicators are combined to form the composite variables). If this argument is not specified,
 the weight patter is defined based on the relationships in the \code{reflective} and  \code{formative}
 elements of \code{model}.}
@@ -33,6 +33,8 @@ for details. Default is "BFGS".}
 \item{...}{All other arguments are passed through to \code{\link[stats]{optim}} and \code{parameterEstimator}.}
 
 \item{validateInput}{A boolean indicating whether the arguments should be validated.}
+
+\item{standardize}{A boolean indicating whether \code{S} is standardized}
 }
 \value{
 An object of class \code{"matrixplsweights"}, which is a matrix containing the weights with the following attributes:
@@ -84,13 +86,13 @@ imposes on \code{inner}, \code{reflective}, and \code{formative} is that these m
 binary matrices and that the diagonal of \code{inner} must be zeros.
 
 
-The argument \code{W.mod} is a (\code{l x k}) matrix that indicates
+The argument \code{W.model} is a (\code{l x k}) matrix that indicates
 how the indicators are combined to form the composites. The original papers about
 Partial Least Squares as well as all current PLS implementations define this as
 \code{t(reflective) | formative}, which means that the weight patter must match the
 model specified in \code{reflective} and \code{formative}. Matrixpls does not
-require that \code{W.mod} needs to match \code{reflective} and \code{formative}, but
-accepts any numeric matrix. If this argument is not specified, \code{W.mod} is
+require that \code{W.model} needs to match \code{reflective} and \code{formative}, but
+accepts any numeric matrix. If this argument is not specified, \code{W.model} is
 defined as \code{t(reflective) | formative}.
 }
 \examples{

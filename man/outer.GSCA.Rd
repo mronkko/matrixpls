@@ -4,7 +4,7 @@
 \alias{outer.GSCA}
 \title{GSCA outer estimation}
 \usage{
-outer.GSCA(S, W, E, W.mod, model, ...)
+outer.GSCA(S, W, E, W.model, model, ...)
 }
 \arguments{
 \item{S}{Covariance matrix of the data.}
@@ -13,14 +13,14 @@ outer.GSCA(S, W, E, W.mod, model, ...)
 
 \item{E}{Inner weight matrix. A square matrix of inner estimates between the composites.}
 
-\item{W.mod}{A matrix specifying the weight relationships and their starting values.}
+\item{W.model}{A matrix specifying the weight relationships and their starting values.}
 
 \item{model}{A matrixpls model. See \code{\link{matrixpls} for details}}
 
 \item{...}{Other parameters are ignored}
 }
 \value{
-A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.mod}.
+A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.model}.
 }
 \description{
 This implements the second step of the GSCA algorithm.

@@ -4,7 +4,7 @@
 \alias{outer.factor}
 \title{Blockwise factor score outer estimation}
 \usage{
-outer.factor(S, W, E, W.mod, fm = "minres", ...)
+outer.factor(S, W, E, W.model, fm = "minres", ...)
 }
 \arguments{
 \item{S}{Covariance matrix of the data.}
@@ -13,7 +13,7 @@ outer.factor(S, W, E, W.mod, fm = "minres", ...)
 
 \item{E}{Inner weight matrix. A square matrix of inner estimates between the composites.}
 
-\item{W.mod}{A matrix specifying the weight relationships and their starting values.}
+\item{W.model}{A matrix specifying the weight relationships and their starting values.}
 
 \item{fm}{factoring method for estimating the common factor model. Possible values are
 \code{minres}, \code{wls}, \code{gls}, \code{pa}, and \code{ml}. The parameter is passed through to
@@ -22,7 +22,7 @@ to \code{\link[psych]{fa}}.}
 \item{...}{Other parameters are ignored}
 }
 \value{
-A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.mod}.
+A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.model}.
 }
 \description{
 Calculates outer weights by estimating a common factor analysis model with a single factor for each

@@ -68,9 +68,9 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
   
   
   # Basic verification of the arguments
-  if(boot.R != FALSE)	assert_all_are_positive(boot.R)	
-  assert_all_are_positive(cilevel)
-  assert_all_are_true(cilevel<1)
+  if(boot.R != FALSE)	assertive::assert_all_are_positive(boot.R)	
+  assertive::assert_all_are_positive(cilevel)
+  assertive::assert_all_are_true(cilevel<1)
   citype <- match.arg(citype)
   
   # Decide which arguments to route to simsem and which to matrispls.boot
@@ -203,8 +203,8 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
       # solution. We need to calculate the explained variances of the endogenous composites
       
       else{
-        beta <- attr(matrixpls.res,"beta")
-        if(any(diag(beta%*%C%*%t(beta)) > 1)){
+        inner <- attr(matrixpls.res,"inner")
+        if(any(diag(inner%*%C%*%t(inner)) > 1)){
           converged <- 4
         }
       }
@@ -265,7 +265,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
       
     }
     if(! is.null(fitIndices)){
-      assert_is_function(fitIndices)
+      assertive::assert_is_function(fitIndices)
       fitlist <- unlist(fitIndices(matrixpls.res))
       ret$fit <- fitlist
     }

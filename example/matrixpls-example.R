@@ -1,6 +1,6 @@
 library(plspm)
 
-# Run the customer satisfaction examle form plspm
+# Run the customer satisfaction example form plspm
 
 # load dataset satisfaction
 data(satisfaction)
@@ -15,7 +15,6 @@ inner = rbind(IMAG, EXPE, QUAL, VAL, SAT, LOY)
 colnames(inner) <- rownames(inner)
 
 # Reflective model
-list(1:5, 6:10, 11:15, 16:19, 20:23, 24:27)
 
 reflective<- matrix(
   c(1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -28,14 +27,16 @@ reflective<- matrix(
 
 # empty formative model
 
-formative <- matrix(0, 6, 27, dimnames = list(colnames(inner), colnames(satisfaction)[1:27]))
+formative <- matrix(0, 6, 27, dimnames = list(colnames(inner),
+                                              colnames(satisfaction)[1:27]))
 
 # Estimation using covariance matrix
 
-matrixpls.out <- matrixpls(cov(satisfaction[,1:27]), model = list(inner = inner,
-                                                                  reflective = reflective,
-                                                                  formative = formative))
+matrixpls.out <- matrixpls(cov(satisfaction[,1:27]),
+                           model = list(inner = inner,
+                                        reflective = reflective,
+                                        formative = formative))
 
-summary(matrixpls.out)
+print(matrixpls.out)
 
 

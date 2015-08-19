@@ -4,7 +4,7 @@
 \alias{outer.fixedWeights}
 \title{PLS outer estimation with fixed weights}
 \usage{
-outer.fixedWeights(S, W, E, W.mod, ...)
+outer.fixedWeights(S, W, E, W.model, ...)
 }
 \arguments{
 \item{S}{Covariance matrix of the data.}
@@ -13,12 +13,12 @@ outer.fixedWeights(S, W, E, W.mod, ...)
 
 \item{E}{Inner weight matrix. A square matrix of inner estimates between the composites.}
 
-\item{W.mod}{A matrix specifying the weight relationships and their starting values.}
+\item{W.model}{A matrix specifying the weight relationships and their starting values.}
 
 \item{...}{Other parameters are ignored}
 }
 \value{
-A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.mod}.
+A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.model}.
 }
 \description{
 Returns the starting weights as outer estimates.

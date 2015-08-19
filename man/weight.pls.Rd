@@ -4,7 +4,7 @@
 \alias{weight.pls}
 \title{Partial Least Squares and other iterative two-stage weight algorithms}
 \usage{
-weight.pls(S, model, W.mod, outerEstimators = NULL,
+weight.pls(S, model, W.model, outerEstimators = NULL,
   innerEstimator = inner.path, ..., convCheck = convCheck.absolute,
   signAmbiquityCorrection = FALSE, tol = 1e-05, iter = 100,
   validateInput = TRUE)
@@ -17,7 +17,7 @@ table, or 2. a list containing three matrices
 \code{inner}, \code{reflective}, and \code{formative} defining the free regression paths
 in the model.}
 
-\item{W.mod}{An optional numeric matrix representing the weight patter and starting weights
+\item{W.model}{An optional numeric matrix representing the weight patter and starting weights
 (i.e. the how the indicators are combined to form the composite variables). If this argument is not specified,
 the weight patter is defined based on the relationships in the \code{reflective} and  \code{formative}
 elements of \code{model}.}
@@ -26,7 +26,7 @@ elements of \code{model}.}
 the value of this parameter is a function, the same function is applied to all
 composites. If the value of the parameter is a list, the composite \code{n} is estimated
 with the estimator in the \code{n}th position in the list. If this argument is
-\code{NULL} the starting weights specified in \code{W.mod} will be returned. The default is \code{\link{outer.modeA}}
+\code{NULL} the starting weights specified in \code{W.model} will be returned. The default is \code{\link{outer.modeA}}
 (PLS Mode A estimation).}
 
 \item{innerEstimator}{A function used for inner estimation. Setting this argument to
@@ -42,10 +42,6 @@ does not use inner estimation results. The default is \code{\link{inner.path}}
 returns a scalar that is compared against \code{tol} to check for convergence. The default
 function calculates the differences between each cell of old and new weights and returns the largest
 absolute difference.}
-
-\item{signAmbiquityCorrection}{A boolean indicating whether the signs of the weights should be
-adjusted so that the majority of the indicators are positively correlated with the composite
-as proposed by Wold (1985).}
 
 \item{tol}{Decimal value indicating the tolerance criterion for the
 iterations.}
@@ -100,21 +96,17 @@ imposes on \code{inner}, \code{reflective}, and \code{formative} is that these m
 binary matrices and that the diagonal of \code{inner} must be zeros.
 
 
-The argument \code{W.mod} is a (\code{l x k}) matrix that indicates
+The argument \code{W.model} is a (\code{l x k}) matrix that indicates
 how the indicators are combined to form the composites. The original papers about
 Partial Least Squares as well as all current PLS implementations define this as
 \code{t(reflective) | formative}, which means that the weight patter must match the
 model specified in \code{reflective} and \code{formative}. Matrixpls does not
-require that \code{W.mod} needs to match \code{reflective} and \code{formative}, but
-accepts any numeric matrix. If this argument is not specified, \code{W.mod} is
+require that \code{W.model} needs to match \code{reflective} and \code{formative}, but
+accepts any numeric matrix. If this argument is not specified, \code{W.model} is
 defined as \code{t(reflective) | formative}.
 }
-\references{
-Wold, H. (1985). Partial Least Squares. In S. Kotz & N. L. Johnson (Eds.), Encyclopedia  of
-statistical sciences (Vol. 6, pp. 581–591). New York: Wiley.
-}
 \seealso{
-Inner estimators: \code{\link{inner.path}}; \code{\link{inner.centroid}}; \code{\link{inner.factor}}; \code{\link{inner.GSCA}}; \code{\link{inner.identity}}
+Inner estimators: \code{\link{inner.path}}; \code{\link{inner.centroid}}; \code{\link{inner.factor}}; \code{\link{inner.GSCA}}; \code{\link{inner.identity}}; \code{\link{inner.Horst}};
 
 Outer estimators: \code{\link{outer.modeA}}; \code{\link{outer.modeB}}; \code{\link{outer.GSCA}}; \code{\link{outer.factor}}; \code{\link{outer.fixedWeights}}
 
