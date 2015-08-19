@@ -35,7 +35,7 @@ least squares.} Heidelberg: Physica-Verlag.
 }
 \seealso{
 Other inner estimators: \code{\link{inner.GSCA}};
-  \code{\link{inner.Horst}}; \code{\link{inner.centroid}};
+  \code{\link{inner.centroid}};
   \code{\link{inner.identity}}; \code{\link{inner.path}}
 }
 

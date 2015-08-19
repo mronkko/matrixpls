@@ -37,8 +37,7 @@ Psychometrika, 69(1), 81–99. doi:10.1007/BF02295841
 Other GSCA functions: \code{\link{inner.GSCA}};
   \code{\link{outer.GSCA}}
 
-Other Weight optimization criteria: \code{\link{optim.GCCA}};
-  \code{\link{optim.maximizeInnerR2}};
+Other Weight optimization criteria: \code{\link{optim.maximizeInnerR2}};
   \code{\link{optim.maximizePrediction}}
 }
 

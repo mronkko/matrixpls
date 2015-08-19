@@ -25,6 +25,6 @@ Performs Mode B outer estimation by regressing the composites on the observed va
 }
 \seealso{
 Other outer estimators: \code{\link{outer.GSCA}};
-  \code{\link{outer.RGCCA}}; \code{\link{outer.modeA}}
+  \code{\link{outer.modeA}}
 }
 

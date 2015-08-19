@@ -162,8 +162,8 @@ Hwang, H., & Takane, Y. (2004). Generalized structured component analysis. Psych
 Other GSCA functions: \code{\link{optim.GSCA}};
   \code{\link{outer.GSCA}}
 
-Other inner estimators: \code{\link{inner.Horst}};
-  \code{\link{inner.centroid}}; \code{\link{inner.factor}};
-  \code{\link{inner.identity}}; \code{\link{inner.path}}
+Other inner estimators: \code{\link{inner.centroid}};
+  \code{\link{inner.factor}}; \code{\link{inner.identity}};
+  \code{\link{inner.path}}
 }
 

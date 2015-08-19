@@ -25,6 +25,6 @@ Performs Mode A outer estimation by calculating correlation matrix between the i
 }
 \seealso{
 Other outer estimators: \code{\link{outer.GSCA}};
-  \code{\link{outer.RGCCA}}; \code{\link{outer.modeB}}
+  \code{\link{outer.modeB}}
 }
 
