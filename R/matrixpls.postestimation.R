@@ -124,8 +124,8 @@ residuals.matrixpls <- function(object, ...) {
   
   # Lohmoller is not clear whether R should be based on the estimated betas or calculated scores
   # The scores are used here because this results in less complex code
-  
-  R <- W %*% S %*% t(W)
+
+  R <- attr(object,"C")
   R_star <- (B %*% R %*% t(B))[endog,endog] # e. 2.99
   
   
@@ -159,7 +159,7 @@ residuals.matrixpls <- function(object, ...) {
                   "RMS outer residual covariance" = RMS(C[lower.tri(C)]), # eq 2.118
                   "RMS inner residual covariance" = RMS(C[lower.tri(Q)]), # eq 2.118
                   
-                  # SRMR as calculated in SEM. (citation needed)
+                  # SRMR as calculated in SEM. (Hu and Bentler, 1999, p. 3)
                   
                   SRMR = sqrt(sum(C_std[lower.tri(C_std)]^2)/length(C[lower.tri(C_std, diag=TRUE)])),
                   
