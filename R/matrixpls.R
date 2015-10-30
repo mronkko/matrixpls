@@ -360,11 +360,11 @@ weight.pls <- function(S, model, W.model,
     
     if(! all(apply(W.model!=0,1,any))){
       print(W.model)	
-      stop("All constructs must have at least one indicator")	
+      stop("All composites must have at least one indicator")	
     }
     if(! all(apply(W.model!=0,2,any))){
       print(W.model)	
-      stop("All indicators must be linked to at least one construct")	
+      stop("All indicators must be linked to at least one composite")	
     }
     
     
@@ -401,7 +401,7 @@ weight.pls <- function(S, model, W.model,
   inner.mod <- nativeModel$inner
   
   # If the outer estimators (tpyically Mode A and Mode B) are not defined, default to using
-  # Mode A for reflective constructs and Mode B for formative constructs
+  # Mode A for reflective composites and Mode B for formative composites
   
   if(is.null(outerEstimators)){
     hasFormativeIndicators <- any(nativeModel$formative == 1)
@@ -410,11 +410,11 @@ weight.pls <- function(S, model, W.model,
     if(! hasFormativeIndicators) outerEstimators = outer.modeA
     else if (! hasReflectiveIndicators) outerEstimators = outer.modeB
     else{
-      # Constructs with at least one reflective indicator are ModeA and others are ModeB
+      # composites with at least one reflective indicator are ModeA and others are ModeB
       outerEstimators <- list()
-      for(construct in 1:ncol(nativeModel$reflective)){
-        if(any(nativeModel$reflective[,construct] == 1)) outerEstimators[[construct]] <- outer.modeA
-        else outerEstimators[[construct]] <- outer.modeB
+      for(composite in 1:ncol(nativeModel$reflective)){
+        if(any(nativeModel$reflective[,composite] == 1)) outerEstimators[[composite]] <- outer.modeA
+        else outerEstimators[[composite]] <- outer.modeB
       }
     }
   }
@@ -1543,10 +1543,10 @@ outer.GSCA <- function(S, W, E, W.model, model, ...){
 #'
 
 optim.maximizeInnerR2 <- function(matrixpls.res){
-  -mean(R2(matrixpls.res))
+  -sum(R2(matrixpls.res))
 }
 
-#'@title Optimization criterion for maximal prediction
+#'@title Optimization criterion for maximal prediction 
 #'
 #'@details Calculates the predicted variances of reflective indicators. The
 #'prediction criterion is negative of the sum of predicted variances.
@@ -1585,7 +1585,46 @@ optim.maximizePrediction <- function(matrixpls.res){
   -sum(diag(reflective %*% C %*% t(reflective)))
 }
 
+#'@title Optimization criterion for maximal prediction 
+#'
+#'@details Calculates the predicted variances of reflective indicators. The
+#'prediction criterion is negative of the sum of predicted variances.
+#'
+#'@param matrixpls.res An object of class \code{matrixpls} from which the
+#'criterion function is calculated
+#'
+#'@return Mean squared prediction error.
+#'
+#'@family Weight optimization criteria
+#'
+#'@export
+#'
+#'
 
+optim.maximizeIndicatorR2 <- function(matrixpls.res){
+  lambda <- loadings(matrixpls.res)
+  IC <- attr(matrixpls.res,"IC")
+  -sum(diag(lambda %*% IC))
+}
+
+#'@title Optimization criterion for maximal prediction 
+#'
+#'@details Calculates the predicted variances of reflective indicators. The
+#'prediction criterion is negative of the sum of predicted variances.
+#'
+#'@param matrixpls.res An object of class \code{matrixpls} from which the
+#'criterion function is calculated
+#'
+#'@return Mean squared prediction error.
+#'
+#'@family Weight optimization criteria
+#'
+#'@export
+#'
+optim.maximizeFullR2 <- function(matrixpls.res){
+  optim.maximizeIndicatorR2(matrixpls.res) + optim.maximizeInnerR2(matrixpls.res)
+}
+  
 #'@title GSCA optimization criterion
 #'
 #'@details Optimization criterion for minimizing the sum of all residual

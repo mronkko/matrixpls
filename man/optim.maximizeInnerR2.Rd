@@ -18,6 +18,8 @@ Optimization criterion to maximize the inner model mean R2
 }
 \seealso{
 Other Weight optimization criteria: \code{\link{optim.GSCA}};
+  \code{\link{optim.maximizeFullR2}};
+  \code{\link{optim.maximizeIndicatorR2}};
   \code{\link{optim.maximizePrediction}}
 }
 
