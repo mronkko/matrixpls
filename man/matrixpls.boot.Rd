@@ -6,7 +6,7 @@
 \usage{
 matrixpls.boot(data, ..., R = 500, signChangeCorrection = NULL,
   parallel = c("no", "multicore", "snow"), ncpus = getOption("boot.ncpus",
-  1L), stopOnError = FALSE)
+  1L), stopOnError = FALSE, extraFun = NULL)
 }
 \arguments{
 \item{data}{Matrix or data frame containing the raw data.}
@@ -30,6 +30,10 @@ matrixpls.boot(data, ..., R = 500, signChangeCorrection = NULL,
 
 \item{stopOnError}{A logical indicating whether boostrapping should be continued when error occurs
 in a replication.}
+
+\item{extraFun}{A function that takes a \code{matrixpls} object and returns a numeric vector. The
+vector is appended to bootstrap replication. Can be used for boostrapping additional
+statistics calculated based on the estimation results.}
 }
 \value{
 An object of class \code{\link[boot]{boot}}.
