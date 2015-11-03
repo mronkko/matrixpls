@@ -46,10 +46,10 @@ print(t(attr(matrixpls.res2,"W")))
 print(t(attr(matrixpls.res1,"W"))-t(attr(matrixpls.res2,"W")))
 
 # Compare the paths
-print(t(attr(matrixpls.res1,"beta")))
-print(t(attr(matrixpls.res2,"beta")))
+print(t(attr(matrixpls.res1,"inner")))
+print(t(attr(matrixpls.res2,"inner")))
 
-print(t(attr(matrixpls.res1,"beta"))-t(attr(matrixpls.res2,"beta")))
+print(t(attr(matrixpls.res1,"inner"))-t(attr(matrixpls.res2,"inner")))
 
 
 # Compare the loadings

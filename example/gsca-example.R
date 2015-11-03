@@ -1,90 +1,63 @@
 # Run the example from ASGSCA package using GSCA estimation
 
- if(require(ASGSCA)) {
-  
-  # Run the GSCA example from the ASGSCA package
-  
-  #Scenario (g) in Romdhani et al. (2014): 4 SNPs mapped to 2 genes and 4 
-  #traits involved in 2 clinical pathways 
-  #In total: 8 observed variables and 4 latent variables.
-  #One of the traits is involved in both clinical pathways.
-  #One gene is connected to one of the clinical pathways and
-  #the other to both of them.
-  
-  data(GenPhen)
-  W0 <- matrix(c(rep(1,2),rep(0,8),rep(1,2),rep(0,8),rep(1,3),rep(0,7),rep(1,2)),nrow=8,ncol=4)
-  B0 <- matrix(c(rep(0,8),rep(1,2),rep(0,3),1,rep(0,2)),nrow=4,ncol=4)
-  
-  #Estimation only
-  GSCA.res <- GSCA(GenPhen,W0, B0,estim=TRUE,path.test=FALSE, 
-                   latent.names=c("Gene1","Gene2","Clinical pathway 1","Clinical pathway 2"))
-  
-  stop()
-  
-  # Setup matrixpls to estimate the same model. Note GSCA places dependent variables
-  # on columns but matrixpls uses rows for dependent variables
-  
-  inner <- t(B0)
-  reflective <- matrix(0,8,4)
-  formative <- t(W0)
-  
-  colnames(formative) <- rownames(reflective) <- names(GenPhen)
-  colnames(inner) <- rownames(inner) <- rownames(formative) <- colnames(reflective) <-
-    c("Gene1","Gene2","Clinical pathway 1","Clinical pathway 2")
-  
-  model <- list(inner = inner, 
-                reflective = reflective,
-                formative = formative)
-    
-  # Estimate using alternating least squares
-  
-  matrixpls.res1 <- matrixpls(cov(GenPhen),  model,
-                              outerEstimators = outer.GSCA,
-                              innerEstimator = inner.GSCA,
-                              tol = 0.000000000001)
+library(ASGSCA) 
+library(gdata)
+library(matrixpls)
 
-  print("Comparing alternating least squares estimates to original estimats")
-  # Compare thw weights
-  print(GSCA.res$Weight)
-  print(t(attr(matrixpls.res1,"W")))
+# Run the GSCA example from the ASGSCA package
 
-  print("difference:")
-  print(GSCA.res$Weight - t(attr(matrixpls.res1,"W")))
-  
-  
-  # Compare the paths
-  print(GSCA.res$Path)
-  print(t(attr(matrixpls.res1,"inner")))
-  
-  print(GSCA.res$Path-t(attr(matrixpls.res1,"inner")))
-  
-  # Estimate using direct minimization of the estimation criterion
-  
-  matrixpls.res2 <- matrixpls(cov(GenPhen),  model,
-                              weightFunction = weight.optim,
-                              optimCriterion = optim.GSCA)
+data(GenPhen)
+W0 <- matrix(c(rep(1,2),rep(0,8),rep(1,2),rep(0,8),rep(1,3),rep(0,7),rep(1,2)),nrow=8,ncol=4)
+B0 <- matrix(c(rep(0,8),rep(1,2),rep(0,3),1,rep(0,2)),nrow=4,ncol=4)
 
-  print("Comparing numeric minimization estimates to original estimats")
-  
-  # Compare thw weights
-  print(GSCA.res$Weight)
-  print(t(attr(matrixpls.res2,"W")))
-  
-  print(GSCA.res$Weight - t(attr(matrixpls.res2,"W")))
-  
-  
-  # Compare the paths
-  print(GSCA.res$Path)
-  print(t(attr(matrixpls.res2,"inner")))
-  
-  print(GSCA.res$Path-t(attr(matrixpls.res2,"inner")))
-  
-  
-  # Check the criterion function values
-  print(optim.GSCA(matrixpls.res1))
-  print(optim.GSCA(matrixpls.res2))
-  
-} else{
-  print("This example requires the ASGSCA package")
-}
+# ASGSCA uses random numbers as starting values 
+# set.seed(1)
+
+GSCA.res <- GSCA(GenPhen,W0, B0,estim=TRUE,path.test=FALSE, 
+                             latent.names=c("Gene1","Gene2","Clinical pathway 1","Clinical pathway 2"))
+
+# Setup matrixpls to estimate the same model. Note GSCA places dependent variables
+# on columns but matrixpls uses rows for dependent variables
+
+inner <- t(B0)
+# formative <- matrix(0,4,8)
+# reflective <- W0
+formative <- t(W0)
+reflective <- matrix(0,8,4)
+
+colnames(formative) <- rownames(reflective) <- names(GenPhen)
+colnames(inner) <- rownames(inner) <- rownames(formative) <- colnames(reflective) <-
+  c("Gene1","Gene2","Clinical pathway 1","Clinical pathway 2")
+
+model <- list(inner = inner, 
+              reflective = reflective,
+              formative = formative)
+
+# Estimate using alternating least squares
+
+matrixpls.res1 <- matrixpls(cov(GenPhen),  model,
+                            outerEstimators = outer.GSCA,
+                            innerEstimator = inner.GSCA)
+
+# Estimate using direct minimization of the estimation criterion
+
+matrixpls.res2 <- matrixpls(cov(GenPhen),  model,
+                            weightFunction = weight.optim,
+                            optimCriterion = optim.GSCA,
+                            # Set the convergence criterion to be slightly stricter than normally
+                            control = list(reltol = 1e-12))
+
+# Compare the weights
+do.call(cbind,lapply(list(GSCA.res$Weight,t(attr(matrixpls.res1,"W")), t(attr(matrixpls.res2,"W"))),
+       function(W){
+         W <- unmatrix(W)
+         W[W!=0]
+       }))
+
+# Compare the paths
+
+
+# Check the criterion function values
+print(optim.GSCA(matrixpls.res1))
+print(optim.GSCA(matrixpls.res2))
 
