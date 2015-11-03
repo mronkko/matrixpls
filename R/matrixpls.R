@@ -1316,7 +1316,6 @@ inner.GSCA <- function(S, W, inner.mod, ...){
   C <- W %*% S %*% t(W)
   
   E <- regressionsWithCovarianceMatrixAndModelPattern(C,inner.mod)
-  
   return(E)
 }
 
@@ -1459,7 +1458,10 @@ outer.GSCA <- function(S, W, E, W.model, model, ...){
     #
     # In Hwang, H., & Takane, Y. (2004), the weights for one composite are
     # defined by specifying a series of regression analyses where the
-    # indicators are independent variables. These regressions are then estimated
+    # indicators are independent variables. The dependent variables 
+    # are any variables that depend on the focal composites minus the 
+    # fitted value calculated using all other predictors and the current
+    # regression estimates (A). These regressions are estimated
     # simulataneously by stacking the data so that the system of equations
     # can be estimated with OLS estimator in one go.
     #
@@ -1473,23 +1475,39 @@ outer.GSCA <- function(S, W, E, W.model, model, ...){
     
     # correlations between the indicators and dvs
     ic <- NULL
-    
-    # Calculate the covariance matrix between indicators and composites
-    # This needs to be recalculated for each composite because W is updated
-    # immediately
-    
-    IC <- E %*% W %*% S
-    
+
+
     # The composite is dependent in inner model
     
     if(any(inner[row,]!=0)){
+      
+      # Calculate the covariance matrix between indicators and composites
+      # This and other matrices need to be recalculated for each composite because W is updated
+      # immediately
+      
+      IC <- E %*% W %*% S
+      
       ic <- cbind(ic,IC[row,i])
     }
     
     # Composites that this composite depends on
     
     for(j in which(inner[,row]!=0)){
-      ic <- cbind(ic,IC[j,i] * C[row,j])
+      
+      # Deselects the independent variable
+      s1 <- diag(nrow(W.model))
+      s1[row,row] <- 0
+      
+      # Selects the independent variable
+      s2 <- matrix(0,nrow(W.model),nrow(W.model))
+      s2[row,row] <- 1
+      
+      # Calculate the covariance matrix between indicators and residual of the composite
+      # After regressed on other composites
+      
+      
+      ICr <- ((E %*% s2) %*% W %*% S) - ((E %*% s1) %*% W %*% S)
+      ic <- cbind(ic,ICr[j,i])
     }
     
     # The composite is dependent in the formative model
@@ -1505,13 +1523,16 @@ outer.GSCA <- function(S, W, E, W.model, model, ...){
     
     for(j in which(reflective[,row]!=0)){
       ic <- cbind(ic, S[i,j])
+      print(2)
+      browser()
     }
     
     if(is.null(ic)) stop(paste("Composite '",rownames(inner)[row],
-                               "' is neither a dependent nor an independent variable in a GSCA outer model regressions. Estimation fails.",sep=""))
+                               "' is neither a dependent nor an independent variable in the second step of GSCA weight algorithm.",sep=""))
     
     Wvect <- solve(S[i,i],apply(ic,1,mean))
-    
+
+
     # Update the weights based on the estimated parameters
     
     W[row,W.model[row,]!=0] <- Wvect
@@ -1520,8 +1541,8 @@ outer.GSCA <- function(S, W, E, W.model, model, ...){
     
     W <- scaleWeights(S, W)
     
-    
     # Proceed to next composite
+    
   }
   
   return(W)
