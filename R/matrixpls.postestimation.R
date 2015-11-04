@@ -72,11 +72,18 @@ print.matrixplseffects <- function(x, ...){
 #'
 #'@param object matrixpls estimation result object produced by the \code{\link{matrixpls}} function.
 #'
+#'@param observed If \code{TRUE} (default) the observed residuals from the outer model regressions
+#'(indicators regressed on composites) are returned. If \code{FALSE}, the residuals are calculated
+#'by combining  \code{inner}, \code{reflective}, and \code{formative} as a simultaneous equations
+#'system and subtracting the covariances implied by this system from the observed covariances.
+#'The error terms are constrained to be uncorrelated and covariances between exogenous observed
+#'values are fixed at their sample values.
+#'
 #'@param ... All other arguments are ignored.
 #'
 #'@return A list with three elements: \code{inner}, \code{outer}, and \code{indices} elements
 #' containing the residual covariance matrix of regressions of composites on other composites,
-#' the residual covariance matrix of indicators on composites, and various fit indices
+#' the residual covariance matrix of indicators on composites, and various indices
 #' calculated based on the residuals.
 #'
 #'@references
@@ -96,68 +103,80 @@ print.matrixplseffects <- function(x, ...){
 #'
 #'@S3method residuals matrixpls
 
-residuals.matrixpls <- function(object, ...) {
-  
-  # Equation numbers in parenthesis refer to equation number in Lohmoller 1989
-  
-  nativeModel <- attr(object,"model")
-  
-  W <- attr(object,"W")
-  S <- attr(object,"S")
-  
-  # Number of reflective indicators
-  reflectiveIndicators<- rowSums(nativeModel$reflective)>0
-  k <- sum(reflectiveIndicators)
-  
-  # Number of endog LVs
-  endog <- rowSums(nativeModel$inner)>0
-  h <- sum(endog)	
-  
-  
-  
-  # Factor loading matrix
-  P <- nativeModel$reflective
-  
-  P[P==1] <- object[grepl("=~", names(object), fixed=TRUE)]
-  
-  B <- attr(object,"inner")
-  
-  # Lohmoller is not clear whether R should be based on the estimated betas or calculated scores
-  # The scores are used here because this results in less complex code
-
-  R <- attr(object,"C")
-  R_star <- (B %*% R %*% t(B))[endog,endog] # e. 2.99
-  
-  
-  # Model implied indicator covariances
-  H <- P %*% R %*% t(P) # eq 2.96
-  
-  I <- diag(S)
-  H2 <- (I * H)  %*% MASS::ginv(I * S) # eq 2.9	
-  
-  F <- P %*% B %*% R %*% t(B) %*% t(P) # eq 2.104
-  
-  F2 <- (I * F) %*% MASS::ginv(I * S) # eq 2.105
-  
-  R2 <- R2(object)
-  
-  
-  # C in Lohmoller 1989 is different from the matrixpls C
-  # residual covariance matrix of indicators
-  
-  C <- S-H
-  C_std <- diag(1/diag(S)) %*% C
-  
-  Q <- (W %*% S %*% t(W))[endog,endog] - R_star
-  
+residuals.matrixpls <- function(object, ..., observed = TRUE) {
   
   RMS <- function(num) sqrt(sum(num^2)/length(num))
   
-  indices <- list(Communality = psych::tr(H2)/k, # eq 2.109
-                  Redundancy = psych::tr(F2)/k,  # eq 2.110
-                  SMC = sum(R2)/h,         # eq 2.111
-                  "RMS outer residual covariance" = RMS(C[lower.tri(C)]), # eq 2.118
-                  "RMS inner residual covariance" = RMS(C[lower.tri(Q)]), # eq 2.118
+  
+  
+  # Equation numbers in parenthesis refer to equation number in Lohmoller 1989
+  
+  if(observed){
+    nativeModel <- attr(object,"model")
+    
+    W <- attr(object,"W")
+    S <- attr(object,"S")
+    
+    # Number of reflective indicators
+    reflectiveIndicators<- rowSums(nativeModel$reflective)>0
+    k <- sum(reflectiveIndicators)
+    
+    # Number of endog LVs
+    endog <- rowSums(nativeModel$inner)>0
+    h <- sum(endog)	
+    
+    
+    
+    # Factor loading matrix
+    P <- nativeModel$reflective
+    
+    P[P==1] <- object[grepl("=~", names(object), fixed=TRUE)]
+    
+    B <- attr(object,"inner")
+    
+    # Lohmoller is not clear whether R should be based on the estimated betas or calculated scores
+    # The scores are used here because this results in less complex code
+    
+    R <- attr(object,"C")
+    R_star <- (B %*% R %*% t(B))[endog,endog] # e. 2.99
+    
+    
+    # Model implied indicator covariances
+    H <- P %*% R %*% t(P) # eq 2.96
+    
+    I <- diag(S)
+    H2 <- (I * H)  %*% MASS::ginv(I * S) # eq 2.9	
+    
+    F <- P %*% B %*% R %*% t(B) %*% t(P) # eq 2.104
+    
+    F2 <- (I * F) %*% MASS::ginv(I * S) # eq 2.105
+    
+    R2 <- R2(object)
+    
+    
+    # C in Lohmoller 1989 is different from the matrixpls C
+    # residual covariance matrix of indicators
+    
+    C <- S-H
+    
+    Q <- (W %*% S %*% t(W))[endog,endog] - R_star
+    
+    
+    indices <- list(Communality = psych::tr(H2)/k, # eq 2.109
+                    Redundancy = psych::tr(F2)/k,  # eq 2.110
+                    SMC = sum(R2)/h,         # eq 2.111
+                    "RMS outer residual covariance" = RMS(C[lower.tri(C)]), # eq 2.118
+                    "RMS inner residual covariance" = RMS(C[lower.tri(Q)]) # eq 2.118
+                    )
+  }
+  else{
+    C <- S-fitted(object)
+    indices <- list()
+  }
+  
+  C_std <- diag(1/diag(S)) %*% C
+  
+  indices <- indices(indices,list(
                   
                   # SRMR as calculated in SEM. (Hu and Bentler, 1999, p. 3)
                   
@@ -165,10 +184,15 @@ residuals.matrixpls <- function(object, ...) {
                   
                   # SRMR calculated ignoring within block residuals from Henserler et al 2014.
                   
-                  SRMR_Henseler = RMS(C[nativeModel$reflective %*% t(nativeModel$reflective)==0]))
+                  SRMR_Henseler = RMS(C_std[nativeModel$reflective %*% t(nativeModel$reflective)==0]))
+  )
   
-  
-  result<- list(inner = Q, outer = C, indices = indices)
+  if(observed){
+    result<- list(inner = Q, outer = C, indices = indices)
+  }
+  else{
+    result<- list(outer = C, indices = indices)
+  }
   
   class(result) <- "matrixplsresiduals"
   result
@@ -177,10 +201,16 @@ residuals.matrixpls <- function(object, ...) {
 #'@S3method print matrixplsresiduals
 
 print.matrixplsresiduals <- function(x, ...){
-  cat("\n Inner model (composite) residual covariance matrix\n")
-  print(x$inner, ...)
-  cat("\n Outer model (indicator) residual covariance matrix\n")
-  print(x$outer, ...)
+  if("outer" %in% names(x)){
+    cat("\n Inner model (composite) residual covariance matrix\n")
+    print(x$inner, ...)
+    cat("\n Outer model (indicator) residual covariance matrix\n")
+    print(x$outer, ...)
+  }
+  else{
+    cat("\n Model implied residual covariance matrix\n")
+    print(x$outer, ...)
+  }
   cat("\n Residual-based fit indices\n")
   print(data.frame(Value = unlist(x$indices)), ...)
 }
@@ -241,7 +271,7 @@ fitted.matrixpls <- function(object, ...) {
   exog <- rowSums(fullB) == 0
   
   # Add indicator errors and composite errors
-
+  
   e <- c(diag(S) - rowSums(L * t(IC)),
          1-R2(object))
   
@@ -275,7 +305,7 @@ fitted.matrixpls <- function(object, ...) {
   #
   # Calculate sigma
   #
-
+  
   # Matrix orders
   
   # number of observed dependent
@@ -304,7 +334,7 @@ fitted.matrixpls <- function(object, ...) {
   I<-diag(nrow(Beta))
   
   # Populate the parameter matrices
-
+  
   Gamma[1:m,] <- gamma
   Gamma[(m+1):s,] <- diag(n)
   
@@ -330,7 +360,7 @@ fitted.matrixpls <- function(object, ...) {
   
   Sigma = G %*% solve(I-Beta) %*% Gamma %*% Phi %*% t(Gamma) %*% t(solve(I-Beta))%*% t(G)
   rownames(Sigma) <- colnames(Sigma) <- rownames(S)
-
+  
   Sigma
 }
 
@@ -559,7 +589,7 @@ print.matrixplscr <- function(x, ...){
 
 
 predict.matrixpls <- function(object, newdata, ...){
-      
+  
   nativeModel <- attr(object,"model")
   exog <- rowSums(nativeModel$inner)==0
   W <- attr(object,"W")
@@ -581,9 +611,9 @@ predict.matrixpls <- function(object, newdata, ...){
   }
   
   colnames(data) <- colnames(W)
-    
+  
   LVScores <- as.matrix(data) %*% t(W)
-    
+  
   # Predict endog LVs usign reduced from equations
   Beta <- inner[! exog, ! exog]
   Gamma <- inner[! exog, exog]
@@ -695,7 +725,7 @@ HTMT <- function(object, ...){
   reflective <- attr(object,"reflective")!=0
   
   # Mean within- and between-block correlations
-
+  
   meanBlockCor <- (t(reflective) %*% (S*lower.tri(S)) %*% reflective) / 
     (t(reflective) %*% lower.tri(S) %*% reflective)
   
@@ -706,7 +736,7 @@ HTMT <- function(object, ...){
   # Calculate the indices
   htmt <- meanBlockCor*lower.tri(meanBlockCor) /
     sqrt(diag(meanBlockCor) %o% diag(meanBlockCor))
-
+  
   htmt
 }
 
