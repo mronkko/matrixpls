@@ -159,7 +159,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
   
   
   modelFun  <- function(data){
-    
+
     # Indices for parameters excluding weights
     
     parameterIndices <- 1:(sum(nativeModel$inner) + sum(nativeModel$reflective) + sum(nativeModel$formative))
@@ -249,6 +249,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
       
       ses <- apply(boot.out$t[,parameterIndices],2,sd)
       names(ses) <- names(ret[["coef"]])
+      colnames(cis) <- names(ret[["coef"]])
       
       ret <- c(ret, list(se = ses,
                          cilower = cis[1,],
