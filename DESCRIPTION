@@ -33,3 +33,12 @@ Suggests:
     Matrix
 License: GPL-3
 LazyLoad: yes
+Collate:
+    'matrixpls.R'
+    'matrixpls.boot.R'
+    'matrixpls.plsc.R'
+    'matrixpls.plspm.R'
+    'matrixpls.postestimation.R'
+    'matrixpls.sempls.R'
+    'matrixpls.sim.R'
+RoxygenNote: 5.0.0

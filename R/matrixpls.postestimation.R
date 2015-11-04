@@ -185,6 +185,166 @@ print.matrixplsresiduals <- function(x, ...){
   print(data.frame(Value = unlist(x$indices)), ...)
 }
 
+#'@title Model implied covariance matrix baesd on matrixpls results
+#'
+#'@description
+#'
+#'The \code{matrixpls} method for generic function \code{fitted} computes the model implied
+#'covariance matrix by combining  \code{inner}, \code{reflective}, and \code{formative} as a 
+#'simultaneous equations system. The error terms are constrained to be uncorrelated and 
+#'covariances between exogenous variables are fixed at their sample values. Defining a
+#'composite as dependent variable in both inner and formative creates an impossible model
+#'and results in an errors
+#'
+#'@param object matrixpls estimation result object produced by the \code{\link{matrixpls}} function.
+#'
+#'@param ... All other arguments are ignored.
+#'
+#'@return a matrix containing the model implied covariances.
+#'
+#'@export
+#'
+#'@family post-estimation functions
+#'
+#'@method fitted matrixpls
+#'
+#'@S3method fitted matrixpls
+
+fitted.matrixpls <- function(object, ...) {
+  
+  # Equation numbers in parenthesis refer to equation number in Lohmoller 1989
+  
+  nativeModel <- attr(object,"model")
+  
+  # Check that the matrices form a valid model
+  
+  if(any(rowSums(nativeModel$formative) > 0 & rowSums(nativeModel$formative) > 0))
+    stop("Cannot calculate model implied covariance matrix. A composite is a dependent variable in both formative and inner matrices resulting in an impossible model")
+  
+  S <- attr(object,"S")
+  IC <- attr(object,"IC")
+  C <- attr(object,"C")
+  B <- attr(object,"inner")
+  F <- attr(object,"formative")
+  L <- attr(object,"reflective")
+  
+  
+  # Matrices containing all regressions and covariances
+  # indicators first, then composites
+  
+  fullB <- rbind(cbind(matrix(0,nrow(S),nrow(S)),L),
+                 cbind(F,B))
+  
+  fullC <- rbind(cbind(S,t(IC)),
+                 cbind(IC,C))
+  
+  exog <- rowSums(fullB) == 0
+  
+  # Add indicator errors and composite errors
+
+  e <- c(diag(S) - rowSums(L * t(IC)),
+         1-R2(object))
+  
+  fullC <- rbind(cbind(fullC,matrix(0, nrow(fullC), sum(!exog))),
+                 cbind(matrix(0, sum(!exog), nrow(fullC)), diag(e)[!exog,!exog]))
+  
+  fullB <- cbind(fullB,diag(length(e))[,! exog])
+  fullB <- rbind(fullB, matrix(0,sum(!exog), ncol(fullB)))
+  
+  # Update exog because fullB is now larger
+  exog <- rowSums(fullB) == 0
+  
+  #
+  # Derive the implied covariance matrix using the Bentler-Weeks model
+  #
+  # Bentler, P. M., & Weeks, D. G. (1980). Linear structural equations with latent variables. Psychometrika, 45(3), 289–308. doi:10.1007/BetaF02293905
+  #
+  
+  # beta (regression paths between dependent variables)
+  
+  beta <- fullB[!exog,!exog]
+  
+  
+  # gamma (regression paths between dependent and independent  variables)
+  
+  gamma <- fullB[!exog,exog]
+  
+  # exogenous variable covariance matrix
+  Phi <- fullC[exog,exog]
+  
+  #
+  # Calculate sigma
+  #
+
+  # Matrix orders
+  
+  # number of observed dependent
+  p = sum(!exog[1:nrow(S)])
+  # number of observed independent
+  q = nrow(S)-p
+  
+  # number of independent variables
+  n = nrow(Phi)
+  # number of dependent variables
+  m = nrow(beta)
+  
+  # Number of observed variables
+  r = p + q
+  # Number of variables
+  s = m + n
+  
+  # The matrices
+  
+  Beta <- matrix(0,s,s)
+  Gamma <- matrix(0,s,n)
+  G <- matrix(0,r,s)
+  
+  # Identity matrix
+  
+  I<-diag(nrow(Beta))
+  
+  # Populate the parameter matrices
+
+  Gamma[1:m,] <- gamma
+  Gamma[(m+1):s,] <- diag(n)
+  
+  Beta[1:m,1:m]<-beta
+  
+  # Populate the selection matrix (columns of all variables  selected to rows of observed variables)
+  observed <- NULL
+  if(p>0){
+    observed <- 1:p
+  }
+  if(q>0){
+    observed <- c(observed,(1:q)+n)
+  }
+  
+  G <- diag(s)[observed,]
+  
+  # G has dependent variables followed by independent variables. Reorder to match the variables
+  # in S
+  
+  G <- G[order(exog[1:nrow(S)]),]
+  
+  # Calculate the model implied covariance matrix and return
+  
+  Sigma = G %*% solve(I-Beta) %*% Gamma %*% Phi %*% t(Gamma) %*% t(solve(I-Beta))%*% t(G)
+  rownames(Sigma) <- colnames(Sigma) <- rownames(S)
+
+  Sigma
+}
+
+#'@S3method print matrixplsresiduals
+
+print.matrixplsresiduals <- function(x, ...){
+  cat("\n Inner model (composite) residual covariance matrix\n")
+  print(x$inner, ...)
+  cat("\n Outer model (indicator) residual covariance matrix\n")
+  print(x$outer, ...)
+  cat("\n Residual-based fit indices\n")
+  print(data.frame(Value = unlist(x$indices)), ...)
+}
+
 #'@title R2	for matrixpls results
 #'
 #'@description
