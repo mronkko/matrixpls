@@ -683,7 +683,7 @@ weight.fixed <- function(S, model, W.model = NULL,
 
 
 weight.factor <- function(S, model, W.model = NULL, ..., fm ="minres",
-                         standardize = TRUE) {
+                          standardize = TRUE) {
   
   # Set up a weight pattern
   W <- ifelse(W.model==0,0,1)
@@ -730,7 +730,7 @@ weight.factor <- function(S, model, W.model = NULL, ..., fm ="minres",
 #'@export
 
 weight.principal <- function(S, model, W.model = NULL, ..., 
-                          standardize = TRUE) {
+                             standardize = TRUE) {
   
   # Set up a weight pattern
   W <- ifelse(W.model==0,0,1)
@@ -955,7 +955,7 @@ params.regression <- function(S, model, W, ...,
   if(disattenuate){
     
     Q <- reliabilities(S, reflectiveEstimates, W, ...)
-
+    
     C <- C / sqrt(Q) %*% t(sqrt(Q))
     diag(C) <- 1
     
@@ -1425,125 +1425,65 @@ outer.GSCA <- function(S, W, E, W.model, model, ...){
   
   inner <- nativeModel$inner
   
-  # Calculate the covariance matrix between indicators and composites
+  # Calculate the covariance matrix between indicators and composites and between composites
   IC <- W %*% S
+  C <- W %*% S %*% t(W)
   
-  # Estimate the reflective and formative parts of the model
-  
-  formative <- nativeModel$formative
-  
-  for(row in which(rowSums(formative!=0)>0)){
-    independents <- which(formative[row,] != 0)
-    formative[row,independents] <- solve(S[independents,independents],IC[row,independents])
-  }
+  # Estimate the reflective parts of the model
   
   reflective <- nativeModel$reflective
   
   for(row in which(rowSums(reflective!=0)>0)){
     independents <- which(reflective[row,] != 0)
-    reflective[row,independents] <- solve(S[independents,independents],IC[independents, row])
+    reflective[row,independents] <- solve(C[independents,independents],IC[independents, row])
   }  
   
-  # E, formative, and reflective form the A matrix of GSCA. In this implementation,
-  # the full A matrix is never calculated, but we use the elements of 
-  # E, formative, and reflective directly.
+  # Number of composites and indicators, and their sum
+  P <- nrow(W.model)
+  J <- ncol(W.model)
+  JP <- J + P
   
-  # Composite correlations implied by A
-  C <- W %*% S %*% t(W)
+  # E, and reflective form the A matrix of GSCA. 
+  # Indicators first, then composites
   
-  # Update the weights one composite at a time
+  A <- rbind(reflective, E)
+  V <- rbind(diag(J), W)
   
-  for(row in 1:nrow(W.model)){
+  # The following code is based on the ASGSCA package (licensed
+  # under GPL-3). All matrices are transposed from the original
+  # ASGSCA code
+  
+  # Step 2: Update W
+  
+  tr_w <- 0
+  for(p in 1:P){
+    t <- J + p
+    windex_p <- which(W.model[p, ] != 0)
+    m <- matrix(0, 1, JP)
+    m[t] <- 1
+    a <- A[, p]
+    beta <- m - a
+    H1 <- diag(P)
+    H2 <- diag(JP)
+    H1[p,p] <- 0
+    H2[t,t] <- 0
     
-    #
-    # In Hwang, H., & Takane, Y. (2004), the weights for one composite are
-    # defined by specifying a series of regression analyses where the
-    # indicators are independent variables. The dependent variables 
-    # are any variables that depend on the focal composites minus the 
-    # fitted value calculated using all other predictors and the current
-    # regression estimates (A). These regressions are estimated
-    # simulataneously by stacking the data so that the system of equations
-    # can be estimated with OLS estimator in one go.
-    #
-    # This is equivalent to collecting all covariances between the IVs and
-    # DVs into a matrix and then taking a mean over all DVs so that we 
-    # have a vector of mean covariances for each IV. 
-    #
-    
-    # Indicator indices
-    i <- which(W.model[row,]!=0)
-    
-    # correlations between the indicators and dvs
-    ic <- NULL
-
-
-    # The composite is dependent in inner model
-    
-    if(any(inner[row,]!=0)){
+    Delta <- A%*%H1%*%W - H2%*%V 
+    Sp <- S[windex_p , windex_p]
+    if (length(windex_p)!=0){        
       
-      # Calculate the covariance matrix between indicators and composites
-      # This and other matrices need to be recalculated for each composite because W is updated
-      # immediately
+      theta <- MASS::ginv(as.numeric(beta%*%t(beta))*S[windex_p,windex_p]) %*%
+        t(beta %*% Delta %*% S[,windex_p])
       
-      IC <- E %*% W %*% S
+      # Update the weights based on the estimated parameters and standardize
+      W[p,windex_p] <- theta
+      W <- scaleWeights(S, W)
       
-      ic <- cbind(ic,IC[row,i])
     }
-    
-    # Composites that this composite depends on
-    
-    for(j in which(inner[,row]!=0)){
-      
-      # Deselects the independent variable
-      s1 <- diag(nrow(W.model))
-      s1[row,row] <- 0
-      
-      # Selects the independent variable
-      s2 <- matrix(0,nrow(W.model),nrow(W.model))
-      s2[row,row] <- 1
-      
-      # Calculate the covariance matrix between indicators and residual of the composite
-      # After regressed on other composites
-      
-      
-      ICr <- ((E %*% s2) %*% W %*% S) - ((E %*% s1) %*% W %*% S)
-      ic <- cbind(ic,ICr[j,i])
-    }
-    
-    # The composite is dependent in the formative model
-    # and the weight pattern and formative indicators do not
-    # overlap completely
-    
-    if(any(formative[row,]!=0) && 
-         ! identical((formative[row,] ==0), (W.model[row,] == 0))){
-      ic <- cbind(ic, W[row,i] %*% S[i,i])
-    }
-    
-    # Indicators that depend on this composite
-    
-    for(j in which(reflective[,row]!=0)){
-      ic <- cbind(ic, S[i,j])
-      print(2)
-      browser()
-    }
-    
-    if(is.null(ic)) stop(paste("Composite '",rownames(inner)[row],
-                               "' is neither a dependent nor an independent variable in the second step of GSCA weight algorithm.",sep=""))
-    
-    Wvect <- solve(S[i,i],apply(ic,1,mean))
-
-
-    # Update the weights based on the estimated parameters
-    
-    W[row,W.model[row,]!=0] <- Wvect
-    
-    # Finally standardize the weights 
-    
-    W <- scaleWeights(S, W)
     
     # Proceed to next composite
-    
   }
+  
   
   return(W)
 }
@@ -1645,20 +1585,20 @@ optim.maximizeIndicatorR2 <- function(matrixpls.res){
 optim.maximizeFullR2 <- function(matrixpls.res){
   optim.maximizeIndicatorR2(matrixpls.res) + optim.maximizeInnerR2(matrixpls.res)
 }
-  
+
 #'@title GSCA optimization criterion
 #'
 #'@details Optimization criterion for minimizing the sum of all residual
 #'variances in the model. 
 #'
-#'The matrixpls implementation of the GSCA criterion extends the criterion
-#'presented by Huang and Takane by including also the minimization of the
-#'residual variances of the formative part of the model. The formative
-#'regressions in a model are typically specified to be identical to the 
-#'weight pattern \code{W.model} resulting zero residual variances by definition.
-#'However, it is possible to specify a formative model that does not completely
-#'overlap with the weight pattern leading to non-zero residuals that can be
-#'optimizes.
+##'The matrixpls implementation of the GSCA criterion extends the criterion
+##'presented by Huang and Takane by including also the minimization of the
+##'residual variances of the formative part of the model. The formative
+##'regressions in a model are typically specified to be identical to the 
+##'weight pattern \code{W.model} resulting zero residual variances by definition.
+##'However, it is possible to specify a formative model that does not completely
+##'overlap with the weight pattern leading to non-zero residuals that can be
+##'optimizes.
 #'
 #'@param matrixpls.res An object of class \code{matrixpls} from which the
 #'criterion function is calculated
@@ -1685,19 +1625,19 @@ optim.GSCA <- function(matrixpls.res){
   reflective <- nativeModel$reflective
   reflective[which(reflective==1)] <- matrixpls.res[grep("=~",names(matrixpls.res))]
   
-  formative <- nativeModel$formative
-  formative[which(formative==1)] <- matrixpls.res[grep("<~",names(matrixpls.res))]
+  #  formative <- nativeModel$formative
+  #  formative[which(formative==1)] <- matrixpls.res[grep("<~",names(matrixpls.res))]
   
-  f <- apply(nativeModel$formative != 0,1,any)
+  #  f <- apply(nativeModel$formative != 0,1,any)
   r <- apply(nativeModel$reflective != 0,1,any)
   endo <- apply(nativeModel$inner != 0,1,any)
   
   inner_resid <- (1 - R2(matrixpls.res)[endo])
-  form_resid <- (1 - rowSums(IC[f,] * formative[f,]))
+  #  form_resid <- (1 - rowSums(IC[f,] * formative[f,]))
   refl_resid <- (1 - rowSums(t(IC[,r]) * reflective[r,]))
   
-  sum(inner_resid, form_resid, refl_resid)
-  
+  #  sum(inner_resid, form_resid, refl_resid)
+  sum(inner_resid, , refl_resid)
 }
 
 
