@@ -1637,7 +1637,7 @@ optim.GSCA <- function(matrixpls.res){
   refl_resid <- (1 - rowSums(t(IC[,r]) * reflective[r,]))
   
   #  sum(inner_resid, form_resid, refl_resid)
-  sum(inner_resid, , refl_resid)
+  sum(inner_resid, refl_resid)
 }
 
 
