@@ -27,7 +27,7 @@ To install the latest development version of **matrixpls** from github (using th
 ```
 # install.packages("devtools") 
 library(devtools)
-install_github('matrixpls', username='mronkko')
+install_github("mronkko/matrixpls")
 ```
 
 To check out the source code and install from local copy, run the following shell commands
@@ -35,8 +35,8 @@ To check out the source code and install from local copy, run the following shel
 ```
 git clone https://github.com/mronkko/matrixpls.git
 R CMD BUILD matrixpls
-R CMD CHECK matrixpls_0.4.0.tar.gz
-R CMD INSTALL matrixpls_0.4.0.tar.gz
+R CMD CHECK matrixpls_*.tar.gz
+R CMD INSTALL matrixpls_*.tar.gz
 ```
 
 You may need to install development versions of Lavaan and SimSem to run the development verison of
