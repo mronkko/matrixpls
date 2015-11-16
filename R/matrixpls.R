@@ -322,6 +322,11 @@ print.matrixplssummary <- function(x, ...){
 #'
 #'@param validateInput A boolean indicating whether the validity of the parameter values should be tested.
 #'
+#'@param variant Choose either Lohmöller's (\code{"lohmoller"}, default) or Wold's (\code{"wold"}) 
+#'variant of PLS. In Wold's variant the inner and outer estimation steps are repeated for eac
+#'indicator block whereas in Lohmöller's variant the weights for all composites are calculated
+#'simultaneously. 
+#'
 #'@param ... All other arguments are passed through to \code{outerEstimators} and \code{innerEstimator}.
 #'
 #'@template weights-return
@@ -340,7 +345,8 @@ weight.pls <- function(S, model, W.model,
                        outerEstimators = NULL, 
                        innerEstimator = inner.path, ..., 
                        convCheck = convCheck.absolute,
-                       signAmbiquityCorrection = FALSE, # TODO: make this a function
+                       signAmbiquityCorrection = FALSE, # TODO: make this a function,
+                       variant = "lohmoller",
                        tol = 1e-05, iter = 100, validateInput = TRUE) {
   
   if(validateInput){
@@ -371,6 +377,10 @@ weight.pls <- function(S, model, W.model,
     if(ncol(S)!=ncol(W.model)){
       print(list(S=S,W.model = W.model))
       stop("Data matrix column count does not match weight patter column count")
+    }
+    
+    if(!variant %in% c("lohmoller","wold")){
+      stop("Variant must be \"lohmoller\" or \"wold\"")
     }
     
     # outerEstimators must be a list of same length as number of rows in inner.mod or
@@ -451,38 +461,68 @@ weight.pls <- function(S, model, W.model,
   E <- NULL
   
   # =========== Start of iterative procedure ===========
+
+  # Lohmöller's variant updates all weights at the same time
+  # Wold's variant updates one composite at a time
   
+  if(variant =="wold"){
+    compositeIndices <- 1:nrow(W)
+  }
+  else{
+    compositeIndices <- NA
+  }
+    
   repeat {
     
     if(iteration == iter){
       converged <- FALSE;
       break;
     }
-    
-    # Get new inner weights from inner estimation
-    
-    if(! is.null(innerEstimator)){
-      E <- innerEstimator(S, W, inner.mod, model = model, ...)
-    }
-    
-    # Get new weights from outer estimation
-    
+
     W_old <- W
-    if(is.list(outerEstimators)){
-      
-      # Run each estimator separately
-      
-      for(i in 1:length(uniqueOuterEstimators)){
-        W.modelForThisEstimator <- W.model
-        W.modelForThisEstimator[!outerEstimatorIndices[[i]],] <- 0
-        W[outerEstimatorIndices[[i]],] <- uniqueOuterEstimators[[i]](S, W_old, E, W.modelForThisEstimator,...)[outerEstimatorIndices[[i]]]
-      }
-    }
-    else{
-      W <- outerEstimators(S, W_old, E, W.model, model = model, ...)
-    }	
     
-    W <- scaleWeights(S, W)
+    # Loop over the composites or calculate all as one pass if NA
+    
+    for(k in compositeIndices){
+      # Get new inner weights from inner estimation
+      
+      if(! is.null(innerEstimator)){
+        E <- innerEstimator(S, W, inner.mod, model = model, ...)
+      }
+      
+      # Get new weights from outer estimation
+      
+      # Lohmöller
+      
+      if(is.na(k)){
+        if(is.list(outerEstimators)){
+          
+          # Run each estimator separately
+          
+          for(i in 1:length(uniqueOuterEstimators)){
+            W.modelForThisEstimator <- W.model
+            W.modelForThisEstimator[!outerEstimatorIndices[[i]],] <- 0
+            W[outerEstimatorIndices[[i]],] <- uniqueOuterEstimators[[i]](S, W_old, E, W.modelForThisEstimator,...)[outerEstimatorIndices[[i]],]
+          }
+        }
+        else{
+          W <- outerEstimators(S, W_old, E, W.model, model = model, ...)
+        }	
+      }
+      
+      # Wold
+      
+      else{
+
+        if(is.list(outerEstimators)) outerEstimator <- outerEstimators[[k]]
+        else outerEstimator <- outerEstimators[[k]]
+        
+        W.modelForThisEstimator <- W.model
+        W.modelForThisEstimator[-k,] <- 0
+        W[W.modelForThisEstimator != 0] <- outerEstimator(S, W_old, E, W.modelForThisEstimator,...)[W.modelForThisEstimator != 0]        
+      }
+      W <- scaleWeights(S, W)
+    }
     
     iteration <- iteration +1 
     weightHistory[iteration+1,] <- W[weightPattern]
