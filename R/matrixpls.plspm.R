@@ -85,10 +85,10 @@ matrixpls.plspm <-
                         reflective=reflective, 
                         formative=formative) 
     
-    W.mod <- t(reflective)
+    W.model <- t(reflective)
     
-    if(params$plsr) parameterEstimator <- params.plsregression
-    else parameterEstimator <- params.regression
+    if(params$plsr) paramsInner <- estimator.plsreg
+    else paramsInner <- estimator.plsreg
     
     modeA <- params$modes == "A"
     
@@ -143,7 +143,7 @@ matrixpls.plspm <-
         }
         
         tryCatch(
-          matrixpls(S_boot, model = nativeModel, W.mod = W.mod, parameterEstimator = parameterEstimator,
+          matrixpls(S_boot, model = nativeModel, W.model = W.model, paramsInner = paramsInner,
                     outerEstimators = outerEstimators, innerEstimator = innerEstimator,
                     tol = params$tol, iter = params$maxiter, convCheck = convCheck,
                     validateInput = FALSE, standardize = FALSE), 
@@ -152,14 +152,14 @@ matrixpls.plspm <-
             print(e)
             print(S)
             print(nativeModel)
-            print(W.mod)
+            print(W.model)
           })
       }, params$br)
       
       matrixpls.res <- boot.res$t0
     }
     else{
-      matrixpls.res <- matrixpls(S, model = nativeModel, W.mod = W.mod, parameterEstimator = parameterEstimator,
+      matrixpls.res <- matrixpls(S, model = nativeModel, W.model = W.model, paramsInner = paramsInner,
                                  outerEstimators = outerEstimators, innerEstimator = innerEstimator,
                                  tol = params$tol, iter = params$maxiter, convCheck = convCheck,
                                  validateInput = FALSE, standardize = FALSE)
@@ -263,7 +263,7 @@ matrixpls.plspm <-
     if(params$boot.val){
       
       pathCount <- sum(nativeModel$inner)
-      weightCount <- sum(W.mod)
+      weightCount <- sum(W.model)
       bootPathIndices <- 1:pathCount
       bootLoadingIndices <- 1:weightCount + pathCount
       bootWeightIndices <- bootLoadingIndices + weightCount
@@ -271,7 +271,7 @@ matrixpls.plspm <-
       bootIndices <- boot::boot.array(boot.res, indices = TRUE)
       
       boot <- list(weights = get_bootDataFrame(boot.res$t0[bootWeightIndices]*sdv, boot.res$t[,bootWeightIndices]*sdv, rownames(S)),
-                   loadings = get_bootDataFrame(IC_std[W.mod == 1], 
+                   loadings = get_bootDataFrame(IC_std[W.model == 1], 
                                                 t(parallel::mcmapply(function(x){
                                                   
                                                   # Recover the data that were used in the bootrap replications and calculate indicator variances
@@ -294,8 +294,8 @@ matrixpls.plspm <-
                                                S <- cov(dataToUse[bootIndices[x,],])
                                              
                                              # Reconstruct the matrices
-                                             W <- matrix(0,nrow(W.mod),ncol(W.mod))
-                                             W[W.mod==1] <- boot.res$t[x,bootWeightIndices]
+                                             W <- matrix(0,nrow(W.model),ncol(W.model))
+                                             W[W.model==1] <- boot.res$t[x,bootWeightIndices]
                                              C <- W %*% S %*% t(W)
                                              inner <- matrix(0,nrow(nativeModel$inner),ncol(nativeModel$inner))
                                              inner[nativeModel$inner == 1] <- boot.res$t[x,bootPathIndices]
@@ -460,29 +460,34 @@ matrixpls.plspm <-
 
 # =========== Parameter estimators ===========
 
-#'@title Parameter estimation with PLS regression
-#'
-#'@description
-#'Estimates the model parameters with weighted composites using separate OLS regressions for outer
-#'model and separate PLS regressions for inner model.
-#'
-#'@details
-#'
-#'\code{params.plsregression} estimates the model parameters similarly to \code{\link{params.regression}}
-#'with the exception that instead of separate OLS regressions the \code{inner} part of
-#'the model is estimated with separate PLS regressions using the PLS1 algorithm with two rounds
-#'of estimation.
-#'
-#'The implementation of PLS regression is ported from the raw data version implemented in \code{\link[plspm]{get_plsr1}}
-#'funtion of the \code{plspm} package.
-#'
-#'@inheritParams params.regression
-#'@inheritParams matrixpls
+#'@title Parameter estimation with PLS regressions
 #
-#'@return A named vector of parameter estimates.
+#'@description
 #'
-#'@family parameter estimators
+#'Estimates the parameters of a model matrix (\code{inner}) with PLS least squares regressions.
 #'
+#'@detail
+#'
+#'Providing \code{C} allows for using disattenuated or otherwise
+#'adjusted correlation matrices. If not provided, this matrix is calculated using \code{S} and
+#'\code{W}.
+#'
+#'@param S Covariance matrix of the data.
+#'
+#'@param model A model matrix with dependent variables on rows, independent variables on colums, and
+#'non-zero elements indicating relationships. Onyl the \code{inner} matrix can be used.
+#'
+#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'
+#'@param C Correlation matrix of the composites.
+#'
+#'@param ... All other arguments are ignored.
+#'
+#'@return A matrix with estimated parameters.
+#'
+#'@family regression estimators
+#'
+#'@export
 #'
 #'@references
 #'
@@ -490,20 +495,10 @@ matrixpls.plspm <-
 #'
 #'Bjørn-Helge Mevik, & Ron Wehrens. (2007). The pls Package:  Principal Component and Partial Least Squares Regression in R. \emph{Journal of Statistical Software}, 18. Retrieved from http://www.jstatsoft.org/v18/i02/paper
 
-#'@export
+estimator.plsreg <- function(S, model, W, ..., C){
 
-params.plsregression <- function(S, W, model){
-  
-  return(params.internal_generic(S,W,model,
-                                 plsregressionsWithCovarianceMatrixAndModelPattern))
-  
-}
-
-# =========== Utility functions ===========
-
-plsregressionsWithCovarianceMatrixAndModelPattern <- function(S,model){
-  
-  assert_is_symmetric_matrix(S)
+  # Calculate the composite covariance matrix
+  if(is.null(C)) C <- W %*% S %*% t(W)
   
   for(row in 1:nrow(model)){
     

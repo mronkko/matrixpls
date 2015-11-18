@@ -5,8 +5,8 @@
 # http://joerg.evermann.ca/docs/EvermannTate2014b.pdf
 #
 
-if(require(simsem)){
-  
+library(simsem)
+
   # Define the parameters to create the datasets
   
   SAMPLE <- 100

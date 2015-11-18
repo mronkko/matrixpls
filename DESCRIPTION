@@ -29,7 +29,6 @@ Suggests:
     semPLS,
     boot,
     ASGSCA,
-    RGCCA,
     Matrix
 License: GPL-3
 LazyLoad: yes
@@ -41,4 +40,4 @@ Collate:
     'matrixpls.postestimation.R'
     'matrixpls.sempls.R'
     'matrixpls.sim.R'
-RoxygenNote: 5.0.0
+RoxygenNote: 5.0.1

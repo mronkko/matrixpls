@@ -66,6 +66,8 @@
 #'@param parameterEstimator A function that takes three or more arguments, the data covariance matrix \code{S},
 #'model specification \code{model}, and weights \code{W} and returns a named vector of parameter estimates. The default is \code{\link{params.regression}}
 #'
+#'@param weightSignCorrection A function that is applied to weights to correct their signs before parameter estimation.
+#'
 #'@param validateInput A boolean indicating whether the arguments should be validated.
 #'
 #'@param standardize A boolean indicating whether \code{S} is standardized
@@ -75,7 +77,9 @@
 #'@seealso 
 #'Weight algorithms: \code{\link{weight.pls}}; \code{\link{weight.fixed}}; \code{\link{weight.optim}}
 #'
-#'Parameter estimators: \code{\link{params.regression}}; \code{\link{params.plsregression}}; \code{\link{params.plsc}}; \code{\link{params.tsls}}
+#'Weight sign corrections:\code{\link{weightSign.Wold1985}}; \code{\link{weightSign.dominantIndicator}}
+#'
+#'Parameter estimators: \code{\link{params.regression}}
 #'
 #'@return A named numeric vector of class \code{matrixpls} containing parameter estimates followed by weight.
 #'
@@ -302,11 +306,7 @@ print.matrixplssummary <- function(x, ...){
 #'\code{NULL} the starting weights specified in \code{W.model} will be returned. The default is \code{\link{outer.modeA}} 
 #'(PLS Mode A estimation).
 #'
-#'@param innerEstimator A function used for inner estimation. Setting this argument to
-#'\code{null} will use identity matrix as inner estimates and causes the algorithm to converge
-#'after the first iteration. This is useful when using 
-#'\code{\link{outer.fixedWeights}} or some other outer estimation function that
-#'does not use inner estimation results. The default is \code{\link{inner.path}}
+#'@param innerEstimator A function used for inner estimation. The default is \code{\link{inner.path}}
 #'(PLS path weighting scheme).
 
 #'@param convCheck A function that takes the old and new weight matrices and
@@ -334,18 +334,16 @@ print.matrixplssummary <- function(x, ...){
 #'@seealso 
 #'Inner estimators: \code{\link{inner.path}}; \code{\link{inner.centroid}}; \code{\link{inner.factor}}; \code{\link{inner.GSCA}}; \code{\link{inner.identity}};
 #'
-#'Outer estimators: \code{\link{outer.modeA}}; \code{\link{outer.modeB}}; \code{\link{outer.GSCA}}; \code{\link{outer.factor}}; \code{\link{outer.fixedWeights}}
+#'Outer estimators: \code{\link{outer.modeA}}; \code{\link{outer.modeB}}; \code{\link{outer.GSCA}}
 #'
 #'Convergence checks: \code{\link{convCheck.absolute}}, \code{\link{convCheck.square}}, and \code{\link{convCheck.relative}}.
 #'
-
 #'@export
 
 weight.pls <- function(S, model, W.model,
                        outerEstimators = NULL, 
                        innerEstimator = inner.path, ..., 
                        convCheck = convCheck.absolute,
-                       signAmbiquityCorrection = FALSE, # TODO: make this a function,
                        variant = "lohmoller",
                        tol = 1e-05, iter = 100, validateInput = TRUE) {
   
@@ -357,7 +355,7 @@ weight.pls <- function(S, model, W.model,
     # S must be symmetric and a valid covariance matrix
     assertive::assert_is_matrix(S)
     assertive::assert_is_symmetric_matrix(S)
-    assertive::assert_is_identical_to_true(matrixcalc:::is.positive.semi.definite(S))
+    assertive::assert_is_identical_to_true(matrixcalc::is.positive.semi.definite(S))
     
     # W.model must be a real matrix and each indicators must be
     # linked to at least one composite and each composite at least to one indicator
@@ -896,7 +894,7 @@ convCheck.absolute <- function(Wnew, Wold){
 weightSign.Wold1985 <- function(W,S){
   # Calculate the covariance matrix between indicators and composites
   IC <- W %*% S
-  signSums <- rowSums(sign(IC * weightPattern))
+  signSums <- rowSums(sign(IC * (W!=0)))
   sweep(W, 1,ifelse(signSums<0, -1, 1),"*")
 }
 
@@ -974,9 +972,9 @@ weightSign.dominantIndicator <- function(W,S){
 #'@export
 
 params.regression <- function(S, model, W, ...,
-                              parametersInner = estimator.regression,
-                              parametersReflective = estimator.regression,
-                              parametersFormative = estimator.regression,
+                              parametersInner = estimator.ols,
+                              parametersReflective = estimator.ols,
+                              parametersFormative = estimator.ols,
                               disattenuate = FALSE,
                               reliabilities = reliability.weightLoadingProduct){
   
@@ -1037,9 +1035,48 @@ params.regression <- function(S, model, W, ...,
   return(results)
 }
 
-estimator.regression <- function(S, model, W, ..., C = NULL, IC = NULL){
+#'@title Parameter estimation with separate regression analyses
+#'
+#'@description
+#'
+#'Estimates the parameters of a model matrix with OLS regression.
+#'
+#'@detail
+#'
+#'Providing \code{C} or \code{IC} allows for using disattenuated or otherwise
+#'adjusted correlation matrices. If not provided, these matrices are calculated using \code{S} and
+#'\code{W}.
+#'
+#'@param S Covariance matrix of the data.
+#'
+#'@param model A model matrix with dependent variables on rows, independent variables on colums, and
+#'non-zero elements indicating relationships. Can be either \code{inner}, \code{reflective},
+#'or \code{formative} matrix.
+#'
+#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'
+#'@param C Correlation matrix of the composites.
+#'
+#'@param IC Correlation matrix of the composites and indicators.
+#'
+#'@param ... All other arguments are ignored.
+#'
+#'@return A matrix with estimated parameters.
+#'
+#'@family regression estimators
+#'
+#'@export
+#'
+
+estimator.ols <- function(S, model, W, ..., C = NULL, IC = NULL){
   
   covIV <- covDV <- NULL
+  
+  # Calculate the composite covariance matrix
+  if(is.null(C)) C <- W %*% S %*% t(W)
+  
+  # Calculate the covariance matrix between indicators and composites
+  if(is.null(IC)) IC <- W %*% S
   
   # Covariances between the independent variables
   for(m in list(S, C)){
@@ -1048,8 +1085,6 @@ estimator.regression <- function(S, model, W, ..., C = NULL, IC = NULL){
       break()
     }
   }
-  
-  if(is.null(covIV)) browser()
   
   # Covariances between IVs and DVS
   
@@ -1060,8 +1095,6 @@ estimator.regression <- function(S, model, W, ..., C = NULL, IC = NULL){
       break()
     }
   }
-  
-  if(is.null(covDV)) browser()
   
   for(row in 1:nrow(model)){
     
@@ -1080,10 +1113,41 @@ estimator.regression <- function(S, model, W, ..., C = NULL, IC = NULL){
   return(model)
 }
 
-estimator.tsls <- function(S, model, W, C, ...){
+#'@title Parameter estimation with two-stage least squares regressions
+#
+#'@description
+#'
+#'Estimates the parameters of a model matrix (\code{inner}) with two-stage least squares regressions.
+#'The exogenous variables are used as instruments. 
+#'
+#'@detail
+#'
+#'Providing \code{C} allows for using disattenuated or otherwise
+#'adjusted correlation matrices. If not provided, this matrix is calculated using \code{S} and
+#'\code{W}.
+#'
+#'@param S Covariance matrix of the data.
+#'
+#'@param model A model matrix with dependent variables on rows, independent variables on colums, and
+#'non-zero elements indicating relationships. Onyl the \code{inner} matrix can be used.
+#'
+#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'
+#'@param C Correlation matrix of the composites.
+#'
+#'@param ... All other arguments are ignored.
+#'
+#'@return A matrix with estimated parameters.
+#'
+#'@family regression estimators
+#'
+#'@export
+#'
+
+estimator.tsls <- function(S, model, W, ..., C){
   
-  # Ensure that S and model have right order
-  S <- C[rownames(model),colnames(model)]
+  # Calculate the composite covariance matrix
+  if(is.null(C)) C <- W %*% S %*% t(W)
   
   exog <- apply(model == 0, 1, all)
   endog <- ! exog
@@ -1112,7 +1176,7 @@ estimator.tsls <- function(S, model, W, C, ...){
       for(toBeInstrumented in needInstruments){
         # Regress the variable requiring instruments on its predictors excluding the current DV
         
-        coefs1 <- solve(S[instruments, instruments],S[toBeInstrumented, instruments])
+        coefs1 <- solve(C[instruments, instruments],C[toBeInstrumented, instruments])
         
         stage1Model[toBeInstrumented, toBeInstrumented] <- 0
         stage1Model[toBeInstrumented, instruments] <- coefs1
@@ -1121,14 +1185,14 @@ estimator.tsls <- function(S, model, W, C, ...){
       
       # Stage 2
       
-      S2 <- stage1Model %*% S %*% t(stage1Model)
+      C2 <- stage1Model %*% C %*% t(stage1Model)
       
       if(length(independents)==1){
         # Simple regresion is the covariance divided by the variance of the predictor
-        model[row,independents] <- S2[row,independents]/S2[independents,independents]
+        model[row,independents] <- C2[row,independents]/C2[independents,independents]
       }
       if(length(independents)>1){
-        coefs2 <- solve(S2[independents,independents],S2[row,independents])
+        coefs2 <- solve(C2[independents,independents],C2[row,independents])
         model[row,independents] <- coefs2
       }
       
@@ -1150,8 +1214,9 @@ estimator.tsls <- function(S, model, W, C, ...){
 #'
 #'@param loadings matrix of factor loading estimates
 #'
-#'@param weights matrix of weights
+#'@param W matrix of weights
 #'
+#'@param ... All other arguments are ignored.
 #'
 #'@return a named vector of estimated composite reliabilities.
 #'
@@ -1227,10 +1292,10 @@ inner.centroid <- function(S, W, inner.mod, ignoreInnerModel = FALSE, ...){
 
 inner.path <- function(S, W, inner.mod, ...){
   
-  # Calculate the composite covariance matrix	
+  # Calculate the composite covariance matrix
   C <- W %*% S %*% t(W)
   
-  E <- regressionsWithCovarianceMatrixAndModelPattern(C, inner.mod)
+  E <- estimator.ols(S, inner.mod,W, C = C)
   
   # Use correlations for inverse relationships for non-reciprocal paths
   inverseRelationships <- t(inner.mod) & ! inner.mod
@@ -1351,11 +1416,7 @@ inner.identity <- function(S, W, inner.mod, ...){
 #'@export
 
 inner.GSCA <- function(S, W, inner.mod, ...){
-  
-  # Calculate the composite covariance matrix
-  C <- W %*% S %*% t(W)
-  
-  E <- regressionsWithCovarianceMatrixAndModelPattern(C,inner.mod)
+  E <- estimator.ols(S, inner.mod,W)
   return(E)
 }
 
@@ -1531,70 +1592,74 @@ outer.GSCA <- function(S, W, E, W.model, model, ...){
 
 # =========== Optimization criterion functions ===========
 
-#'@title Optimization criterion to maximize the inner model mean R2
+#'@title Optimization criterion for maximizing inner R2
+#'
+#'@description Calculates the sum of R2s of \code{inner} matrix. The
+#'optimization criterion is negative of this sum.
 #'
 #'@param matrixpls.res An object of class \code{matrixpls} from which the
 #'criterion function is calculated
 #'
-#'@return Negative mean R2.
+#'@return Negative of sum of R2 values of the \code{inner} matrix.
 #'
 #'@family Weight optimization criteria
 #'
 #'@export
+#'
 #'
 
 optim.maximizeInnerR2 <- function(matrixpls.res){
   -sum(R2(matrixpls.res))
 }
 
-#'@title Optimization criterion for maximal prediction 
+# #'@title Optimization criterion for maximal prediction 
+# #'
+# #'@details Calculates the predicted variances of reflective indicators. The
+# #'prediction criterion is negative of the sum of predicted variances.
+# #'
+# #'@param matrixpls.res An object of class \code{matrixpls} from which the
+# #'criterion function is calculated
+# #'
+# #'@return Mean squared prediction error.
+# #'
+# #'@family Weight optimization criteria
+# #'
+# #'@export
+# #'
+# 
+# optim.maximizePrediction <- function(matrixpls.res){
+#   
+#   # TODO: convert to using the predict function
+#   
+#   C <- attr(matrixpls.res,"C")
+#   nativeModel <- attr(matrixpls.res,"model")
+#   exog <- rowSums(nativeModel$inner)==0
+#   W <- attr(matrixpls.res,"W")
+#   inner <- attr(matrixpls.res,"inner")
+#   
+#   reflective <- nativeModel$reflective
+#   reflective[which(reflective==1)] <- matrixpls.res[grep("=~",names(matrixpls.res))]
+#   
+#   # Predict endog LVs using reduced from equations
+#   Beta <- inner[! exog, ! exog]
+#   Gamma <- inner[! exog, exog]
+#   
+#   invBeta <- solve(diag(nrow(Beta)) - Beta)
+#   endogC <- invBeta %*% Gamma %*% C[exog,exog] %*% t(Gamma) %*% t(invBeta)
+#   C[!exog, !exog] <- endogC
+#   
+#   -sum(diag(reflective %*% C %*% t(reflective)))
+# }
+
+#'@title Optimization criterion for maximizing reflective R2
 #'
-#'@details Calculates the predicted variances of reflective indicators. The
-#'prediction criterion is negative of the sum of predicted variances.
+#'@description Calculates the sum of R2s of \code{reflective} matrix. The
+#'optimization criterion is negative of this sum.
 #'
 #'@param matrixpls.res An object of class \code{matrixpls} from which the
 #'criterion function is calculated
 #'
-#'@return Mean squared prediction error.
-#'
-#'@family Weight optimization criteria
-#'
-#'@export
-#'
-
-optim.maximizePrediction <- function(matrixpls.res){
-  
-  # TODO: convert to using the predict function
-  
-  C <- attr(matrixpls.res,"C")
-  nativeModel <- attr(matrixpls.res,"model")
-  exog <- rowSums(nativeModel$inner)==0
-  W <- attr(matrixpls.res,"W")
-  inner <- attr(matrixpls.res,"inner")
-  
-  reflective <- nativeModel$reflective
-  reflective[which(reflective==1)] <- matrixpls.res[grep("=~",names(matrixpls.res))]
-  
-  # Predict endog LVs using reduced from equations
-  Beta <- inner[! exog, ! exog]
-  Gamma <- inner[! exog, exog]
-  
-  invBeta <- solve(diag(nrow(Beta)) - Beta)
-  endogC <- invBeta %*% Gamma %*% C[exog,exog] %*% t(Gamma) %*% t(invBeta)
-  C[!exog, !exog] <- endogC
-  
-  -sum(diag(reflective %*% C %*% t(reflective)))
-}
-
-#'@title Optimization criterion for maximal prediction 
-#'
-#'@details Calculates the predicted variances of reflective indicators. The
-#'prediction criterion is negative of the sum of predicted variances.
-#'
-#'@param matrixpls.res An object of class \code{matrixpls} from which the
-#'criterion function is calculated
-#'
-#'@return Mean squared prediction error.
+#'@return Negative of sum of R2 values of the \code{reflective} matrix.
 #'
 #'@family Weight optimization criteria
 #'
@@ -1608,27 +1673,30 @@ optim.maximizeIndicatorR2 <- function(matrixpls.res){
   -sum(diag(lambda %*% IC))
 }
 
-#'@title Optimization criterion for maximal prediction 
+#'@title Optimization criterion for maximizing reflective and innner R2
 #'
-#'@details Calculates the predicted variances of reflective indicators. The
-#'prediction criterion is negative of the sum of predicted variances.
+#'@description Calculates the sum of R2s of \code{inner} matrix and 
+#'\code{reflective} matrix. The
+#'optimization criterion is negative of this sum.
 #'
 #'@param matrixpls.res An object of class \code{matrixpls} from which the
 #'criterion function is calculated
 #'
-#'@return Mean squared prediction error.
+#'@return Negative of sum of R2 values of the \code{inner} and
+#'\code{reflective} matrices.
 #'
 #'@family Weight optimization criteria
 #'
 #'@export
 #'
+
 optim.maximizeFullR2 <- function(matrixpls.res){
   optim.maximizeIndicatorR2(matrixpls.res) + optim.maximizeInnerR2(matrixpls.res)
 }
 
 #'@title GSCA optimization criterion
 #'
-#'@details Optimization criterion for minimizing the sum of all residual
+#'@description Optimization criterion for minimizing the sum of all residual
 #'variances in the model. 
 #'
 ##'The matrixpls implementation of the GSCA criterion extends the criterion
@@ -1823,16 +1891,6 @@ is.matrixpls.model <- function(model) {
             setequal(names(model),c("inner","reflective","formative")) &&
             all(sapply(model,is.matrix)))
   
-}
-
-#
-# Runs regressions defined by model
-# using covariance matrix S and places the results in model
-#
-# TODO: Deprecated
-
-regressionsWithCovarianceMatrixAndModelPattern <- function(S,model){
-  estimator.regression(S,model)
 }
 
 #

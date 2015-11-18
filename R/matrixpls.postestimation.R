@@ -455,6 +455,10 @@ GoF.matrixpls <- function(object, ...) {
   
   result <- sqrt(mean(IC_std[t(nativeModel$reflective)==1]^2) * 
                    mean(R2(object)[!exogenousLVs]))
+  
+  # TODO: Relative GoF
+  # http://www.stat.wmich.edu/wang/561/codes/R/CanCor.R
+  
   class(result) <- "matrixplsgof"
   result
 }
@@ -473,7 +477,7 @@ print.matrixplsgof <- function(x, digits=getOption("digits"), ...){
 #'The \code{matrixpls} method for the generic function \code{loadings} computes standardized factor loading matrix
 #'from the model results.
 #'
-#'@param x An object of class \code{matrixpls}
+#'@param object An object of class \code{matrixpls}
 #'
 #'@param ... All other arguments are ignored.
 #'
@@ -485,19 +489,19 @@ print.matrixplsgof <- function(x, digits=getOption("digits"), ...){
 #'
 #'@export
 #'
-loadings <- function(object, ...){
+loadings.matrixpls <- function(object, ...){
   UseMethod("loadings")
 }
 
 #
 #'@S3method loadings matrixpls
 
-loadings <- function(x, ...) {
-  nativeModel <- attr(x,"model")
-  IC <- attr(x,"IC")
+loadings <- function(object, ...) {
+  nativeModel <- attr(object,"model")
+  IC <- attr(object,"IC")
   
   #Standardize
-  S <- attr(x,"S")
+  S <- attr(object,"S")
   IC_std <- IC %*% (diag(1/sqrt(diag(S))))
   
   res <- nativeModel$reflective

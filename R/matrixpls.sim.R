@@ -31,7 +31,9 @@
 #'
 #'@return An object of class \code{\link[simsem]{SimResult-class}}.
 #'
-
+#'@param prefun A function to be applied to the dataset before each replication. The output of this
+#'function is passed as arguments to \code{\link{matrixpls}}
+#'
 #'@param outfun A function to be applied to the matrixpls output at each replication. 
 #'Output from this function in each replication will be saved in the simulation 
 #'output (SimResult),
@@ -113,7 +115,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
   if(is.character(model)) {
     # Remove all multigroup specifications because we do not support multigroup analyses
     model <- gsub("c\\(.+?\\)","NA",model)
-    partable <- lavaanify(model)
+    partable <- lavaan::lavaanify(model)
   } else if (is.partable(model)) {
     partable <- model
   } else if (is(model, "lavaan")) {

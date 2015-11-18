@@ -13,3 +13,5 @@
 ^[^/]+.R$
 ^man-roxygen
 .*\.tar\.gz
+inst/doc/matrixpls-intro_cache
+inst/doc/

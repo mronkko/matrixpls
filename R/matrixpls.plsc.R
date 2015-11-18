@@ -1,5 +1,5 @@
 #
-# This R code is contributed to matrixpls by Huang. It is a part of her dissertation.
+# Parts of this R code is contributed to matrixpls by Huang. It is a part of her dissertation.
 #
 # Huang, W. (2013). PLSe: Efficient Estimators and Tests for Partial Least Squares
 # (Doctoral dissertation). University of California, Los Angeles.
@@ -46,12 +46,7 @@
 #'The dissattenuation code for Dijkstra's method is adapted from Huang (2013), which is based on
 #'Dijkstra (2011).
 #'
-#'
-#'@param S Covariance matrix of the data.
-#'
-#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
-#'
-#'@param fm factoring method for estimating the corrected factor loadings. \code{"dijkstra"}
+#'\code{"dijkstra"}
 #'will use the correction presented by Dijkstra (2011), where the PLS estimates of the 
 #'factor loadings for a latent variable are multiplied with a scalar \code{a}, which is 
 #'calculated by a simple formula that approximately minimizes squared residual covariances
@@ -59,9 +54,12 @@
 #'will use a factor analysis and passing this parameter through to \code{\link[psych]{fa}}.
 #'\code{"cfa"} estimates a maximum likelihood confirmatory factor analysis with \code{\link[lavaan]{lavaan}}
 #'
-#'@inheritParams matrixpls 
 #'
-#'@param tsls Should estimation be done with two stage least squares instead of regression
+#'@param S Covariance matrix of the data.
+#'
+#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
+#'
+#'@inheritParams params.regression 
 #'
 #'@return A named vector of parameter estimates.
 #'
@@ -131,16 +129,17 @@ estimator.PLScLoadings <- function(S, model, W,  ...){
 
 #'@title Parameter estimation with per-block exploratory factor analysis
 #'
-#'@details Estimates the factor loading parameters one latent variable at at time with exploratory
+#'@description Estimates the factor loading parameters one latent variable at at time with exploratory
 #'factor analysis using the \code{\link[psych]{fa}} function from the \code{psych} package.
 #'
+#'@details
 #'Estimating an unconstrained single factor model requires three indicators. The loadings of 
 #'single indicator factors are estimated as 1 and two indicator factors as estimated by the
 #'square root of the indicator correlation.
 #'
 #'@param fm factoring method for estimating the factor loadings. Passed through to \code{\link[psych]{fa}}.
 #'
-#'@inheritParams matrixpls 
+#'@inheritParams params.regression 
 #'
 #'@return A named vector of parameter estimates.
 #'
@@ -178,9 +177,9 @@ estimator.EFALoadings <- function(S, model, W,  ... , fm = "minres"){
 
 #'@title Parameter estimation with confirmatory factor analysis of the full model
 #'
-#'@details Estimates a maximum likelihood confirmatory factor analysis with \code{\link[lavaan]{lavaan}}
+#'@description Estimates a maximum likelihood confirmatory factor analysis with \code{\link[lavaan]{lavaan}}
 #'
-#'@inheritParams matrixpls 
+#'@inheritParams params.regression 
 #'
 #'@return A named vector of parameter estimates.
 #'

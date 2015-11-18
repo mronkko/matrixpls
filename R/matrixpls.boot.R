@@ -20,8 +20,7 @@
 #' in a replication.
 #'
 #'@inheritParams boot::boot
-#'@inheritParams simsem::sim
-#'@inheritParams matrixpls.boot
+#'
 #'
 #'@return An object of class \code{\link[boot]{boot}}.
 #'
@@ -29,9 +28,10 @@
 #'\code{\link[boot]{boot}}
 #'
 #'Sign change corrections: \code{\link{signChange.individual}}; \code{\link{signChange.construct}}
+#'
 #'@export
 #'
-
+#'
 matrixpls.boot <- function(data, ..., R = 500,
                            signChangeCorrection = NULL,
                            parallel = c("no", "multicore", "snow"),
