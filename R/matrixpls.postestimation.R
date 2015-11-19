@@ -176,7 +176,7 @@ residuals.matrixpls <- function(object, ..., observed = TRUE) {
   
   C_std <- diag(1/diag(S)) %*% C
   
-  indices <- list(indices,list(
+  indices <- c(indices,list(
                   
                   # SRMR as calculated in SEM. (Hu and Bentler, 1999, p. 3)
                   

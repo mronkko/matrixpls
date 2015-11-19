@@ -314,12 +314,12 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
 
 fitSummary <- function(object){
   
-  ret <- list("Min CR" = min(CR(object)),
-              "Min AVE" = min(AVE(object)$AVE),
-              "Min AVE - sq. cor" = min(AVE(object)$AVE_correlation),
+  ret <- list("Min CR" = min(CR(object), na.rm = TRUE),
+              "Min AVE" = min(AVE(object)$AVE, na.rm = TRUE),
+              "Min AVE - sq. cor" = min(AVE(object)$AVE_correlation, na.rm = TRUE),
               "Goodness of Fit" = GoF(object),
               SRMR = residuals(object)$indices$SRMR,
-              "Henseler's SRMR" = residuals(object)$indices$SRMR_Henseler)
+              "SRMR (Henseler)" = residuals(object)$indices$SRMR_Henseler)
   
   class(ret) <- "matrixplfitsummary"
   ret
