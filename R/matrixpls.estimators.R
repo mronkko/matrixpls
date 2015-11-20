@@ -1,11 +1,160 @@
-#
-# Parts of this R code is contributed to matrixpls by Huang. It is a part of her dissertation.
-#
-# Huang, W. (2013). PLSe: Efficient Estimators and Tests for Partial Least Squares
-# (Doctoral dissertation). University of California, Los Angeles.
-#
+#'@title Parameter estimation with separate regression analyses
+#'
+#'@description
+#'
+#'Estimates the parameters of a model matrix with OLS regression.
+#'
+#'@details
+#'
+#'Providing \code{C} or \code{IC} allows for using disattenuated or otherwise
+#'adjusted correlation matrices. If not provided, these matrices are calculated using \code{S} and
+#'\code{W}.
+#'
+#'@inheritParams matrixpls-common
+#'
+#'@param modelMatrix A model matrix with dependent variables on rows, independent variables on colums, and
+#'non-zero elements indicating relationships. Can be either \code{inner}, \code{reflective},
+#'or \code{formative} matrix.
+#'
+#'@param ... All other arguments are ignored.
+#'
+#'@return A matrix with estimated parameters.
+#'
+#'@family estimators
+#'
+#'@export
+#'
 
-# =========== Parameter estimators ===========
+estimator.ols <- function(S, model, W, ..., C = NULL, IC = NULL){
+  
+  covIV <- covDV <- NULL
+  
+  # Calculate the composite covariance matrix
+  if(is.null(C)) C <- W %*% S %*% t(W)
+  
+  # Calculate the covariance matrix between indicators and composites
+  if(is.null(IC)) IC <- W %*% S
+  
+  # Covariances between the independent variables
+  for(m in list(S, C)){
+    if(all(colnames(model) %in% colnames(m))){
+      covIV <- m[colnames(model),colnames(model)]
+      break()
+    }
+  }
+  
+  # Covariances between IVs and DVS
+  
+  for(m in list(S, C, IC)){
+    if(all(rownames(model) %in% rownames(m)) &&
+       all(colnames(model) %in% colnames(m))){
+      covDV <- m[rownames(model),colnames(model)]
+      break()
+    }
+  }
+  
+  for(row in 1:nrow(model)){
+    
+    independents <- which(model[row,]!=0, useNames = FALSE)
+    
+    if(length(independents)==1){
+      # Simple regresion is the covariance divided by the variance of the predictor
+      model[row,independents] <- covDV[row,independents]/covIV[independents,independents]
+    }
+    if(length(independents)>1){
+      coefs <- solve(covIV[independents,independents],covDV[row,independents])
+      model[row,independents] <- coefs
+    }
+  }
+  
+  return(model)
+}
+
+#'@title Parameter estimation with two-stage least squares regressions
+#
+#'@description
+#'
+#'Estimates the parameters of a model matrix (\code{inner}) with two-stage least squares regressions.
+#'The exogenous variables are used as instruments. 
+#'
+#'@details
+#'
+#'Providing \code{C} allows for using disattenuated or otherwise
+#'adjusted correlation matrices. If not provided, this matrix is calculated using \code{S} and
+#'\code{W}.
+#'
+#'@inheritParams matrixpls-common
+#'
+#'@param modelMatrix A model matrix with dependent variables on rows, independent variables on colums, and
+#'non-zero elements indicating relationships. Onyl the \code{inner} matrix can be used.
+#'
+#'@param ... All other arguments are ignored.
+#'
+#'@return A matrix with estimated parameters.
+#'
+#'@family estimators
+#'
+#'@export
+#'
+
+estimator.tsls <- function(S, modelMatrix, W, ..., C){
+  
+  # Calculate the composite covariance matrix
+  if(is.null(C)) C <- W %*% S %*% t(W)
+  
+  exog <- apply(model == 0, 1, all)
+  endog <- ! exog
+  
+  # Use all exogenous variables as instruments
+  
+  instruments <- which(exog) 
+  for(row in 1:nrow(model)){
+    
+    independents <- which(model[row,]!=0, useNames = FALSE)
+    
+    
+    # Check if this variable is endogenous
+    
+    if(length(independents) > 0 ){
+      
+      # Stage 1
+      
+      needInstruments <- which(model[row,]!=0 & endog, useNames = FALSE)
+      
+      # This is a matrix that will transform the instruments into independent
+      # variables. By default, all variables are instrumented by themselves
+      
+      stage1Model <- diag(nrow(model))
+      
+      for(toBeInstrumented in needInstruments){
+        # Regress the variable requiring instruments on its predictors excluding the current DV
+        
+        coefs1 <- solve(C[instruments, instruments],C[toBeInstrumented, instruments])
+        
+        stage1Model[toBeInstrumented, toBeInstrumented] <- 0
+        stage1Model[toBeInstrumented, instruments] <- coefs1
+      }
+      
+      
+      # Stage 2
+      
+      C2 <- stage1Model %*% C %*% t(stage1Model)
+      
+      if(length(independents)==1){
+        # Simple regresion is the covariance divided by the variance of the predictor
+        model[row,independents] <- C2[row,independents]/C2[independents,independents]
+      }
+      if(length(independents)>1){
+        coefs2 <- solve(C2[independents,independents],C2[row,independents])
+        model[row,independents] <- coefs2
+      }
+      
+    }
+    # Continue to the next equation
+  }
+  
+  return(model)
+}
 
 #'@title Parameter estimation with an adaptation of PLSc algorithm
 #'
@@ -61,9 +210,13 @@
 #'
 #'@inheritParams params.regression 
 #'
-#'@return A named vector of parameter estimates.
+#'@param ... All other arguments are ignored.
 #'
-#'@family parameter estimators
+#'@return A matrix with estimated parameters.
+#'
+#'@family estimators
+#'
+#'@export
 #'
 #'@author Mikko Rönkkö, Wenjing Huang, Theo Dijkstra
 #'
@@ -71,14 +224,22 @@
 #'
 #' Huang, W. (2013). PLSe: Efficient Estimators and Tests for Partial Least Squares (Doctoral dissertation). University of California, Los Angeles.
 #' Dijkstra, T. K. (2011). Consistent Partial Least Squares estimators for linear and polynomial factor models. A report of a belated, serious and not even unsuccessful attempt. Comments are invited. Retrieved from http://www.rug.nl/staff/t.k.dijkstra/consistent-pls-estimators.pdf
-
 #'  
 #'@example example/matrixpls.plsc-example.R
 #'
 #'@export
 
-estimator.PLScLoadings <- function(S, model, W,  ...){
 
+#
+# Parts of this R code is contributed to matrixpls by Huang. It is a part of her dissertation.
+#
+# Huang, W. (2013). PLSe: Efficient Estimators and Tests for Partial Least Squares
+# (Doctoral dissertation). University of California, Los Angeles.
+#
+
+
+estimator.PLScLoadings <- function(S, model, W,  ...){
+  
   ab <- nrow(W) #number of blocks
   ai <- ncol(W) #total number of indicators
   
@@ -114,8 +275,8 @@ estimator.PLScLoadings <- function(S, model, W,  ...){
   c <- sqrt(c2)
   
   # Determination of consistent estimates of the loadings, see (13) of Dijkstra, April 7, 2011.
-
-    for (i in 1:ab) {
+  
+  for (i in 1:ab) {
     idx <- p_refl[[i]][[1]]
     
     if(length(idx) > 1){
@@ -221,20 +382,19 @@ estimator.CFALoadings <- function(S, model, W, ...){
                     stringsAsFactors = FALSE)
   
   args <- list(model= parTable, sample.cov = S,
-           sample.nobs = 100, # this does not matter, but is required by lavaan
-           se="none",
-           sample.cov.rescale = FALSE,
-           meanstructure = FALSE)
+               sample.nobs = 100, # this does not matter, but is required by lavaan
+               se="none",
+               sample.cov.rescale = FALSE,
+               meanstructure = FALSE)
   
   e <- list(...)
   f <- formals(lavaan::lavaan)
   include <- intersect(names(f), names(e))
   args[include] <- e[include]
-
+  
   cfa.res <- do.call(lavaan::lavaan, args)
-                            
+  
   L[L==1] <- lavaan::coef(cfa.res)[1:sum(L!=0)]
   return(L)
   
 }
-

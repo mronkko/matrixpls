@@ -2,7 +2,7 @@
 % Please edit documentation in R/matrixpls.R
 \docType{package}
 \name{matrixpls-package}
-\alias{matrixpls}
+\alias{_PACKAGE}
 \alias{matrixpls-package}
 \title{Matrix-based Partial Least Squares estimation}
 \description{
@@ -53,13 +53,13 @@ matrixpls(S, model, W.model = NULL,
 }
 
 The first five arguments of \code{\link{matrixpls}} are most relevant for understanding how the package
-works. \code{S} is the data covariance or correlation matrix. \code{model} defines the model
+works. \code{S}, is the data covariance or correlation matrix. \code{model} defines the model
 which is estimated in the second stage and \code{W.model} defines how the indicators are to be
 aggregated as composites. If \code{W.model} is left undefined, it will be constructed based on
 \code{model} following rules that are explained elsewhere in the documentation.
 \code{weightFunction} and 
 \code{parameterEstimator} are functions that 
-implement the first and second task of the estimation algorithm respectively. All other arguments are passed 
+implement the first and second task of the function respectively. All other arguments are passed 
 down to these two functions, which in turn can pass arguments to other functions that they call.
 }
 

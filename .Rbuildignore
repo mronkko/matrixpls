@@ -1,7 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^\.gitmodules
-^simsem
 ^tests
 ^\.DS_Store
 ^\.R.*
@@ -16,3 +15,5 @@
 .*\.tar\.gz
 ^inst/doc/matrixpls-intro_cache
 ^inst/doc
+^man/commonArguments.Rd
+^R/documentation.R

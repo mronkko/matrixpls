@@ -26,4 +26,3 @@
 #'the original restrictions of \code{reflective}. The only restrictions that matrixpls
 #'imposes on \code{inner}, \code{reflective}, and \code{formative} is that these must be
 #'binary matrices and that the diagonal of \code{inner} must be zeros.
-#'

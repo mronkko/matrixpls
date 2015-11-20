@@ -14,8 +14,6 @@ table, or 2. a list containing three matrices
 \code{inner}, \code{reflective}, and \code{formative} defining the free regression paths
 in the model.}
 
-\item{W}{Weight matrix, where the indicators are on colums and composites are on the rows.}
-
 \item{...}{All other arguments are passed through to \code{weightFunction} and \code{parameterEstimator}.}
 
 \item{fm}{factoring method for estimating the factor loadings. Passed through to \code{\link[psych]{fa}}.}

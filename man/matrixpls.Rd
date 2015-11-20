@@ -49,6 +49,9 @@ parses a model object and then uses the results to call \code{weightFunction} to
 to calculate indicator weight. After this the \code{parameterEstimator} function is
 applied to the indicator weights, the data covariance matrix,
 and the model object and the resulting parameter estimates are returned.
+}
+\section{Model specification}{
+
 
 Model can be specified in the lavaan format or the native matrixpls format.
 The native model format is a list of three binary matrices, \code{inner}, \code{reflective},
@@ -76,6 +79,10 @@ restriction that the sum of \code{reflective} and \code{t(formative)} must satis
 the original restrictions of \code{reflective}. The only restrictions that matrixpls
 imposes on \code{inner}, \code{reflective}, and \code{formative} is that these must be
 binary matrices and that the diagonal of \code{inner} must be zeros.
+}
+
+\section{Weight specification}{
+
 
 The argument \code{W.model} is a (\code{l x k}) matrix that indicates
 how the indicators are combined to form the composites. The original papers about
@@ -83,8 +90,9 @@ Partial Least Squares as well as all current PLS implementations define this as
 \code{t(reflective) | formative}, which means that the weight patter must match the
 model specified in \code{reflective} and \code{formative}. Matrixpls does not
 require that \code{W.model} needs to match \code{reflective} and \code{formative}, but
-accepts any numeric matrix. If this argument is not specified, \code{W.model} is
-defined as \code{t(reflective) | formative}.
+accepts any numeric matrix. If this argument is not specified, all elements of \code{W.model} that
+correspond to non-zero elements in the \code{reflective} or \code{formative} formative
+matrices receive the value 1.
 }
 \references{
 Rosseel, Y. (2012). lavaan: An R Package for Structural Equation Modeling. \emph{Journal of Statistical Software}, 48(2), 1–36. Retrieved from http://www.jstatsoft.org/v48/i02
@@ -92,7 +100,7 @@ Rosseel, Y. (2012). lavaan: An R Package for Structural Equation Modeling. \emph
 Wold, H. (1982). Soft modeling - The Basic Design And Some Extensions. In K. G. Jöreskog & S. Wold (Eds.),\emph{Systems under indirect observation: causality, structure, prediction} (pp. 1–54). Amsterdam: North-Holland.
 }
 \seealso{
-Weight algorithms: \code{\link{weight.pls}}; \code{\link{weight.fixed}}; \code{\link{weight.optim}}
+Weight algorithms: \code{\link{weight.pls}}; \code{\link{weight.fixed}}; \code{\link{weight.optim}}; \code{\link{weight.principal}}; \code{\link{weight.factor}}
 
 Weight sign corrections:\code{\link{weightSign.Wold1985}}; \code{\link{weightSign.dominantIndicator}}
 
