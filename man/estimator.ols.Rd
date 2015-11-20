@@ -27,6 +27,11 @@ A matrix with estimated parameters.
 \description{
 Estimates the parameters of a model matrix with OLS regression.
 }
+\details{
+Providing \code{C} or \code{IC} allows for using disattenuated or otherwise
+adjusted correlation matrices. If not provided, these matrices are calculated using \code{S} and
+\code{W}.
+}
 \seealso{
 Other regression estimators: \code{\link{estimator.plsreg}},
   \code{\link{estimator.tsls}}

@@ -1,3 +1,96 @@
+#' Matrix-based Partial Least Squares estimation
+#'
+#'\pkg{matrixpls} calculates composite variable models using partial least squares (PLS)
+#'algorithm and related methods. In contrast to most other PLS software which implement
+#'the raw data version of the algorithm, \pkg{matrixpls} works with data covariance matrices. The 
+#'algorithms are designed to be computationally efficient, modular in programming, and well documented.
+#'\pkg{matrixpls} integrates with \pkg{simsem} to enable Monte Carlo simulations with as little custom
+#'programming as possible.
+#'
+#'\pkg{matrixpls} calculates models where sets of indicator variables are combined as weighted composites. 
+#'These composites are then used to estimate a statistical model describing the relationships between
+#'the composites and composites and indicators. While a number of such methods exists, the partial
+#'least squares (PLS) technique is perhaps the most widely used.
+#'
+#'The \pkg{matrixpls} package implements a collection of PLS techniques as well as the more recent 
+#'GSCA and PLSc techniques and older methods based on analysis with composite variables,
+#'such as regression with
+#'unit weighted composites or factor scores. The package provides a unified
+#'framework that enables the comparison and analysis of these algorithms. In contrast to previous R
+#'packages for PLS, such as \pkg{plspm} and \pkg{semPLS} and all currently
+#'available commercial PLS software, which work with
+#'raw data, \pkg{matrixpls} calculates the indicator weights and model estimates from data covariance 
+#'matrices. Working with covariance data allows for reanalyzing covariance matrices that are sometimes
+#'published as appendices of articles, is computationally more efficient, and lends itself more easily
+#'for formal analysis than implementations based on raw data. 
+#'
+#'@section Overview of package usage:
+#'
+#'\pkg{matrixpls} has modular design that is easily expanded and contains more calculation options
+#'than the two other PLS packages for R. To allow validation of the algorithms by end users
+#'and to help porting existing analysis files from the two other R packages to 
+#'\pkg{matrixpls}, the package contains compatibility functions for both \pkg{plspm} and \pkg{semPLS}.
+#'
+#'The desing principles and functionality of the package is best explained by first explaining the main
+#'function \code{matrixpls}. The function performs two tasks. It first calculates a set of indicator 
+#'weights to form composites based on data covariance matrix and then estimates a statistical model
+#'with the indicators and composites using the weights. The main function takes the following arguments:
+#'
+#'\preformatted{
+#'matrixpls(S, model, W.model = NULL, 
+#'           weightFunction = weight.pls, 
+#'           parameterEstimator = params.regression,
+#'           weightSignCorrection = NULL, ..., 
+#'           validateInput = TRUE, standardize = TRUE)
+#'}
+#'
+#'The first five arguments of \code{\link{matrixpls}} are most relevant for understanding how the package
+#'works. \code{S}, is the data covariance or correlation matrix. \code{model} defines the model
+#'which is estimated in the second stage and \code{W.model} defines how the indicators are to be
+#'aggregated as composites. If \code{W.model} is left undefined, it will be constructed based on
+#'\code{model} following rules that are explained elsewhere in the documentation.
+#' \code{weightFunction} and 
+#'\code{parameterEstimator} are functions that 
+#'implement the first and second task of the function respectively. All other arguments are passed 
+#'down to these two functions, which in turn can pass arguments to other functions that they call.
+#'
+#'@template modelSpecification
+#'
+#'@section Specifying estimation algorithms:
+#'
+#'Many of the commonly used arguments of \code{matrixpls} function are functions themselves. For 
+#'example, executing a PLS analysis with Mode B outer estimation for all indicator blocks and centroid inner 
+#'estimation could be specified as follows:
+#'
+#'\preformatted{
+#'matrixpls(S, model, 
+#'           outerEstimators = outer.modeB,
+#'           innerEstimator = inner.centroid)
+#'}
+#'
+#'The arguments \code{outerEstimators} and \code{innerEstimator} are not defined by the
+#'\code{matrixpls} function, but are passed down to \code{weight.pls} which is used as the default
+#'\code{weightFunction}. \code{outer.modeB} and \code{inner.centroid} are themselves functions provided
+#'by the \pkg{matrixpls} package, which perform the actual inner and outer estimation stages of the
+#'PLS algorithm. Essentially, all parts of the estimation algorithm can be provided as arguments for
+#'the main function. This allows for adjusting the inner workings of the algorithm in a way that is
+#'currently not possible with any other PLS software.
+#'
+#'It is also possible to define custom functions. For example, we could define a new Mode B outer
+#'estimator that only produces positive weights by creating a custom function:
+#'
+#'\preformatted{
+#'myModeB <- function(...)\{
+#'   abs(outer.ModeB(...))
+#'\}
+#'
+#'matrixpls(S, model,
+#'           outerEstimators = myModeB,
+#'           innerEstimator = inner.centroid)
+#'}
+"_PACKAGE"
+
+
 # =========== Main functions ===========
 
 #'Partial Least Squares and other composite variable models.
@@ -226,11 +319,11 @@ summary.matrixpls <- function(object, ...){
   
   ret <- list(estimates = object,
               effects = effects(object),
-              R2 = R2(object),
+              r2 = r2(object),
               residuals = residuals(object),
-              gof = GoF(object),
-              CR = CR(object),
-              AVE = AVE(object))
+              gof = gof(object),
+              cr = cr(object),
+              ave = ave(object))
   
   class(ret) <-("matrixplssummary")
   
@@ -332,9 +425,9 @@ print.matrixplssummary <- function(x, ...){
 #'@template weights-return
 #'
 #'@seealso 
-#'Inner estimators: \code{\link{inner.path}}; \code{\link{inner.centroid}}; \code{\link{inner.factor}}; \code{\link{inner.GSCA}}; \code{\link{inner.identity}};
+#'Inner estimators: \code{\link{inner.path}}; \code{\link{inner.centroid}}; \code{\link{inner.factor}}; \code{\link{inner.gsca}}; \code{\link{inner.identity}};
 #'
-#'Outer estimators: \code{\link{outer.modeA}}; \code{\link{outer.modeB}}; \code{\link{outer.GSCA}}
+#'Outer estimators: \code{\link{outer.modeA}}; \code{\link{outer.modeB}}; \code{\link{outer.gsca}}
 #'
 #'Convergence checks: \code{\link{convCheck.absolute}}, \code{\link{convCheck.square}}, and \code{\link{convCheck.relative}}.
 #'
@@ -1041,7 +1134,7 @@ params.regression <- function(S, model, W, ...,
 #'
 #'Estimates the parameters of a model matrix with OLS regression.
 #'
-#'@detail
+#'@details
 #'
 #'Providing \code{C} or \code{IC} allows for using disattenuated or otherwise
 #'adjusted correlation matrices. If not provided, these matrices are calculated using \code{S} and
@@ -1120,7 +1213,7 @@ estimator.ols <- function(S, model, W, ..., C = NULL, IC = NULL){
 #'Estimates the parameters of a model matrix (\code{inner}) with two-stage least squares regressions.
 #'The exogenous variables are used as instruments. 
 #'
-#'@detail
+#'@details
 #'
 #'Providing \code{C} allows for using disattenuated or otherwise
 #'adjusted correlation matrices. If not provided, this matrix is calculated using \code{S} and
@@ -1415,7 +1508,7 @@ inner.identity <- function(S, W, inner.mod, ...){
 #'
 #'@export
 
-inner.GSCA <- function(S, W, inner.mod, ...){
+inner.gsca <- function(S, W, inner.mod, ...){
   E <- estimator.ols(S, inner.mod,W)
   return(E)
 }
@@ -1520,7 +1613,7 @@ outer.modeB <- function(S, W, E, W.model, ...){
 #'
 #'@export
 
-outer.GSCA <- function(S, W, E, W.model, model, ...){
+outer.gsca <- function(S, W, E, W.model, model, ...){
   
   nativeModel <- parseModelToNativeFormat(model)
   
@@ -1724,7 +1817,7 @@ optim.maximizeFullR2 <- function(matrixpls.res){
 #'Psychometrika, 69(1), 81–99. doi:10.1007/BF02295841
 #'
 
-optim.GSCA <- function(matrixpls.res){
+optim.gsca <- function(matrixpls.res){
   
   C <- attr(matrixpls.res,"C")
   IC <- attr(matrixpls.res,"IC")

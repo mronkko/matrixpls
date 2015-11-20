@@ -34,8 +34,8 @@ Wold, H. (1966). Nonlinear estimation by iterative least squares procedures. \em
 Wold, H. (1982). Soft modeling - The Basic Design And Some Extensions. In K. G. Jöreskog & S. Wold (Eds.), \emph{Systems under indirect observation: causality, structure, prediction} (pp. 1–54). Amsterdam: North-Holland.
 }
 \seealso{
-Other inner estimators: \code{\link{inner.GSCA}},
-  \code{\link{inner.centroid}}, \code{\link{inner.factor}},
+Other inner estimators: \code{\link{inner.centroid}},
+  \code{\link{inner.factor}}, \code{\link{inner.gsca}},
   \code{\link{inner.path}}
 }
 

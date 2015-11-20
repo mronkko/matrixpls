@@ -383,7 +383,7 @@ matrixpls.plspm <-
                             R2 = R2, 
                             Block_Communality = sapply(outer.mod,function(x){mean(x[,"communal"])}), 
                             Mean_Redundancy = sapply(outer.mod,function(x){mean(x[,"redundan"])}), 
-                            AVE = ifelse(params$modes == "A",
+                            ave = ifelse(params$modes == "A",
                                          sapply(outer.mod,function(x){mean(x[,"std.loads"]^2)}),
                                          0))
     
@@ -466,7 +466,7 @@ matrixpls.plspm <-
 #'
 #'Estimates the parameters of a model matrix (\code{inner}) with PLS least squares regressions.
 #'
-#'@detail
+#'@details
 #'
 #'Providing \code{C} allows for using disattenuated or otherwise
 #'adjusted correlation matrices. If not provided, this matrix is calculated using \code{S} and

@@ -418,7 +418,7 @@ print.matrixplsr2 <- function(x, ...){
 #'
 #'@description
 #'
-#'The \code{matrixpls} method for the generic function \code{GoF} computes the Goodness of Fit index for matrixpls results.
+#'The \code{matrixpls} method for the generic function \code{gof} computes the Goodness of Fit index for matrixpls results.
 #'
 #'@param object matrixpls estimation result object produced by the \code{\link{matrixpls}} function.
 #'
@@ -436,13 +436,13 @@ print.matrixplsr2 <- function(x, ...){
 #'@export
 #'
 
-GoF <- function(object, ...){
-  UseMethod("GoF")
+gof <- function(object, ...){
+  UseMethod("gof")
 }
 
-#'@S3method GoF matrixpls
+#'@S3method gof matrixpls
 
-GoF.matrixpls <- function(object, ...) {
+gof.matrixpls <- function(object, ...) {
   
   nativeModel <- attr(object,"model")
   IC <- attr(object,"IC")
@@ -456,7 +456,7 @@ GoF.matrixpls <- function(object, ...) {
   result <- sqrt(mean(IC_std[t(nativeModel$reflective)==1]^2) * 
                    mean(R2(object)[!exogenousLVs]))
   
-  # TODO: Relative GoF
+  # TODO: Relative gof
   # http://www.stat.wmich.edu/wang/561/codes/R/CanCor.R
   
   class(result) <- "matrixplsgof"
@@ -513,7 +513,7 @@ loadings <- function(object, ...) {
 #'
 #'@description
 #'
-#'The \code{matrixpls} method for the generic function \code{CR} computes Composite Reliability 
+#'The \code{matrixpls} method for the generic function \code{cr} computes Composite Reliability 
 #'indices for the model using the formula presented by Fornell and Larcker (1981).
 #'
 #'@param object matrixpls estimation result object produced by the \code{\link{matrixpls}} function.
@@ -531,13 +531,13 @@ loadings <- function(object, ...) {
 #'@export
 #'
 
-CR <- function(object, ...){
-  UseMethod("CR")
+cr <- function(object, ...){
+  UseMethod("cr")
 }
 
-#'@S3method CR matrixpls
+#'@S3method cr matrixpls
 
-CR.matrixpls <- function(object, ...) {
+cr.matrixpls <- function(object, ...) {
   
   loadings <- loadings(object)
   reflectiveModel <- attr(object, "model")$reflective
@@ -633,7 +633,7 @@ predict.matrixpls <- function(object, newdata, ...){
 #'
 #'@description
 #'
-#'The \code{matrixpls} method for the generic function \code{AVE} computes Average Variance Extracted 
+#'The \code{matrixpls} method for the generic function \code{ave} computes Average Variance Extracted 
 #'indices for the model using the formula presented by Fornell and Larcker (1981).
 #'
 #'@param object matrixpls estimation result object produced by the \code{\link{matrixpls}} function.
@@ -641,7 +641,7 @@ predict.matrixpls <- function(object, newdata, ...){
 #'@param ... All other arguments are ignored.
 #'
 #'@return A list containing the Average Variance Extracted indices in the first position and the differences
-#'between AVEs and largest squared correlations with other composites in the second position.
+#'between aves and largest squared correlations with other composites in the second position.
 #'
 #'
 #'@references
@@ -653,14 +653,14 @@ predict.matrixpls <- function(object, newdata, ...){
 #'@export
 #'
 
-AVE <- function(object, ...){
-  UseMethod("AVE")
+ave <- function(object, ...){
+  UseMethod("ave")
 }
 
 
-#'@S3method AVE matrixpls
+#'@S3method ave matrixpls
 
-AVE.matrixpls <- function(object, ...) {
+ave.matrixpls <- function(object, ...) {
   
   loadings <- loadings(object, standardized = TRUE)
   reflectiveModel <- attr(object, "model")$reflective
@@ -684,8 +684,8 @@ AVE.matrixpls <- function(object, ...) {
   
   names(aves_correlation) <- colnames(loadings)
   
-  result = list(AVE = aves,
-                AVE_correlation = aves_correlation)
+  result = list(ave = aves,
+                ave_correlation = aves_correlation)
   
   class(result) <- "matrixplsave"
   result
@@ -695,16 +695,16 @@ AVE.matrixpls <- function(object, ...) {
 
 print.matrixplsave <- function(x, ...){
   cat("\n Average Variance Extracted indices\n")
-  print.table(x$AVE, ...)
+  print.table(x$ave, ...)
   cat("\n AVE - largest squared correlation\n")
-  print.table(x$AVE_correlation, ...)
+  print.table(x$ave_correlation, ...)
 }
 
 #'@title Heterotrait-monotrait ratio 
 #'
 #'@description 
 #'
-#'The \code{HTMT} function \code{AVE} Heterotrait-monotrait ratio 
+#'The \code{htmt} function \code{ave} Heterotrait-monotrait ratio 
 #'for the model using the formula presented by Henseler et al (2014).
 #'
 #'@param object matrixpls estimation result object produced by the \code{\link{matrixpls}} function.
@@ -723,7 +723,7 @@ print.matrixplsave <- function(x, ...){
 #'@export
 #'
 
-HTMT <- function(object, ...){
+htmt <- function(object, ...){
   
   S <- attr(object,"S")
   reflective <- attr(object,"reflective")!=0
@@ -744,3 +744,38 @@ HTMT <- function(object, ...){
   htmt
 }
 
+#'@title Summary of model fit of PLS model
+#'
+#'@description
+#'
+#'\code{fitSummary} computes a list of statistics
+#'that are commonly used to access the overall fit of the PLS model.
+#'
+#'@param object PLS estimation result object produced by the \code{\link{matrixpls}} function.
+#'
+#'@return A list containing a selection of fit indices.
+#'
+#'@include matrixpls.postestimation.R
+#'
+#'@export
+#'
+
+fitSummary <- function(object){
+  
+  ret <- list("Min CR" = min(cr(object), na.rm = TRUE),
+              "Min AVE" = min(ave(object)$ave, na.rm = TRUE),
+              "Min AVE - sq. cor" = min(ave(object)$ave_correlation, na.rm = TRUE),
+              "Goodness of Fit" = gof(object),
+              SRMR = residuals(object)$indices$srmr,
+              "SRMR (Henseler)" = residuals(object)$indices$srmr_Henseler)
+  
+  class(ret) <- "matrixplfitsummary"
+  ret
+}
+
+#'@S3method print matrixplfitsummary
+
+print.matrixplfitsummary <- function(x, ...){
+  cat("\n Summary indices of model fit\n")
+  print(data.frame(Value = unlist(x)), ...)
+}

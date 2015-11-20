@@ -8,7 +8,7 @@
 #'
 #'@param R Number of bootstrap samples to draw.
 #'
-#'@param ... All other parameters are passed through to \code{\link{matrixpls}}.
+#'@param ... All other arguments are passed through to \code{\link{matrixpls}}.
 #'
 #'@param signChangeCorrection Sign change correction function.
 #'

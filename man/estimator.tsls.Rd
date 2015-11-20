@@ -25,6 +25,11 @@ A matrix with estimated parameters.
 Estimates the parameters of a model matrix (\code{inner}) with two-stage least squares regressions.
 The exogenous variables are used as instruments.
 }
+\details{
+Providing \code{C} allows for using disattenuated or otherwise
+adjusted correlation matrices. If not provided, this matrix is calculated using \code{S} and
+\code{W}.
+}
 \seealso{
 Other regression estimators: \code{\link{estimator.ols}},
   \code{\link{estimator.plsreg}}

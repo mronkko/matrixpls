@@ -24,7 +24,7 @@ A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.m
 Performs Mode B outer estimation by regressing the composites on the observed variables.
 }
 \seealso{
-Other outer estimators: \code{\link{outer.GSCA}},
+Other outer estimators: \code{\link{outer.gsca}},
   \code{\link{outer.modeA}}
 }
 

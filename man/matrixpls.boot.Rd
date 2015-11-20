@@ -11,7 +11,7 @@ matrixpls.boot(data, ..., R = 500, signChangeCorrection = NULL,
 \arguments{
 \item{data}{Matrix or data frame containing the raw data.}
 
-\item{...}{All other parameters are passed through to \code{\link{matrixpls}}.}
+\item{...}{All other arguments are passed through to \code{\link{matrixpls}}.}
 
 \item{R}{Number of bootstrap samples to draw.}
 

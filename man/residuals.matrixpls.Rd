@@ -37,11 +37,11 @@ Calantone, R. J. (2014). Common Beliefs and Reality About PLS Comments on Rönkk
 (2013). Organizational Research Methods, 17(2), 182–209. doi:10.1177/1094428114526928
 }
 \seealso{
-Other post-estimation functions: \code{\link{AVE}},
-  \code{\link{CR}}, \code{\link{GoF}}, \code{\link{HTMT}},
-  \code{\link{R2}}, \code{\link{effects.matrixpls}},
-  \code{\link{fitted.matrixpls}},
-  \code{\link{loadings.matrixpls}},
+Other post-estimation functions: \code{\link{R2}},
+  \code{\link{ave}}, \code{\link{cr}},
+  \code{\link{effects.matrixpls}},
+  \code{\link{fitted.matrixpls}}, \code{\link{gof}},
+  \code{\link{htmt}}, \code{\link{loadings.matrixpls}},
   \code{\link{predict.matrixpls}}
 }
 

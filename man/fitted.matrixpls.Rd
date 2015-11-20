@@ -23,10 +23,10 @@ composite as dependent variable in both inner and formative creates an impossibl
 and results in an errors
 }
 \seealso{
-Other post-estimation functions: \code{\link{AVE}},
-  \code{\link{CR}}, \code{\link{GoF}}, \code{\link{HTMT}},
-  \code{\link{R2}}, \code{\link{effects.matrixpls}},
-  \code{\link{loadings.matrixpls}},
+Other post-estimation functions: \code{\link{R2}},
+  \code{\link{ave}}, \code{\link{cr}},
+  \code{\link{effects.matrixpls}}, \code{\link{gof}},
+  \code{\link{htmt}}, \code{\link{loadings.matrixpls}},
   \code{\link{predict.matrixpls}},
   \code{\link{residuals.matrixpls}}
 }

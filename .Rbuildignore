@@ -10,8 +10,9 @@
 ^README.md
 ^dev
 ^example
+^demo
 ^[^/]+.R$
 ^man-roxygen
 .*\.tar\.gz
-inst/doc/matrixpls-intro_cache
-inst/doc/
+^inst/doc/matrixpls-intro_cache
+^inst/doc

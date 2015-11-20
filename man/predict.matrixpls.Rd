@@ -25,11 +25,11 @@ estimated model and data for the indicators of exogenous latent variables
 Wold, H. (1974). Causal flows with latent variables: Partings of the ways in the light of NIPALS modelling. \emph{European Economic Review}, 5(1), 67–86. doi:10.1016/0014-2921(74)90008-7
 }
 \seealso{
-Other post-estimation functions: \code{\link{AVE}},
-  \code{\link{CR}}, \code{\link{GoF}}, \code{\link{HTMT}},
-  \code{\link{R2}}, \code{\link{effects.matrixpls}},
-  \code{\link{fitted.matrixpls}},
-  \code{\link{loadings.matrixpls}},
+Other post-estimation functions: \code{\link{R2}},
+  \code{\link{ave}}, \code{\link{cr}},
+  \code{\link{effects.matrixpls}},
+  \code{\link{fitted.matrixpls}}, \code{\link{gof}},
+  \code{\link{htmt}}, \code{\link{loadings.matrixpls}},
   \code{\link{residuals.matrixpls}}
 }
 

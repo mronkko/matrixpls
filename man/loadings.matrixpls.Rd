@@ -19,11 +19,11 @@ The \code{matrixpls} method for the generic function \code{loadings} computes st
 from the model results.
 }
 \seealso{
-Other post-estimation functions: \code{\link{AVE}},
-  \code{\link{CR}}, \code{\link{GoF}}, \code{\link{HTMT}},
-  \code{\link{R2}}, \code{\link{effects.matrixpls}},
-  \code{\link{fitted.matrixpls}},
-  \code{\link{predict.matrixpls}},
+Other post-estimation functions: \code{\link{R2}},
+  \code{\link{ave}}, \code{\link{cr}},
+  \code{\link{effects.matrixpls}},
+  \code{\link{fitted.matrixpls}}, \code{\link{gof}},
+  \code{\link{htmt}}, \code{\link{predict.matrixpls}},
   \code{\link{residuals.matrixpls}}
 }
 

@@ -34,8 +34,8 @@ Lohmöller J.-B. (1989) \emph{Latent variable path modeling with partial
 least squares.} Heidelberg: Physica-Verlag.
 }
 \seealso{
-Other inner estimators: \code{\link{inner.GSCA}},
-  \code{\link{inner.factor}}, \code{\link{inner.identity}},
+Other inner estimators: \code{\link{inner.factor}},
+  \code{\link{inner.gsca}}, \code{\link{inner.identity}},
   \code{\link{inner.path}}
 }
 

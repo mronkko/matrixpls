@@ -20,7 +20,7 @@ Calculates the sum of R2s of \code{inner} matrix and
 optimization criterion is negative of this sum.
 }
 \seealso{
-Other Weight optimization criteria: \code{\link{optim.GSCA}},
+Other Weight optimization criteria: \code{\link{optim.gsca}},
   \code{\link{optim.maximizeIndicatorR2}},
   \code{\link{optim.maximizeInnerR2}}
 }

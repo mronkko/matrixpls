@@ -24,6 +24,11 @@ A matrix with estimated parameters.
 \description{
 Estimates the parameters of a model matrix (\code{inner}) with PLS least squares regressions.
 }
+\details{
+Providing \code{C} allows for using disattenuated or otherwise
+adjusted correlation matrices. If not provided, this matrix is calculated using \code{S} and
+\code{W}.
+}
 \references{
 Sanchez, G. (2013). \emph{PLS Path Modeling with R.} Retrieved from http://www.gastonsanchez.com/PLS Path Modeling with R.pdf
 
