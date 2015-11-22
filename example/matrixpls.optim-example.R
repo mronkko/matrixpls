@@ -43,7 +43,7 @@ matrixpls.MaxR2 <- matrixpls(S, model, weightFunction = weight.optim)
 
 # Compare the R2s from the different estimations
 
-R2s <- cbind(R2(matrixpls.ModeA), R2(matrixpls.ModeB), R2(matrixpls.MaxR2))
+R2s <- cbind(r2(matrixpls.ModeA), r2(matrixpls.ModeB), r2(matrixpls.MaxR2))
 print(R2s)
 apply(R2s,2,mean)
 

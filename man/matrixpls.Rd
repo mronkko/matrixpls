@@ -5,7 +5,7 @@
 \title{Partial Least Squares and other composite variable models.}
 \usage{
 matrixpls(S, model, W.model = NULL, weightFunction = weight.pls,
-  parameterEstimator = params.regression, weightSignCorrection = NULL, ...,
+  parameterEstimator = params.separate, weightSignCorrection = NULL, ...,
   validateInput = TRUE, standardize = TRUE)
 }
 \arguments{
@@ -16,7 +16,7 @@ table, or 2. a list containing three matrices
 \code{inner}, \code{reflective}, and \code{formative} defining the free regression paths
 in the model.}
 
-\item{W.model}{An optional numeric matrix representing the weight patter and starting weights
+\item{W.model}{An optional numeric matrix representing the weight pattern and starting weights
 (i.e. the how the indicators are combined to form the composite variables). If this argument is not specified,
 the weight patter is defined based on the relationships in the \code{reflective} and  \code{formative}
 elements of \code{model}.}
@@ -26,7 +26,7 @@ a model specification \code{model}, and a weight pattern \code{W.model} and
 returns a named vector of parameter estimates. The default is \code{\link{weight.pls}}}
 
 \item{parameterEstimator}{A function that takes three or more arguments, the data covariance matrix \code{S},
-model specification \code{model}, and weights \code{W} and returns a named vector of parameter estimates. The default is \code{\link{params.regression}}}
+model specification \code{model}, and weights \code{W} and returns a named vector of parameter estimates. The default is \code{\link{params.separate}}}
 
 \item{weightSignCorrection}{A function that is applied to weights to correct their signs before parameter estimation.}
 
@@ -37,7 +37,28 @@ model specification \code{model}, and weights \code{W} and returns a named vecto
 \item{standardize}{A boolean indicating whether \code{S} is standardized}
 }
 \value{
-A named numeric vector of class \code{matrixpls} containing parameter estimates followed by weight.
+A named numeric vector of class \code{matrixpls} containing the parameter estimates followed by weights.
+
+\code{matrixpls} returns the following as attributes:
+
+\item{W}{the weight matrix.}
+\item{model}{the model specification in native format.}
+\item{call}{the function call.}
+
+Additionally, all attributes returned by functions called by matrixpls are returned.
+This can include:
+\item{S}{the sample covariance matrix.}
+\item{E}{inner weight matrix.}
+\item{iterations}{the number of iterations used by the weight algorithm.}
+\item{converged}{\code{TRUE} if the weight algorithm converged and \code{FALSE} otherwise.}
+\item{history}{weight optimization history as a matrix.}
+\item{C}{the composite correlation matrix (after disattenuation, if requested).}
+\item{IC}{the indicator-composite covariance matrix (after disattenuation, if requested).}
+\item{inner}{the \code{inner} model matrix with estimated parameters.}
+\item{reflective}{the \code{reflective} model matrix with estimated parameters.}
+\item{formative}{the \code{formative} model matrix with estimated parameters.}
+\item{Q}{the reliability estimates used in dissattenuation.}
+\item{c}{the PLSc loading estimate correction factors.}
 }
 \description{
 Estimates a weight matrix using Partial Least Squares or a related algorithm and then
@@ -49,9 +70,6 @@ parses a model object and then uses the results to call \code{weightFunction} to
 to calculate indicator weight. After this the \code{parameterEstimator} function is
 applied to the indicator weights, the data covariance matrix,
 and the model object and the resulting parameter estimates are returned.
-}
-\section{Model specification}{
-
 
 Model can be specified in the lavaan format or the native matrixpls format.
 The native model format is a list of three binary matrices, \code{inner}, \code{reflective},
@@ -65,9 +83,7 @@ format model is derived from this model by assigning all regressions between lat
 variables to \code{inner}, all factor loadings to \code{reflective}, and all regressions
 of latent variables on observed variables to \code{formative}. Regressions between
 observed variables and all free covariances are ignored. All parameters that are
-specified in the model will be treated as free parameters. If model is specified in
-lavaan syntax, the model that is passed to the \code{parameterEstimator} will be that
-model and not the native format model.
+specified in the model will be treated as free parameters.
 
 The original papers about Partial Least Squares, as well as many of the current PLS
 implementations, impose restrictions on the matrices \code{inner},
@@ -79,10 +95,6 @@ restriction that the sum of \code{reflective} and \code{t(formative)} must satis
 the original restrictions of \code{reflective}. The only restrictions that matrixpls
 imposes on \code{inner}, \code{reflective}, and \code{formative} is that these must be
 binary matrices and that the diagonal of \code{inner} must be zeros.
-}
-
-\section{Weight specification}{
-
 
 The argument \code{W.model} is a (\code{l x k}) matrix that indicates
 how the indicators are combined to form the composites. The original papers about
@@ -104,6 +116,6 @@ Weight algorithms: \code{\link{weight.pls}}; \code{\link{weight.fixed}}; \code{\
 
 Weight sign corrections:\code{\link{weightSign.Wold1985}}; \code{\link{weightSign.dominantIndicator}}
 
-Parameter estimators: \code{\link{params.regression}}
+Parameter estimators: \code{\link{params.separate}}
 }
 

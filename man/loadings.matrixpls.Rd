@@ -7,23 +7,23 @@
 loadings.matrixpls(object, ...)
 }
 \arguments{
-\item{object}{An object of class \code{matrixpls}}
+\item{object}{matrixpls estimation result object produced by the \code{\link{matrixpls}} function.}
 
 \item{...}{All other arguments are ignored.}
 }
 \value{
-A matrix of factor loadings.
+A matrix of estimated factor loadings.
 }
 \description{
 The \code{matrixpls} method for the generic function \code{loadings} computes standardized factor loading matrix
 from the model results.
 }
 \seealso{
-Other post-estimation functions: \code{\link{R2}},
-  \code{\link{ave}}, \code{\link{cr}},
-  \code{\link{effects.matrixpls}},
-  \code{\link{fitted.matrixpls}}, \code{\link{gof}},
-  \code{\link{htmt}}, \code{\link{predict.matrixpls}},
+Other post-estimation functions: \code{\link{ave}},
+  \code{\link{cr}}, \code{\link{effects.matrixpls}},
+  \code{\link{fitSummary}}, \code{\link{fitted.matrixpls}},
+  \code{\link{gof}}, \code{\link{htmt}},
+  \code{\link{predict.matrixpls}}, \code{\link{r2}},
   \code{\link{residuals.matrixpls}}
 }
 

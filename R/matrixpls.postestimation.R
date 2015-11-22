@@ -11,9 +11,7 @@
 #'
 #'Adapted from the \code{\link[sem]{effects}} function of the \code{sem} package
 #'
-#'@param object matrixpls estimation result object produced by the \code{\link{matrixpls}} function.
-#'
-#'@param ... All other arguments are ignored.
+#'@template postestimationFunctions
 #'
 #'@return A list with \code{Total}, \code{Direct}, and \code{Indirect} elements.
 #'
@@ -21,8 +19,6 @@
 #'
 #'Fox, J. (1980) Effect analysis in structural equation models: Extensions and simplified methods of computation. \emph{Sociological Methods and Research}
 #'9, 3--28.
-#'
-#'@family post-estimation functions
 #'
 #'@importFrom stats effects
 #'
@@ -68,9 +64,15 @@ print.matrixplseffects <- function(x, ...){
 #'@description
 #'
 #'The \code{matrixpls} method for generic function \code{residuals} computes the residual
-#'covariance matrix and various fit indices presented by Lohmöller (1989, ch 2.4)
+#'covariance matrix and various fit indices. 
 #'
-#'@param object matrixpls estimation result object produced by the \code{\link{matrixpls}} function.
+#'@details The residuals can be
+#'either observed empirical residuals as presented by Lohmöller (1989, ch 2.4) or 
+#'model implied residuals as used by Henseler et al. (2014). Two versions of the SRMR index are
+#'provided, the traditional SRMR that includes all residual covariances, and the version
+#'proposed by Henseler et al. (2014) where the within-block residual covariances are ignored.
+#'
+#'@template postestimationFunctions
 #'
 #'@param observed If \code{TRUE} (default) the observed residuals from the outer model regressions
 #'(indicators regressed on composites) are returned. If \code{FALSE}, the residuals are calculated
@@ -78,8 +80,6 @@ print.matrixplseffects <- function(x, ...){
 #'system and subtracting the covariances implied by this system from the observed covariances.
 #'The error terms are constrained to be uncorrelated and covariances between exogenous observed
 #'values are fixed at their sample values.
-#'
-#'@param ... All other arguments are ignored.
 #'
 #'@return A list with three elements: \code{inner}, \code{outer}, and \code{indices} elements
 #' containing the residual covariance matrix of regressions of composites on other composites,
@@ -96,8 +96,6 @@ print.matrixplseffects <- function(x, ...){
 #'(2013). Organizational Research Methods, 17(2), 182–209. doi:10.1177/1094428114526928
 #'
 #'@export
-#'
-#'@family post-estimation functions
 #'
 #'@method residuals matrixpls
 #'
@@ -151,7 +149,7 @@ residuals.matrixpls <- function(object, ..., observed = TRUE) {
     
     F2 <- (I * F) %*% MASS::ginv(I * S) # eq 2.105
     
-    R2 <- R2(object)
+    r2 <- r2(object)
     
     
     # C in Lohmoller 1989 is different from the matrixpls C
@@ -164,7 +162,7 @@ residuals.matrixpls <- function(object, ..., observed = TRUE) {
     
     indices <- list(Communality = psych::tr(H2)/k, # eq 2.109
                     Redundancy = psych::tr(F2)/k,  # eq 2.110
-                    SMC = sum(R2)/h,         # eq 2.111
+                    SMC = sum(r2)/h,         # eq 2.111
                     "RMS outer residual covariance" = RMS(C[lower.tri(C)]), # eq 2.118
                     "RMS inner residual covariance" = RMS(C[lower.tri(Q)]) # eq 2.118
                     )
@@ -226,15 +224,11 @@ print.matrixplsresiduals <- function(x, ...){
 #'composite as dependent variable in both inner and formative creates an impossible model
 #'and results in an errors
 #'
-#'@param object matrixpls estimation result object produced by the \code{\link{matrixpls}} function.
-#'
-#'@param ... All other arguments are ignored.
+#'@template postestimationFunctions
 #'
 #'@return a matrix containing the model implied covariances.
 #'
 #'@export
-#'
-#'@family post-estimation functions
 #'
 #'@method fitted matrixpls
 #'
@@ -273,7 +267,7 @@ fitted.matrixpls <- function(object, ...) {
   # Add indicator errors and composite errors
   
   e <- c(diag(S) - rowSums(L * t(IC)),
-         1-R2(object))
+         1-r2(object))
   
   fullC <- rbind(cbind(fullC,matrix(0, nrow(fullC), sum(!exog))),
                  cbind(matrix(0, sum(!exog), nrow(fullC)), diag(e)[!exog,!exog]))
@@ -379,32 +373,28 @@ print.matrixplsresiduals <- function(x, ...){
 #'
 #'@description
 #'
-#'The \code{matrixpls} method for the generic function \code{R2} computes the squared multiple correlation (R2)
+#'The \code{matrixpls} method for the generic function \code{r2} computes the squared multiple correlation (R2)
 #'for composites predicted by other composites in the model.
 #'
-#'@param object matrixpls estimation result object produced by the \code{\link{matrixpls}} function.
-#'
-#'@param ... All other arguments are ignored.
+#'@template postestimationFunctions
 #'
 #'@return A named numberic vector containing the R2 values.
-#'
-#'@family post-estimation functions
 #'
 #'@export
 #'
 
-R2 <- function(object, ...){
-  UseMethod("R2")
+r2 <- function(object, ...){
+  UseMethod("r2")
 }
 
-#'@S3method R2 matrixpls
+#'@S3method r2 matrixpls
 
-R2.matrixpls <- function(object, ...){
+r2.matrixpls <- function(object, ...){
   
-  R2 <- rowSums(attr(object,"inner") * attr(object,"C"))
-  names(R2) <- colnames(attr(object,"model")$inner)
-  class(R2) <- "matrixplsr2"
-  R2
+  r2 <- rowSums(attr(object,"inner") * attr(object,"C"))
+  names(r2) <- colnames(attr(object,"model")$inner)
+  class(r2) <- "matrixplsr2"
+  r2
 }
 
 #'@S3method print matrixplsr2
@@ -420,18 +410,14 @@ print.matrixplsr2 <- function(x, ...){
 #'
 #'The \code{matrixpls} method for the generic function \code{gof} computes the Goodness of Fit index for matrixpls results.
 #'
-#'@param object matrixpls estimation result object produced by the \code{\link{matrixpls}} function.
+#'@template postestimationFunctions
 #'
-#'@param ... All other arguments are ignored.
-#'
-#'@return A list with \code{Total}, \code{Direct}, and \code{Indirect} elements.
+#'@return The Goodness of Fit index.
 #'
 #'@references
 #'
 #'Henseler, J., & Sarstedt, M. (2013). Goodness-of-fit indices for partial least squares path modeling. \emph{Computational Statistics}, 28(2), 565–580. doi:10.1007/s00180-012-0317-1
 #'
-#'
-#'@family post-estimation functions
 #'
 #'@export
 #'
@@ -454,7 +440,7 @@ gof.matrixpls <- function(object, ...) {
   IC_std <- IC %*% (diag(1/sqrt(diag(S))))
   
   result <- sqrt(mean(IC_std[t(nativeModel$reflective)==1]^2) * 
-                   mean(R2(object)[!exogenousLVs]))
+                   mean(r2(object)[!exogenousLVs]))
   
   # TODO: Relative gof
   # http://www.stat.wmich.edu/wang/561/codes/R/CanCor.R
@@ -477,13 +463,9 @@ print.matrixplsgof <- function(x, digits=getOption("digits"), ...){
 #'The \code{matrixpls} method for the generic function \code{loadings} computes standardized factor loading matrix
 #'from the model results.
 #'
-#'@param object An object of class \code{matrixpls}
+#'@template postestimationFunctions
 #'
-#'@param ... All other arguments are ignored.
-#'
-#'@return A matrix of factor loadings.
-#'
-#'@family post-estimation functions
+#'@return A matrix of estimated factor loadings.
 #'
 #'@importFrom stats loadings
 #'
@@ -516,9 +498,7 @@ loadings <- function(object, ...) {
 #'The \code{matrixpls} method for the generic function \code{cr} computes Composite Reliability 
 #'indices for the model using the formula presented by Fornell and Larcker (1981).
 #'
-#'@param object matrixpls estimation result object produced by the \code{\link{matrixpls}} function.
-#'
-#'@param ... All other arguments are ignored.
+#'@template postestimationFunctions
 #'
 #'@return A named numeric vector containing the Composite Reliability indices.
 #'
@@ -526,7 +506,7 @@ loadings <- function(object, ...) {
 #'
 #'Fornell, C., & Larcker, D. F. (1981). Evaluating structural equation models with unobservable variables and measurement error. \emph{Journal of marketing research}, 18(1), 39–50.
 #'
-#'@family post-estimation functions
+#'Aguirre-Urreta, M. I., Marakas, G. M., & Ellis, M. E. (2013). Measurement of composite reliability in research using partial least squares: Some issues and an alternative approach. \emph{The DATA BASE for Advances in Information Systems}, 44(4), 11–43. \href{http://doi.org/10.1145/2544415.2544417}{DOI:10.1145/2544415.2544417}
 #'
 #'@export
 #'
@@ -570,11 +550,9 @@ print.matrixplscr <- function(x, ...){
 #'Predicts the reflective indicators of endogenous latent variables using
 #'estimated model and data for the indicators of exogenous latent variables
 #'
-#'@param object matrixpls estimation result object produced by the \code{\link{matrixpls}} function.
+#'@template postestimationFunctions
 #'
 #'@param newdata A data frame or a matrix containing data used for prediction.
-#'
-#'@param ... All other arguments are ignored.
 #'
 #'@return a matrix of predicted values for reflective indicators of endogenous latent variables.
 #'
@@ -582,8 +560,6 @@ print.matrixplscr <- function(x, ...){
 #'
 #'Wold, H. (1974). Causal flows with latent variables: Partings of the ways in the light of NIPALS modelling. \emph{European Economic Review}, 5(1), 67–86. doi:10.1016/0014-2921(74)90008-7
 #'
-#'
-#'@family post-estimation functions
 #'
 #'@export
 #'
@@ -636,9 +612,7 @@ predict.matrixpls <- function(object, newdata, ...){
 #'The \code{matrixpls} method for the generic function \code{ave} computes Average Variance Extracted 
 #'indices for the model using the formula presented by Fornell and Larcker (1981).
 #'
-#'@param object matrixpls estimation result object produced by the \code{\link{matrixpls}} function.
-#'
-#'@param ... All other arguments are ignored.
+#'@template postestimationFunctions
 #'
 #'@return A list containing the Average Variance Extracted indices in the first position and the differences
 #'between aves and largest squared correlations with other composites in the second position.
@@ -647,8 +621,6 @@ predict.matrixpls <- function(object, newdata, ...){
 #'@references
 #'
 #'Fornell, C., & Larcker, D. F. (1981). Evaluating structural equation models with unobservable variables and measurement error. \emph{Journal of marketing research}, 18(1), 39–50.
-#'
-#'@family post-estimation functions
 #'
 #'@export
 #'
@@ -704,12 +676,10 @@ print.matrixplsave <- function(x, ...){
 #'
 #'@description 
 #'
-#'The \code{htmt} function \code{ave} Heterotrait-monotrait ratio 
+#'The \code{matrixpls} method for the generic function \code{htmt} computes Heterotrait-monotrait ratio 
 #'for the model using the formula presented by Henseler et al (2014).
 #'
-#'@param object matrixpls estimation result object produced by the \code{\link{matrixpls}} function.
-#'
-#'@param ... All other arguments are ignored.
+#'@template postestimationFunctions
 #'
 #'@return Heterotrait-monotrait ratio as a scalar
 #'
@@ -718,7 +688,6 @@ print.matrixplsave <- function(x, ...){
 #'
 #'Henseler, J., Ringle, C. M., & Sarstedt, M. (2015). A new criterion for assessing discriminant validity in variance-based structural equation modeling. \emph{Journal of the Academy of Marketing Science}, 43(1), 115–135.
 #'
-#'@family post-estimation functions
 #'
 #'@export
 #'
@@ -751,11 +720,9 @@ htmt <- function(object, ...){
 #'\code{fitSummary} computes a list of statistics
 #'that are commonly used to access the overall fit of the PLS model.
 #'
-#'@param object PLS estimation result object produced by the \code{\link{matrixpls}} function.
-#'
+#'@template postestimationFunctions
+#
 #'@return A list containing a selection of fit indices.
-#'
-#'@include matrixpls.postestimation.R
 #'
 #'@export
 #'

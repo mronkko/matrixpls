@@ -1,13 +1,13 @@
 Encoding: UTF-8
 Package: matrixpls
 Type: Package
-Title: Matrix-based Partial Least Squares estimation
+Title: Matrix-Based Partial Least Squares Estimation
 Version: 0.6.0
-Date: 2015-7-26
+Date: 2015-11-22
 Authors@R: c(person("Mikko", "Rönkkö", role=c("aut", "cre"),
     email = "mikko.ronkko@aalto.fi"))
 Maintainer: Mikko Rönkkö <mikko.ronkko@aalto.fi>
-Description: matrixpls is implements Partial Least Squares Path Modeling
+Description: Partial Least Squares Path Modeling
     algorithm and related algorithms. The algorithm implementations aim for
     computational efficiency using matrix algebra and covariance data. The
     package is designed toward Monte Carlo simulations and includes functions
@@ -20,7 +20,8 @@ Imports:
     matrixcalc,
     lavaan,
     psych,
-    MASS
+    MASS,
+    methods
 Suggests:
     plspm,
     simsem,
@@ -28,20 +29,25 @@ Suggests:
     parallel,
     semPLS,
     boot,
-    ASGSCA,
     Matrix
 License: GPL-3
 LazyLoad: yes
+RoxygenNote: 5.0.1
 Collate:
     'matrixpls.R'
     'matrixpls.boot.R'
     'matrixpls.convergenceCheck.R'
+    'matrixpls.estimators.R'
+    'matrixpls.inner.R'
+    'matrixpls.optim.R'
+    'matrixpls.outer.R'
     'matrixpls.params.R'
-    'matrixpls.plsc.R'
     'matrixpls.plspm.R'
     'matrixpls.postestimation.R'
+    'matrixpls.reliability.R'
     'matrixpls.sempls.R'
     'matrixpls.signAmbiquityCorrection.R'
+    'matrixpls.signChangeCorrection.R'
     'matrixpls.sim.R'
+    'matrixpls.util.R'
     'matrixpls.weights.R'
-RoxygenNote: 5.0.1

@@ -15,19 +15,18 @@ htmt(object, ...)
 Heterotrait-monotrait ratio as a scalar
 }
 \description{
-The \code{htmt} function \code{ave} Heterotrait-monotrait ratio 
+The \code{matrixpls} method for the generic function \code{htmt} computes Heterotrait-monotrait ratio 
 for the model using the formula presented by Henseler et al (2014).
 }
 \references{
 Henseler, J., Ringle, C. M., & Sarstedt, M. (2015). A new criterion for assessing discriminant validity in variance-based structural equation modeling. \emph{Journal of the Academy of Marketing Science}, 43(1), 115–135.
 }
 \seealso{
-Other post-estimation functions: \code{\link{R2}},
-  \code{\link{ave}}, \code{\link{cr}},
-  \code{\link{effects.matrixpls}},
-  \code{\link{fitted.matrixpls}}, \code{\link{gof}},
-  \code{\link{loadings.matrixpls}},
-  \code{\link{predict.matrixpls}},
+Other post-estimation functions: \code{\link{ave}},
+  \code{\link{cr}}, \code{\link{effects.matrixpls}},
+  \code{\link{fitSummary}}, \code{\link{fitted.matrixpls}},
+  \code{\link{gof}}, \code{\link{loadings.matrixpls}},
+  \code{\link{predict.matrixpls}}, \code{\link{r2}},
   \code{\link{residuals.matrixpls}}
 }
 

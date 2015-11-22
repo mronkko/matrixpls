@@ -23,7 +23,10 @@
 #'\code{\link[semPLS]{sempls}}
 #'
 #'@export
+#'@example example/fragment-requireSemPLS.R
 #'@example example/matrixpls.sempls-example.R
+#'@example example/fragment-endBlock.R
+
 
 matrixpls.sempls <-
   function(model, data, maxit=20, tol=1e-7, scaled=TRUE, sum1=FALSE, wscheme="centroid", pairwise=FALSE,

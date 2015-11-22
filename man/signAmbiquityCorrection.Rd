@@ -24,7 +24,12 @@ Sign ambiquity corrections adjust the signs of the weights to satisfy a criterio
 \details{
 Instead of fixing a weight to a particular value, composite variables are typically provided a
 scale by standardization. This leads to sign indeterminacy because standardized weights \code{W}
-and \code{-W} both result in a standized composite, but of different sign.
+and \code{-W} both satisfy the scalign constraint. The sing ambiquity corrections add additional
+constraints that make
+
+The sign indeterminacy
+corrections should not be confused with sign chance corrections applied to boostrap samples 
+(See \code{\link{signChangeCorrection}}).
 }
 \section{Functions}{
 \itemize{

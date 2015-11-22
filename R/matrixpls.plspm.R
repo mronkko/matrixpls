@@ -29,7 +29,10 @@
 #'\code{\link[plspm]{plspm}}
 #'
 #'@export
+#'@example example/fragment-requirePlspm.R
 #'@example example/matrixpls.plspm-example.R
+#'@example example/fragment-endBlock.R
+
 
 matrixpls.plspm <-
   function(Data, path_matrix, blocks, modes = NULL, scheme = "centroid", 
@@ -178,7 +181,7 @@ matrixpls.plspm <-
     colnames(IC_std) <- colnames(IC)
     
     # Inner model R2s
-    R2 <- R2(matrixpls.res)
+    R2 <- r2(matrixpls.res)
     class(R2) <- "numeric"
     
     # PLSPM does LV score scaling differently, so we need a correction
@@ -383,7 +386,7 @@ matrixpls.plspm <-
                             R2 = R2, 
                             Block_Communality = sapply(outer.mod,function(x){mean(x[,"communal"])}), 
                             Mean_Redundancy = sapply(outer.mod,function(x){mean(x[,"redundan"])}), 
-                            ave = ifelse(params$modes == "A",
+                            AVE = ifelse(params$modes == "A",
                                          sapply(outer.mod,function(x){mean(x[,"std.loads"]^2)}),
                                          0))
     
@@ -420,7 +423,7 @@ matrixpls.plspm <-
     
     # Goodness of Fit is square root of product of mean communality and mean R2
     
-    gof <- GoF(matrixpls.res)
+    gof <- gof(matrixpls.res)
     class(gof) <- "numeric"
     
     # Crossloadings are the IC matrix
@@ -454,117 +457,6 @@ matrixpls.plspm <-
     
   }
 
-
-
-
-
-# =========== Parameter estimators ===========
-
-#'@title Parameter estimation with PLS regressions
-#
-#'@description
-#'
-#'Estimates the parameters of a model matrix (\code{inner}) with PLS least squares regressions.
-#'
-#'@details
-#'
-#'Providing \code{C} allows for using disattenuated or otherwise
-#'adjusted correlation matrices. If not provided, this matrix is calculated using \code{S} and
-#'\code{W}.
-#'
-#'@param S Covariance matrix of the data.
-#'
-#'@param model A model matrix with dependent variables on rows, independent variables on colums, and
-#'non-zero elements indicating relationships. Onyl the \code{inner} matrix can be used.
-#'
-#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
-#'
-#'@param C Correlation matrix of the composites.
-#'
-#'@param ... All other arguments are ignored.
-#'
-#'@return A matrix with estimated parameters.
-#'
-#'@family regression estimators
-#'
-#'@export
-#'
-#'@references
-#'
-#'Sanchez, G. (2013). \emph{PLS Path Modeling with R.} Retrieved from http://www.gastonsanchez.com/PLS Path Modeling with R.pdf
-#'
-#'Bjørn-Helge Mevik, & Ron Wehrens. (2007). The pls Package:  Principal Component and Partial Least Squares Regression in R. \emph{Journal of Statistical Software}, 18. Retrieved from http://www.jstatsoft.org/v18/i02/paper
-
-estimator.plsreg <- function(S, model, W, ..., C){
-
-  # Calculate the composite covariance matrix
-  if(is.null(C)) C <- W %*% S %*% t(W)
-  
-  for(row in 1:nrow(model)){
-    
-    independents <- which(model[row,]!=0)
-    
-    if(length(independents)>0){
-      vars <- c(row,independents)
-      coefs <- get_plsr1(S[vars,vars])
-      model[row,independents] <- coefs
-    }
-  }
-  
-  return(model)
-  
-}
-
-#
-# Run PLS regression. Ported from PLSPM
-#
-
-get_plsr1 <-function(C, nc=NULL, scaled=TRUE)
-{
-  # ============ checking arguments ============
-  p <- ncol(C)
-  if (is.null(nc))
-    nc <- p
-  # ============ setting inputs ==============
-  if (scaled) C <- cov2cor(C)
-  C.old <- C
-  
-  Ph <- matrix(NA, p, nc)# matrix of X-loadings
-  Wh <- matrix(NA, p, nc)# matrix of raw-weights
-  ch <- rep(NA, nc)# vector of y-loadings
-  
-  # ============ pls regression algorithm ==============
-  
-  for (h in 1:nc)
-  {
-    # Covariancese between the independent and dependent vars
-    w.old <- C[2:nrow(C),1]
-    w.new <- w.old / sqrt(sum(w.old^2)) # normalization
-    
-    # Covariances between the component and the variables
-    cv.new <- C %*% c(0,w.new)
-    
-    # Covariances between the independents and the component
-    p.new <- cv.new[1]
-    
-    # Covariance between the dependent and the component
-    c.new <- cv.new[2:length(cv.new)]
-    
-    # Deflation
-    C.old <- C.old - cv.new
-    
-    Ph[,h] <- p.new
-    Wh[,h] <- w.new
-    ch[h] <- c.new
-    
-    
-  }
-  Ws <- Wh %*% solve(t(Ph)%*%Wh)# modified weights
-  Bs <- as.vector(Ws %*% ch) # std inner coeffs    
-  Br <- Bs * C[1,1]/diag(C)[2:nrow(C)]   # inner coeffs
-  
-  return(Br)
-}
 
 #
 # Validate parameters. Copied from PLSPM

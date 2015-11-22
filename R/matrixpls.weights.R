@@ -1,61 +1,65 @@
 # =========== Indicator weighting algorithms  ===========
 
-#'@title Partial Least Squares and other iterative two-stage weight algorithms
+#'@title Indicator weigth algoritms
 #'
 #'@description
 #'Estimates a weight matrix using Partial Least Squares or a related algorithm.
-#
-#'@details
-#'
-#'\code{weight.pls} calculates indicator weights by calling the 
-#'\code{innerEstimator} and \code{outerEstimators} iteratively until either the convergence criterion or
-#'maximum number of iterations is reached and provides the results in a matrix.
 #'
 #'@template modelSpecification
 #'
 #'@template weightSpecification
 #'
-#'@inheritParams matrixpls
-#'
-#'@param outerEstimators A function or a list of functions used for outer estimation. If
-#'the value of this parameter is a function, the same function is applied to all
-#'composites. If the value of the parameter is a list, the composite \code{n} is estimated
-#'with the estimator in the \code{n}th position in the list. If this argument is
-#'\code{NULL} the starting weights specified in \code{W.model} will be returned. The default is \code{\link{outer.modeA}} 
-#'(PLS Mode A estimation).
-#'
-#'@param innerEstimator A function used for inner estimation. The default is \code{\link{inner.path}}
-#'(PLS path weighting scheme).
-
-#'@param convCheck A function that takes the old and new weight matrices and
-#'returns a scalar that is compared against \code{tol} to check for convergence. The default
-#'function calculates the differences between each cell of old and new weights and returns the largest
-#'absolute difference.
-#'
-#'
-#'@param tol Decimal value indicating the tolerance criterion for the
-#'iterations. 
-#'
-#'@param iter An integer indicating the maximum number of iterations.
+#'@inheritParams matrixpls-common
 #'
 #'@param validateInput A boolean indicating whether the validity of the parameter values should be tested.
 #'
-#'@param variant Choose either Lohmöller's (\code{"lohmoller"}, default) or Wold's (\code{"wold"}) 
-#'variant of PLS. In Wold's variant the inner and outer estimation steps are repeated for eac
-#'indicator block whereas in Lohmöller's variant the weights for all composites are calculated
-#'simultaneously. 
+#'@param ... All other arguments are passed through to other estimation functions.
 #'
-#'@param ... All other arguments are passed through to \code{outerEstimators} and \code{innerEstimator}.
+#'@param standardize A boolean indicating whether \code{S} the weights should be scaled to produce
+#'standardized composites.
 #'
 #'@template weights-return
 #'
-#'@seealso 
-#'Inner estimators: \code{\link{inner.path}}; \code{\link{inner.centroid}}; \code{\link{inner.factor}}; \code{\link{inner.gsca}}; \code{\link{inner.identity}};
+#'@templateVar attributes weight.pls,S E iterations converged history
+#'@template attributes
 #'
-#'Outer estimators: \code{\link{outer.modeA}}; \code{\link{outer.modeB}}; \code{\link{outer.gsca}}
+#'@name weightAlgorithms
+NULL
+
+
+#'@describeIn weightAlgorithms partial Least Squares and other iterative two-stage weight algorithms.
 #'
-#'Convergence checks: \code{\link{convCheck.absolute}}, \code{\link{convCheck.square}}, and \code{\link{convCheck.relative}}.
+#'@details
 #'
+#'\code{weight.pls} calculates indicator weights by calling the 
+#'\code{innerEstimator} and \code{outerEstimators} iteratively until either the convergence criterion or
+#'maximum number of iterations is reached and provides the results in a matrix.
+
+#'@param outerEstimators A function or a list of functions used for outer estimation. If
+#'the value of this parameter is a function, the same function is applied to all
+#'composites. If the value is a list, the composite \code{n} is estimated
+#'with the estimator in the \code{n}th position in the list. If this argument is
+#'\code{NULL} the \code{\link{outer.modeA}} is used for all composites that are linked to at least
+#'one indicator in the \code{reflective} matrix.\code{\link{outer.modeB}} is used for all other
+#'composites. See \code{\link{outerEstimators}}.
+#'
+#'@param innerEstimator A function used for inner estimation. The default is \code{\link{inner.path}}.
+#' See \code{\link{innerEstimators}}.
+
+#'@param convCheck A function that takes the old and new weight matrices and
+#'returns a scalar that is compared against \code{tol} to check for convergence. The default
+#'is \code{\link{convCheck.absolute}}. See \code{\link{convergenceCheck}}.
+#'
+#'
+#'@param tol Decimal value indicating the tolerance criterion for convergence. 
+#'
+#'@param iter An integer indicating the maximum number of iterations.
+
+#'@param variant Choose either Lohmöller's (\code{"lohmoller"}, default) or Wold's (\code{"wold"}) 
+#'variant of PLS. In Wold's variant the inner and outer estimation steps are repeated for each
+#'indicator block whereas in Lohmöller's variant the weights for all composites are calculated
+#'simultaneously. 
+
 #'@export
 
 weight.pls <- function(S, model, W.model,
@@ -265,11 +269,6 @@ weight.pls <- function(S, model, W.model,
   return(W)
 }
 
-#'@title Optimized weights
-#'
-#'@description
-#'Calculates a set of weights to minimize an optimization criterion
-#
 #'@details
 #'
 #'\code{weight.optim} calculates indicator weights by optimizing the indicator
@@ -280,33 +279,21 @@ weight.pls <- function(S, model, W.model,
 #'weights are adjusted and new estimates are calculated until the optimization
 #'criterion converges.
 #'
-#'@template modelSpecification
-#'
-#'@template weightSpecification
-#'
 #'@inheritParams matrixpls
 #'
 #'@param method The minimization algorithm to be used. See \code{\link[stats]{optim}}
-#' for details. Default is "BFGS".
+#' for details. Default is \code{"BFGS"}.
 #' 
 #'@param optimCriterion A function that taking an object of class class 
-#'\code{matrixpls} and returning a scalar. The default is \code{\link{optim.maximizeInnerR2}}
-#'
-#'@param ... All other arguments are passed through to \code{\link[stats]{optim}} and \code{parameterEstimator}.
-#'
-#'@template weights-return
-#'
-#'@seealso 
-#'Optimization criteria: \code{\link{optim.maximizeInnerR2}}
+#'\code{matrixpls} and returning a scalar. The default is \code{\link{optim.maximizeInnerR2}}. 
+#'See \code{\link{optimCriterion}}
 #'
 #'@example example/matrixpls.optim-example.R
-#'
+#'@describeIn weightAlgorithms calculates a set of weights to minimize an optimization criterion.
 #'@export
 
-
-
 weight.optim <- function(S, model, W.model,
-                         parameterEstimator = params.regression, 
+                         parameterEstimator = params.separate, 
                          optimCriterion = optim.maximizeInnerR2, method = "BFGS",
                          ..., 
                          validateInput = TRUE,
@@ -318,7 +305,7 @@ weight.optim <- function(S, model, W.model,
     W[W.model != 0] <- par
     # Use fixed weights estimation
     matrixpls.res <- matrixpls(S, model, W, weightFunction = weight.fixed,
-                               parameterEstimator = params.regression,
+                               parameterEstimator = params.separate,
                                ..., validateInput = FALSE, standardize = standardize)
     
     optimCriterion(matrixpls.res)
@@ -332,34 +319,13 @@ weight.optim <- function(S, model, W.model,
   attr(W,"S") <- S
   attr(W,"iterations") <- optim.res$counts[1]
   attr(W,"converged") <- optim.res$convergence == 0
-  attr(W,"history") <- NA
   class(W) <-("matrixplsweights")
   
   return(W)
   
 }
 
-#'@title Fixed weights
-#'
-#'@description
-#'Returns fixed weights
-#
-#'@details
-#'
-#'Returns the starting weights specified
-#'in \code{W.model}. If \code{standardize} is \code{TRUE} the weights are
-#'standardized so that the composites have unit variances.
-#
-#'@template weightSpecification
-#'
-#'@inheritParams matrixpls
-#'
-#'@param model Ignored by \code{weight.fixed}.
-#'
-#'@param ... All other arguments are ignored.
-#'
-#'@template weights-return
-#'
+#'@describeIn weightAlgorithms returns the starting weights.
 #'@export
 
 
@@ -374,35 +340,21 @@ weight.fixed <- function(S, model, W.model = NULL,
   }
   
   attr(W,"S") <- S
-  attr(W,"iterations") <- 0
-  attr(W,"converged") <- TRUE
-  attr(W,"history") <- W
   class(W) <-("matrixplsweights")
   
   return(W)
   
 }
 
-#'@title Blockwise factor score weights
-#'
+#'@describeIn weightAlgorithms blockwise factor score weights.
 #'@description
 #'
-#'Calculates weights by estimating a common factor analysis model with a single factor for each 
+#'\code{weight.factor} calculates weights by estimating a common factor analysis model with a single factor for each 
 #'indicator block and using the resulting estimates to calculate factor score weights
-#'
-#'@template weightSpecification
-#'
-#'@inheritParams matrixpls
-#'
-#'@param model Ignored by \code{weight.factor}.
 #'
 #'@param fm factoring method for estimating the common factor model. Possible values are
 #'\code{minres}, \code{wls}, \code{gls}, \code{pa}, and \code{ml}. The parameter is passed through to
 #' to \code{\link[psych]{fa}}.
-#'
-#'@param ... All other arguments are ignored.
-#'
-#'@template weights-return
 #'
 #'@export
 
@@ -429,31 +381,18 @@ weight.factor <- function(S, model, W.model = NULL, ..., fm ="minres",
   }
   
   attr(W,"S") <- S
-  attr(W,"iterations") <- 0
-  attr(W,"converged") <- TRUE
-  attr(W,"history") <- W
   class(W) <-("matrixplsweights")
   
   return(W)
   
 }
 
-#'@title Blockwise principal component weights
+#'@describeIn weightAlgorithms blockwise principal component weights.
 #'
 #'@description
 #'
-#'Calculates weights by calculating a principal component analysis for each 
+#'\code{weight.principal} calculates weights by calculating a principal component analysis for each 
 #'indicator block and returning the weights for the first principal component.
-#'
-#'@template weightSpecification
-#'
-#'@inheritParams matrixpls
-#'
-#'@param model Ignored by \code{weight.principal}.
-#'
-#'@param ... All other arguments are ignored.
-#'
-#'@template weights-return
 #'
 #'@export
 
@@ -477,9 +416,6 @@ weight.principal <- function(S, model, W.model = NULL, ...,
   }
   
   attr(W,"S") <- S
-  attr(W,"iterations") <- 0
-  attr(W,"converged") <- TRUE
-  attr(W,"history") <- W
   class(W) <-("matrixplsweights")
   
   return(W)
@@ -491,5 +427,6 @@ weight.principal <- function(S, model, W.model = NULL, ...,
 print.matrixplsweights <- function(x, ...){
   cat("\n matrixpls weights\n")
   print.table(x, ...)
-  cat("\nWeight algorithm",ifelse(attr(x,"converged"),"converged","did not converge"),"in",attr(x,"iterations"),"iterations.\n")
+  if(! is.null(ifelse(attr(x,"converged"))))
+    cat("\nWeight algorithm",ifelse(attr(x,"converged"),"converged","did not converge"),"in",attr(x,"iterations"),"iterations.\n")
 }

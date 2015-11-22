@@ -1,4 +1,4 @@
-#'@section Model specification:
+#'@details
 #'
 #'Model can be specified in the lavaan format or the native matrixpls format.
 #'The native model format is a list of three binary matrices, \code{inner}, \code{reflective},
@@ -12,9 +12,7 @@
 #'variables to \code{inner}, all factor loadings to \code{reflective}, and all regressions
 #'of latent variables on observed variables to \code{formative}. Regressions between
 #'observed variables and all free covariances are ignored. All parameters that are
-#'specified in the model will be treated as free parameters. If model is specified in
-#'lavaan syntax, the model that is passed to the \code{parameterEstimator} will be that
-#'model and not the native format model.
+#'specified in the model will be treated as free parameters.
 #'
 #'The original papers about Partial Least Squares, as well as many of the current PLS
 #'implementations, impose restrictions on the matrices \code{inner},
@@ -26,3 +24,7 @@
 #'the original restrictions of \code{reflective}. The only restrictions that matrixpls
 #'imposes on \code{inner}, \code{reflective}, and \code{formative} is that these must be
 #'binary matrices and that the diagonal of \code{inner} must be zeros.
+#'
+#'@references 
+#'
+#'Rosseel, Y. (2012). lavaan: An R Package for Structural Equation Modeling. \emph{Journal of Statistical Software}, 48(2), 1–36. Retrieved from http://www.jstatsoft.org/v48/i02

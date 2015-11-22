@@ -106,59 +106,6 @@ matrixpls.boot <- function(data, ..., R = 500,
   boot.out
 }
 
-#'@title Individual indicator sign change correction for boostrapping
-#'
-#'@description Changes the signs of \code{W} to match \code{Worig}
-#'
-#'@param Worig the original weight matrix
-#'
-#'@param W a weight matrix of a bootstrap sample
-#'
-#'@return A weight matrix with the same dimensions as \code{W} after
-#'
-#'@seealso
-#'\code{\link{matrixpls.boot}}
-#'
-#'@family signChangeCorrection
-#'
-#'@references Tenenhaus, M., Esposito Vinzi, V., Chatelin, Y.-M., & Lauro, C. (2005). PLS Path Modeling.
-#'\emph{Computational Statistics & Data Analysis}, 48(1), 159–205. doi:10.1016/j.csda.2004.03.005
-#'
-#'@export
-#'
-
-signChange.individual <- function(Worig,W){
-  W * sign(Worig) * sign(W)
-}
-
-#'@title Construct level sign change correction for boostrapping
-#'
-#'@description Changes the signs of \code{W} on all rows where the sign of the
-#'sum of the row differs between \code{Worig} and \code{W}
-#'
-#'@param Worig the original weight matrix
-#'
-#'@param W a weight matrix of a bootstrap sample
-#'
-#'@return A weight matrix with the same dimensions as \code{W} after
-#'
-#'@seealso
-#'\code{\link{matrixpls.boot}}
-#'
-#'@family signChangeCorrection
-#'
-#'@references Tenenhaus, M., Esposito Vinzi, V., Chatelin, Y.-M., & Lauro, C. (2005). PLS Path Modeling.
-#'\emph{Computational Statistics & Data Analysis}, 48(1), 159–205. doi:10.1016/j.csda.2004.03.005
-#'
-#'@export
-#'
-signChange.construct <- function(Worig,W){
-  origSums <- apply(Worig,1,sum)
-  curSums <- apply(W,1,sum)
-  signs <- ifelse(abs(origSums-curSums) > abs(origSums+curSums), -1,1)
-  sweep(W,MARGIN=1,signs,`*`)
-}
-
 # These are not in use 
 
 #'#@S3method print matrixplsboot

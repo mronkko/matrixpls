@@ -30,9 +30,6 @@ raw data, \pkg{matrixpls} calculates the indicator weights and model estimates f
 matrices. Working with covariance data allows for reanalyzing covariance matrices that are sometimes
 published as appendices of articles, is computationally more efficient, and lends itself more easily
 for formal analysis than implementations based on raw data.
-}
-\section{Overview of package usage}{
-
 
 \pkg{matrixpls} has modular design that is easily expanded and contains more calculation options
 than the two other PLS packages for R. To allow validation of the algorithms by end users
@@ -47,7 +44,7 @@ with the indicators and composites using the weights. The main function takes th
 \preformatted{
 matrixpls(S, model, W.model = NULL, 
           weightFunction = weight.pls, 
-          parameterEstimator = params.regression,
+          parameterEstimator = params.separate,
           weightSignCorrection = NULL, ..., 
           validateInput = TRUE, standardize = TRUE)
 }
@@ -61,40 +58,6 @@ aggregated as composites. If \code{W.model} is left undefined, it will be constr
 \code{parameterEstimator} are functions that 
 implement the first and second task of the function respectively. All other arguments are passed 
 down to these two functions, which in turn can pass arguments to other functions that they call.
-}
-
-\section{Model specification}{
-
-
-Model can be specified in the lavaan format or the native matrixpls format.
-The native model format is a list of three binary matrices, \code{inner}, \code{reflective},
-and \code{formative} specifying the free parameters of a model: \code{inner} (\code{l x l}) specifies the 
-regressions between composites, \code{reflective} (\code{k x l}) specifies the regressions of observed
-data on composites, and \code{formative} (\code{l x k}) specifies the regressions of composites on the
-observed data. Here \code{k} is the number of observed variables and \code{l} is the number of composites.
-
-If the model is specified in lavaan format, the native
-format model is derived from this model by assigning all regressions between latent
-variables to \code{inner}, all factor loadings to \code{reflective}, and all regressions
-of latent variables on observed variables to \code{formative}. Regressions between
-observed variables and all free covariances are ignored. All parameters that are
-specified in the model will be treated as free parameters. If model is specified in
-lavaan syntax, the model that is passed to the \code{parameterEstimator} will be that
-model and not the native format model.
-
-The original papers about Partial Least Squares, as well as many of the current PLS
-implementations, impose restrictions on the matrices \code{inner},
-\code{reflective}, and \code{formative}: \code{inner} must be a lower triangular matrix,
-\code{reflective} must have exactly one non-zero value on each row and must have at least
-one non-zero value on each column, and \code{formative} must only contain zeros.
-Some PLS implementations allow \code{formative} to contain non-zero values, but impose a
-restriction that the sum of \code{reflective} and \code{t(formative)} must satisfy
-the original restrictions of \code{reflective}. The only restrictions that matrixpls
-imposes on \code{inner}, \code{reflective}, and \code{formative} is that these must be
-binary matrices and that the diagonal of \code{inner} must be zeros.
-}
-
-\section{Specifying estimation algorithms}{
 
 
 Many of the commonly used arguments of \code{matrixpls} function are functions themselves. For 
@@ -127,5 +90,39 @@ matrixpls(S, model,
           outerEstimators = myModeB,
           innerEstimator = inner.centroid)
 }
+
+Model can be specified in the lavaan format or the native matrixpls format.
+The native model format is a list of three binary matrices, \code{inner}, \code{reflective},
+and \code{formative} specifying the free parameters of a model: \code{inner} (\code{l x l}) specifies the 
+regressions between composites, \code{reflective} (\code{k x l}) specifies the regressions of observed
+data on composites, and \code{formative} (\code{l x k}) specifies the regressions of composites on the
+observed data. Here \code{k} is the number of observed variables and \code{l} is the number of composites.
+
+If the model is specified in lavaan format, the native
+format model is derived from this model by assigning all regressions between latent
+variables to \code{inner}, all factor loadings to \code{reflective}, and all regressions
+of latent variables on observed variables to \code{formative}. Regressions between
+observed variables and all free covariances are ignored. All parameters that are
+specified in the model will be treated as free parameters.
+
+The original papers about Partial Least Squares, as well as many of the current PLS
+implementations, impose restrictions on the matrices \code{inner},
+\code{reflective}, and \code{formative}: \code{inner} must be a lower triangular matrix,
+\code{reflective} must have exactly one non-zero value on each row and must have at least
+one non-zero value on each column, and \code{formative} must only contain zeros.
+Some PLS implementations allow \code{formative} to contain non-zero values, but impose a
+restriction that the sum of \code{reflective} and \code{t(formative)} must satisfy
+the original restrictions of \code{reflective}. The only restrictions that matrixpls
+imposes on \code{inner}, \code{reflective}, and \code{formative} is that these must be
+binary matrices and that the diagonal of \code{inner} must be zeros.
+}
+\references{
+Rosseel, Y. (2012). lavaan: An R Package for Structural Equation Modeling. \emph{Journal of Statistical Software}, 48(2), 1–36. Retrieved from http://www.jstatsoft.org/v48/i02
+
+Lohmöller J.-B. (1989) \emph{Latent variable path modeling with partial least squares.} Heidelberg: Physica-Verlag.
+
+Rönkkö, M., McIntosh, C. N., & Antonakis, J. (2015). On the adoption of partial least squares in psychological research: Caveat emptor. \emph{Personality and Individual Differences}, (87), 76–84. \href{http://doi.org/10.1016/j.paid.2015.07.019}{DOI:10.1016/j.paid.2015.07.019}
+
+Wold, H. (1982). Soft modeling - The Basic Design And Some Extensions. In K. G. Jöreskog & S. Wold (Eds.),\emph{Systems under indirect observation: causality, structure, prediction} (pp. 1–54). Amsterdam: North-Holland.
 }
 

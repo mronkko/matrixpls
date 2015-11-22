@@ -1,4 +1,4 @@
-#'@section Weight specification:
+#'@details
 #'
 #'The argument \code{W.model} is a (\code{l x k}) matrix that indicates
 #'how the indicators are combined to form the composites. The original papers about

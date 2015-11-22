@@ -1,10 +1,31 @@
-#'@title Parameter estimation with separate regression analyses
+#'@title Parameter estimation of a model matrix
 #'
 #'@description
 #'
-#'Estimates the parameters of a model matrix with OLS regression.
+#'Estimates the parameters of a model matrix (\code{inner},
+#'\code{reflective}, or \code{formative}).
 #'
 #'@details
+#'
+#'Parameter estimation functions estimate the parameters of a model matrix (\code{inner},
+#'\code{reflective}, or \code{formative}). These functions can be used as \code{parametersInner},
+#'\code{parametersReflective}, and \code{parametersFormative} arguments for 
+#'\code{\link{params.separate}}.
+#'
+#'When two-stage least squares regression is applied with \code{estimator.tsls}, all
+#'exogenous variables are used as instrumental varuables. There is currently no check of whether sufficient
+#'number of instrumental variables are available.
+#'
+#'\code{estimator.plscLoadings} estimates the loadings by scaling the weights \code{W} with the
+#'correction factor \code{c} presented by Dijkstra (2011). This produces a MINRES estimator,
+#'which constraints the loadings to be proportional to the weights.
+#'The PLSc code is loosely based on code contributed by Wenjing Huang and developed with the guidance
+#'by Theo Dijkstra.
+#'
+#'\code{estimator.plscLoadings} estimates loadings with an unconstrained single factor model,
+#'which requires at least three indicators per block. The loadings of 
+#'single indicator factors are estimated as 1 and two indicator factors as estimated by the
+#'square root of the indicator correlation.
 #'
 #'Providing \code{C} or \code{IC} allows for using disattenuated or otherwise
 #'adjusted correlation matrices. If not provided, these matrices are calculated using \code{S} and
@@ -16,16 +37,19 @@
 #'non-zero elements indicating relationships. Can be either \code{inner}, \code{reflective},
 #'or \code{formative} matrix.
 #'
-#'@param ... All other arguments are ignored.
+#'@param ... All other arguments are either ignored or passed through to third party estimation functions.
 #'
 #'@return A matrix with estimated parameters.
 #'
-#'@family estimators
+#'@name parameterEstimators
 #'
-#'@export
-#'
+NULL
 
-estimator.ols <- function(S, model, W, ..., C = NULL, IC = NULL){
+#'@describeIn parameterEstimators parameter estimation with OLS regression. Can be applied to \code{inner}, \code{reflective},
+#'or \code{formative} matrix.
+#'@export
+
+estimator.ols <- function(S, modelMatrix, W, ..., C = NULL, IC = NULL){
   
   covIV <- covDV <- NULL
   
@@ -37,8 +61,8 @@ estimator.ols <- function(S, model, W, ..., C = NULL, IC = NULL){
   
   # Covariances between the independent variables
   for(m in list(S, C)){
-    if(all(colnames(model) %in% colnames(m))){
-      covIV <- m[colnames(model),colnames(model)]
+    if(all(colnames(modelMatrix) %in% colnames(m))){
+      covIV <- m[colnames(modelMatrix),colnames(modelMatrix)]
       break()
     }
   }
@@ -46,71 +70,48 @@ estimator.ols <- function(S, model, W, ..., C = NULL, IC = NULL){
   # Covariances between IVs and DVS
   
   for(m in list(S, C, IC)){
-    if(all(rownames(model) %in% rownames(m)) &&
-       all(colnames(model) %in% colnames(m))){
-      covDV <- m[rownames(model),colnames(model)]
+    if(all(rownames(modelMatrix) %in% rownames(m)) &&
+       all(colnames(modelMatrix) %in% colnames(m))){
+      covDV <- m[rownames(modelMatrix),colnames(modelMatrix)]
       break()
     }
   }
   
-  for(row in 1:nrow(model)){
+  for(row in 1:nrow(modelMatrix)){
     
-    independents <- which(model[row,]!=0, useNames = FALSE)
+    independents <- which(modelMatrix[row,]!=0, useNames = FALSE)
     
     if(length(independents)==1){
       # Simple regresion is the covariance divided by the variance of the predictor
-      model[row,independents] <- covDV[row,independents]/covIV[independents,independents]
+      modelMatrix[row,independents] <- covDV[row,independents]/covIV[independents,independents]
     }
     if(length(independents)>1){
       coefs <- solve(covIV[independents,independents],covDV[row,independents])
-      model[row,independents] <- coefs
+      modelMatrix[row,independents] <- coefs
     }
   }
   
-  return(model)
+  return(modelMatrix)
 }
 
-#'@title Parameter estimation with two-stage least squares regressions
-#
-#'@description
-#'
-#'Estimates the parameters of a model matrix (\code{inner}) with two-stage least squares regressions.
-#'The exogenous variables are used as instruments. 
-#'
-#'@details
-#'
-#'Providing \code{C} allows for using disattenuated or otherwise
-#'adjusted correlation matrices. If not provided, this matrix is calculated using \code{S} and
-#'\code{W}.
-#'
-#'@inheritParams matrixpls-common
-#'
-#'@param modelMatrix A model matrix with dependent variables on rows, independent variables on colums, and
-#'non-zero elements indicating relationships. Onyl the \code{inner} matrix can be used.
-#'
-#'@param ... All other arguments are ignored.
-#'
-#'@return A matrix with estimated parameters.
-#'
-#'@family estimators
-#'
+#'@describeIn parameterEstimators parameter estimation with two-stage least squares regression. For \code{inner} matrix only.
 #'@export
-#'
+
 
 estimator.tsls <- function(S, modelMatrix, W, ..., C){
   
   # Calculate the composite covariance matrix
   if(is.null(C)) C <- W %*% S %*% t(W)
   
-  exog <- apply(model == 0, 1, all)
+  exog <- apply(modelMatrix == 0, 1, all)
   endog <- ! exog
   
   # Use all exogenous variables as instruments
   
   instruments <- which(exog) 
-  for(row in 1:nrow(model)){
+  for(row in 1:nrow(modelMatrix)){
     
-    independents <- which(model[row,]!=0, useNames = FALSE)
+    independents <- which(modelMatrix[row,]!=0, useNames = FALSE)
     
     
     # Check if this variable is endogenous
@@ -119,12 +120,12 @@ estimator.tsls <- function(S, modelMatrix, W, ..., C){
       
       # Stage 1
       
-      needInstruments <- which(model[row,]!=0 & endog, useNames = FALSE)
+      needInstruments <- which(modelMatrix[row,]!=0 & endog, useNames = FALSE)
       
       # This is a matrix that will transform the instruments into independent
       # variables. By default, all variables are instrumented by themselves
       
-      stage1Model <- diag(nrow(model))
+      stage1Model <- diag(nrow(modelMatrix))
       
       for(toBeInstrumented in needInstruments){
         # Regress the variable requiring instruments on its predictors excluding the current DV
@@ -142,108 +143,39 @@ estimator.tsls <- function(S, modelMatrix, W, ..., C){
       
       if(length(independents)==1){
         # Simple regresion is the covariance divided by the variance of the predictor
-        model[row,independents] <- C2[row,independents]/C2[independents,independents]
+        modelMatrix[row,independents] <- C2[row,independents]/C2[independents,independents]
       }
       if(length(independents)>1){
         coefs2 <- solve(C2[independents,independents],C2[row,independents])
-        model[row,independents] <- coefs2
+        modelMatrix[row,independents] <- coefs2
       }
       
     }
     # Continue to the next equation
   }
   
-  return(model)
+  return(modelMatrix)
 }
 
-#'@title Parameter estimation with an adaptation of PLSc algorithm
-#'
-#'@description
-#'Estimates the model parameters with an adapted version of Dijkstra's (2011) PLSc. The 
-#'parameters between latent variables are estimated using two-stages least squares
-#'estimation using a composite covariance matrix that has been disattenuated with estimated
-#'composite reliabilities.
-#'
-#'@details
-#'\code{params.plsc} estimates the statistical model described by \code{model} with the
-#'following steps. If \code{model} is not in the native format, it is converted to the native
-#'format containing matrices \code{inner}, \code{reflective}, and \code{formative}. The
-#'weights \code{W} and the data covariance matrix \code{S} are used to calculate the composite
-#'covariance matrix \code{C} and the indicator-composite covariance matrix \code{IC}.
-#'
-#'\code{C} is then disattenuated. The reliability estimates used
-#'in the dissattenuation process are calculated by using Dijkstra's (2011)
-#'correction or with a separate factor analysis for each indicator block. Indicators that are
-#'used in a composite but are not specified as reflective indicators for the
-#'latent variable that the composite approximates are assumed to be perfectly
-#'reliable.
-#'
-#'The disattenuated \code{C} is used to estimate the the inner part of the model
-#'with separate OLS regressions in the same way as in \code{\link{params.regression}}.
-#'This differs from Dijkstra's (2011) PLSc estimator that uses
-#'2SLS. The reason for not using 2SLS is that PLS is commonly used with models that
-#'do not contain a sufficient number of exogenous variables that could be used 
-#'as instruments in the 2SLS estimation.
-#'
-#'The results from the disattenuation process are used as estimates of the \code{reflective}
-#'part of the model and the \code{formative} part of the model estimated with separate
-#'OLS regressions using the \code{S} and \code{IC} matrices.
-#'
-#'Those elements of teh indicator-composite covariance matrix \code{IC} that correspond
-#'to factor loadings are replaced with the factor loading estimates.
-#'
-#'The dissattenuation code for Dijkstra's method is adapted from Huang (2013), which is based on
-#'Dijkstra (2011).
-#'
-#'\code{"dijkstra"}
-#'will use the correction presented by Dijkstra (2011), where the PLS estimates of the 
-#'factor loadings for a latent variable are multiplied with a scalar \code{a}, which is 
-#'calculated by a simple formula that approximately minimizes squared residual covariances
-#'of the factor model. \code{minres}, \code{wls}, \code{gls}, \code{pa}, and \code{ml}
-#'will use a factor analysis and passing this parameter through to \code{\link[psych]{fa}}.
-#'\code{"cfa"} estimates a maximum likelihood confirmatory factor analysis with \code{\link[lavaan]{lavaan}}
-#'
-#'
-#'@param S Covariance matrix of the data.
-#'
-#'@param W Weight matrix, where the indicators are on colums and composites are on the rows.
-#'
-#'@inheritParams params.regression 
-#'
-#'@param ... All other arguments are ignored.
-#'
-#'@return A matrix with estimated parameters.
-#'
-#'@family estimators
-#'
-#'@export
-#'
+#'@describeIn parameterEstimators parameter estimation with Dijkstra's (2011) PLSc correction for loadings.  For \code{reflective} matrix only.
 #'@author Mikko Rönkkö, Wenjing Huang, Theo Dijkstra
 #'
 #'@references
 #'
 #' Huang, W. (2013). PLSe: Efficient Estimators and Tests for Partial Least Squares (Doctoral dissertation). University of California, Los Angeles.
+#' 
 #' Dijkstra, T. K. (2011). Consistent Partial Least Squares estimators for linear and polynomial factor models. A report of a belated, serious and not even unsuccessful attempt. Comments are invited. Retrieved from http://www.rug.nl/staff/t.k.dijkstra/consistent-pls-estimators.pdf
 #'  
 #'@example example/matrixpls.plsc-example.R
-#'
 #'@export
 
 
-#
-# Parts of this R code is contributed to matrixpls by Huang. It is a part of her dissertation.
-#
-# Huang, W. (2013). PLSe: Efficient Estimators and Tests for Partial Least Squares
-# (Doctoral dissertation). University of California, Los Angeles.
-#
-
-
-estimator.PLScLoadings <- function(S, model, W,  ...){
+estimator.plscLoadings <- function(S, modelMatrix, W,  ...){
   
   ab <- nrow(W) #number of blocks
   ai <- ncol(W) #total number of indicators
   
-  L <- model
+  L <- modelMatrix
   
   # Indicator indices based on the reflective model. Coerced to list to avoid the problem that
   # apply can return a list or a matrix depending on whether the number of indicators is equal
@@ -288,29 +220,15 @@ estimator.PLScLoadings <- function(S, model, W,  ...){
   return(L)
 }
 
-#'@title Parameter estimation with per-block exploratory factor analysis
-#'
-#'@description Estimates the factor loading parameters one latent variable at at time with exploratory
-#'factor analysis using the \code{\link[psych]{fa}} function from the \code{psych} package.
-#'
-#'@details
-#'Estimating an unconstrained single factor model requires three indicators. The loadings of 
-#'single indicator factors are estimated as 1 and two indicator factors as estimated by the
-#'square root of the indicator correlation.
-#'
+#'@describeIn parameterEstimators parameter estimation with one indicator block at at time with exploratory
+#'factor analysis using the \code{\link[psych]{fa}} function from the \code{psych} package. For \code{reflective} matrix only.
 #'@param fm factoring method for estimating the factor loadings. Passed through to \code{\link[psych]{fa}}.
-#'
-#'@inheritParams params.regression 
-#'
-#'@return A named vector of parameter estimates.
-#'
-#'@family parameter estimators
-#'
 #'@export
 
-estimator.EFALoadings <- function(S, model, W,  ... , fm = "minres"){
+
+estimator.efaLoadings <- function(S, modelMatrix, W,  ... , fm = "minres"){
   
-  L <- model
+  L <- modelMatrix
   
   # Indicator indices based on the reflective model. Coerced to list to avoid the problem that
   # apply can return a list or a matrix depending on whether the number of indicators is equal
@@ -336,21 +254,12 @@ estimator.EFALoadings <- function(S, model, W,  ... , fm = "minres"){
   return(L)
 }
 
-#'@title Parameter estimation with confirmatory factor analysis of the full model
-#'
-#'@description Estimates a maximum likelihood confirmatory factor analysis with \code{\link[lavaan]{lavaan}}
-#'
-#'@inheritParams params.regression 
-#'
-#'@return A named vector of parameter estimates.
-#'
-#'@family parameter estimators
-#'
+#'@describeIn parameterEstimators Estimates a maximum likelihood confirmatory factor analysis with \code{\link[lavaan]{lavaan}}.  For \code{reflective} matrix only.
 #'@export
 
-estimator.CFALoadings <- function(S, model, W, ...){
+estimator.cfaLoadings <- function(S, modelMatrix, W, ...){
   
-  L <- model # Loading pattern
+  L <- modelMatrix # Loading pattern
   
   hasReflIndicators <- which(apply(L!=0,2,any))
   # Loadings
@@ -397,4 +306,89 @@ estimator.CFALoadings <- function(S, model, W, ...){
   L[L==1] <- lavaan::coef(cfa.res)[1:sum(L!=0)]
   return(L)
   
+}
+
+
+#'@describeIn parameterEstimators parameter estimation with PLS regression. For \code{inner} matrix only.
+#'@export
+#'@author
+#'Mikko Rönkkö, Gaston Sanchez, Laura Trinchera, Giorgio Russolillo
+#'
+#'@details
+#'A part of the code for \code{\link{estimator.plsreg}} is adopted from the \pkg{plspm} package, licenced
+#'under GPL3.
+
+#'@references
+#'
+#'Sanchez, G. (2013). \emph{PLS Path Modeling with R.} Retrieved from http://www.gastonsanchez.com/PLS Path Modeling with R.pdf
+#'
+estimator.plsreg <- function(S, modelMatrix, W, ..., C){
+  
+  # Calculate the composite covariance matrix
+  if(is.null(C)) C <- W %*% S %*% t(W)
+  
+  for(row in 1:nrow(modelMatrix)){
+    
+    independents <- which(modelMatrix[row,]!=0)
+    
+    if(length(independents)>0){
+      vars <- c(row,independents)
+      coefs <- get_plsr1(S[vars,vars])
+      modelMatrix[row,independents] <- coefs
+    }
+  }
+  
+  return(modelMatrix)
+  
+}
+
+#
+# Run PLS regression. Ported from PLSPM
+#
+
+get_plsr1 <-function(C, nc=NULL, scaled=TRUE)
+{
+  # ============ checking arguments ============
+  p <- ncol(C)
+  if (is.null(nc))
+    nc <- p
+  # ============ setting inputs ==============
+  if (scaled) C <- cov2cor(C)
+  C.old <- C
+  
+  Ph <- matrix(NA, p, nc)# matrix of X-loadings
+  Wh <- matrix(NA, p, nc)# matrix of raw-weights
+  ch <- rep(NA, nc)# vector of y-loadings
+  
+  # ============ pls regression algorithm ==============
+  
+  for (h in 1:nc)
+  {
+    # Covariancese between the independent and dependent vars
+    w.old <- C[2:nrow(C),1]
+    w.new <- w.old / sqrt(sum(w.old^2)) # normalization
+    
+    # Covariances between the component and the variables
+    cv.new <- C %*% c(0,w.new)
+    
+    # Covariances between the independents and the component
+    p.new <- cv.new[1]
+    
+    # Covariance between the dependent and the component
+    c.new <- cv.new[2:length(cv.new)]
+    
+    # Deflation
+    C.old <- C.old - cv.new
+    
+    Ph[,h] <- p.new
+    Wh[,h] <- w.new
+    ch[h] <- c.new
+    
+    
+  }
+  Ws <- Wh %*% solve(t(Ph)%*%Wh)# modified weights
+  Bs <- as.vector(Ws %*% ch) # std inner coeffs    
+  Br <- Bs * C[1,1]/diag(C)[2:nrow(C)]   # inner coeffs
+  
+  return(Br)
 }

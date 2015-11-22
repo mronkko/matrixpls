@@ -12,7 +12,7 @@ gof(object, ...)
 \item{...}{All other arguments are ignored.}
 }
 \value{
-A list with \code{Total}, \code{Direct}, and \code{Indirect} elements.
+The Goodness of Fit index.
 }
 \description{
 The \code{matrixpls} method for the generic function \code{gof} computes the Goodness of Fit index for matrixpls results.
@@ -21,12 +21,11 @@ The \code{matrixpls} method for the generic function \code{gof} computes the Goo
 Henseler, J., & Sarstedt, M. (2013). Goodness-of-fit indices for partial least squares path modeling. \emph{Computational Statistics}, 28(2), 565–580. doi:10.1007/s00180-012-0317-1
 }
 \seealso{
-Other post-estimation functions: \code{\link{R2}},
-  \code{\link{ave}}, \code{\link{cr}},
-  \code{\link{effects.matrixpls}},
-  \code{\link{fitted.matrixpls}}, \code{\link{htmt}},
-  \code{\link{loadings.matrixpls}},
-  \code{\link{predict.matrixpls}},
+Other post-estimation functions: \code{\link{ave}},
+  \code{\link{cr}}, \code{\link{effects.matrixpls}},
+  \code{\link{fitSummary}}, \code{\link{fitted.matrixpls}},
+  \code{\link{htmt}}, \code{\link{loadings.matrixpls}},
+  \code{\link{predict.matrixpls}}, \code{\link{r2}},
   \code{\link{residuals.matrixpls}}
 }
 

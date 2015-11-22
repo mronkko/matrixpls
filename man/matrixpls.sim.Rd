@@ -63,8 +63,9 @@ If the \code{generate} or \code{rawdata} arguments are not specified in the \cod
  then the \code{model} argument will be used for data generation and must be specified in lavaan format.
 }
 \examples{
-if(!require(simsem)) print("This example requires the simsem package")
-else{
+if(!require(simsem)){
+    print("This example requires the simsem package")
+} else{
 
 #
 # Runs the second model from

@@ -42,13 +42,13 @@ S <- cor(education[,2:24])
 
 plsc.res1 <- matrixpls(S,model,
                       disattenuate = TRUE,
-                      parametersReflective = estimator.PLScLoadings)
+                      parametersReflective = estimator.plscLoadings)
 
 # PLSc with 2SLS regresssion
 
 plsc.res2 <- matrixpls(S,model,
                       disattenuate = TRUE,
-                      parametersReflective = estimator.PLScLoadings,
+                      parametersReflective = estimator.plscLoadings,
                       parametersInner = estimator.tsls)
 
 
@@ -58,7 +58,7 @@ plsc.res2 <- matrixpls(S,model,
 plsc.res3 <- matrixpls(S,model,
                        disattenuate = TRUE,
                        weightFunction = weight.fixed,
-                       parametersReflective = estimator.EFALoadings)
+                       parametersReflective = estimator.efaLoadings)
 
 # Disattenuated GSCA with 2SLS regression after disattenuated based on 
 # confirmatory factor analysis reliability estimates
@@ -66,18 +66,18 @@ plsc.res3 <- matrixpls(S,model,
 
 plsc.res4 <- matrixpls(S,model,
                        disattenuate = TRUE,
-                       innerEstimator = inner.GSCA,
-                       outerEstimators = outer.GSCA,
+                       innerEstimator = inner.gsca,
+                       outerEstimators = outer.gsca,
                        parametersInner = estimator.tsls,
-                       parametersReflective = estimator.CFALoadings)
+                       parametersReflective = estimator.cfaLoadings)
 
 
 # Compare the results
 
 cbind(PLSc = plsc.res1, PLSc_2sls = plsc.res2, 
-      DR = plsc.res3, GSCAc = plsc.res4)
+      DR = plsc.res3,.gscac = plsc.res4)
 
 # Compare the reliability estimates
 
 cbind(PLSc = attr(plsc.res1,"Q"), PLSc_2sls = attr(plsc.res2,"Q"), 
-      DR = attr(plsc.res3,"Q"), GSCAc = attr(plsc.res4,"Q"))
+      DR = attr(plsc.res3,"Q"),.gscac = attr(plsc.res4,"Q"))

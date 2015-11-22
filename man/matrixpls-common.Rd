@@ -11,14 +11,17 @@ table, or 2. a list containing three matrices
 \code{inner}, \code{reflective}, and \code{formative} defining the free regression paths
 in the model.}
 
-\item{W.model}{An optional numeric matrix representing the weight patter and starting weights
-(i.e. the how the indicators are combined to form the composite variables). If this argument is not specified,
-the weight patter is defined based on the relationships in the \code{reflective} and  \code{formative}
-elements of \code{model}.}
-
 \item{W}{Weight matrix, where the indicators are on colums and composites are on the rows.}
+
+\item{C}{Correlation matrix of the composites.}
+
+\item{IC}{Correlation matrix of the composites and indicators.}
+
+\item{E}{Inner weight matrix. A square matrix of inner estimates between the composites.}
+
+\item{W.model}{A matrix specifying the weight relationships and their starting values.}
 }
 \description{
-This file describes commonly used arguments in the \pkg{matrixpls} package.
+The following describes commonly used arguments in the \pkg{matrixpls} package.
 }
 

@@ -1,2 +1,3 @@
-if(!require(simsem)) print("This example requires the simsem package")
-else{
+if(!require(simsem)){
+    print("This example requires the simsem package")
+} else{

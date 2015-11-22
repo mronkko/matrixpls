@@ -37,19 +37,19 @@ optimR2 <- matrixpls(S,model, weightFunction = weight.optim)
 
 optimGoF <- matrixpls(S,model, weightFunction = weight.optim,
                       optimCriterion = function(matrixpls.res){
-                        - GoF(matrixpls.res)
+                        - gof(matrixpls.res)
                       })
 
 
 # R2
-rbind(ModeA = R2(modeA),
-      ModeB = R2(modeB),
-      Fixed = R2(fixed),
-      Optim = R2(optimR2))
+rbind(ModeA = r2(modeA),
+      ModeB = r2(modeB),
+      Fixed = r2(fixed),
+      Optim = r2(optimR2))
 
 # GoF abs
 
-rbind(ModeA = GoF(modeA),
-      ModeB = GoF(modeB),
-      Fixed = GoF(fixed),
-      Optim = GoF(optimGoF))
+rbind(ModeA = gof(modeA),
+      ModeB = gof(modeB),
+      Fixed = gof(fixed),
+      Optim = gof(optimGoF))

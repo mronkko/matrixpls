@@ -33,8 +33,8 @@ generate <- function(N){
 }
 
 sim1 <- matrixpls.sim(nRrep = 10, model = MODEL, n = 200,
-                  outerEstimators = outer.GSCA,
-                  innerEstimator = inner.GSCA,
+                  outerEstimators = outer.gsca,
+                  innerEstimator = inner.gsca,
                   generate = generate)
 
 print(sim1)

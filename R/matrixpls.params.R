@@ -1,43 +1,53 @@
 # =========== Parameter estimators ===========
 
 #'@title Parameter estimation with separate regression analyses
+#'  
+#'@description Estimates the model parameters in \code{inner}, \code{reflective}, and
+#'\code{formative} separately.
 #'
-#'@description
-#'Estimates the model parameters with weighted composites using separate OLS regressions.
-#'
-#'@details
-#'\code{params.regression} estimates the statistical model described by \code{model} 
+#'@details \code{params.separate} estimates the statistical model described by \code{model}
 #'
 #'@template modelSpecification
-#'
-#'@section Model estimation:
-#'Model estimation proceeds as follows. The
-#'weights \code{W} and the data covariance matrix \code{S} are used to calculate the composite
-#'covariance matrix \code{C} and the indicator-composite covariance matrix \code{IC}. These
-#'are matrices are used to separately estimate each of teh three model matrices \code{inner},
-#'\code{reflective}, and \code{formative}. This approach of estimating the parameter 
-#'matrices separately is the standard way of estimation in the PLS literature.
-#'
-#'The default estimation approach is to estimate all parameters with a series of OLS
-#'regressions.
-#'
+#'  
+#'@details
+#'Model estimation proceeds as follows. The weights \code{W} and the
+#'data covariance matrix \code{S} are used to calculate the composite covariance matrix \code{C}
+#'and the indicator-composite covariance matrix \code{IC}. These are matrices are used to
+#'separately estimate each of teh three model matrices \code{inner}, \code{reflective}, and
+#'\code{formative}. This approach of estimating the parameter matrices separately is the
+#'standard way of estimation in the PLS literature.
+#'  
+#'The default estimation approach is to estimate all parameters with a series of OLS 
+#'regressions using \code{\link{estimator.ols}}.
+#'  
 #'@inheritParams matrixpls-common
-#'
-#'@param parametersInner A function used to estimate the \code{inner} model matrix. The default is \code{\link{params.regression}}
-#'
-#'@param parametersReflective A function used to estimate the \code{reflective} model matrix. The default is \code{\link{params.regression}}
-#'
-#'@param parametersFormative A function used to estimate the \code{formative} model matrix. The default is \code{\link{params.regression}}
-#'
-#'@param disattenuate \code{TRUE} or \code{FALSE} (default) indicating whether \code{C} should be disattenuated before applying \code{parametersInner}.
-#'
-#'@param reliabilities A function that provides the reliability estimates for disattenuation. The default is \code{\link{reliability.weightLoadingProduct}}
-#'
+#'  
+#'@param parametersInner A function used to estimate the \code{inner} model matrix. The default is
+#'  \code{\link{estimator.ols}}
+#'  
+#'@param parametersReflective A function used to estimate the \code{reflective} model matrix. The
+#'  default is \code{\link{estimator.ols}}
+#'  
+#'@param parametersFormative A function used to estimate the \code{formative} model matrix. The
+#'  default is \code{\link{estimator.ols}}
+#'  
+#'@param disattenuate \code{TRUE} or \code{FALSE} (default) indicating whether \code{C} should be
+#'  disattenuated before applying \code{parametersInner}.
+#'  
+#'@param reliabilities A function that provides the reliability estimates for disattenuation. The
+#'  default is \code{\link{reliability.weightLoadingProduct}}
+#'  
+#'@param ... All other arguments are passed through to \code{parametersInner},
+#'\code{parametersReflective}, and\code{parametersFormative}
+#'  
 #'@return A named vector of parameter estimates.
-#'
+#'  
+#'@templateVar attributes params.separate,C IC inner reflective formative Q,c
+#'@template attributes
+#'  
 #'@export
 
-params.regression <- function(S, modelMatrix, W, ...,
+params.separate <- function(S, model, W, ...,
                               parametersInner = estimator.ols,
                               parametersReflective = estimator.ols,
                               parametersFormative = estimator.ols,
