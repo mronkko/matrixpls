@@ -427,6 +427,6 @@ weight.principal <- function(S, model, W.model = NULL, ...,
 print.matrixplsweights <- function(x, ...){
   cat("\n matrixpls weights\n")
   print.table(x, ...)
-  if(! is.null(ifelse(attr(x,"converged"))))
+  if(! is.null(attr(x,"converged")))
     cat("\nWeight algorithm",ifelse(attr(x,"converged"),"converged","did not converge"),"in",attr(x,"iterations"),"iterations.\n")
 }
