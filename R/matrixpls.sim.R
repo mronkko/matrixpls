@@ -191,7 +191,11 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
     # 4: At least one variance estimate is negative
     # 5: At least one correlation estimate is greater than 1 or less than -1
     
-    if(attr(matrixpls.res,"converged")){
+    # Non-iterative weight functiosn do not return convergence status so both NULL
+    # and TRUE are considered as converged
+    
+    if(is.null(attr(matrixpls.res,"converged")) ||
+       attr(matrixpls.res,"converged")){
       
       converged <- 0
       
