@@ -117,6 +117,7 @@ matrixpls.plspm <-
     # 
     
     if(scaled){
+      dataToUse <- scale(dataToUse)
       S <- cor(dataToUse)
       S_std <- S
     }
@@ -185,7 +186,6 @@ matrixpls.plspm <-
     class(R2) <- "numeric"
     
     # PLSPM does LV score scaling differently, so we need a correction
-    
     sdv = sqrt(nrow(dataToUse)/(nrow(dataToUse)-1))   
     
     # Composite values, fittes values, and intercepts
@@ -203,17 +203,16 @@ matrixpls.plspm <-
     
     outer.mod <- sapply(lvNames, function(lvName){
       row <- which(lvNames == lvName)
-      weights <- W[row,params$outer[[row]]]*sdv
+      weights <- W[row,params$outer[[row]]]
       std.loads <- IC_std[row,params$outer[[row]]]
       communal <- std.loads^2
       redundan <- communal * R2[row]
       
       ret <- cbind(weights, std.loads, communal, redundan)
-      rownames(ret) <- gsub(paste(lvName,"=+",sep=""),"",names(weights), fixed=TRUE)
-      
+      rownames(ret) <- gsub(paste(lvName,"=+",sep=""),"",colnames(W)[params$outer[[row]]], fixed=TRUE)
       return(ret)
     }, simplify= FALSE)
-    
+
     outer.mod.dataframe <- do.call(rbind,sapply(lvNames,function(lvName){
       temp <- outer.mod[[lvName]]
       data.frame(name = rownames(temp),
@@ -349,7 +348,7 @@ matrixpls.plspm <-
                                tol=params$tol, 
                                maxiter = params$maxiter,
                                plscomp = NULL),
-                  iter = attr(matrixpls.res,"iterations") + 1,
+                  iter = attr(matrixpls.res,"iterations"),
                   boot.val=params$boot.val, 
                   br=params$br, 
                   gens = list(obs=nrow(params$x),
@@ -392,20 +391,33 @@ matrixpls.plspm <-
     
     effs <- effects(matrixpls.res)
     
+    # Fill in missing rows
+    
+    effs <- lapply(effs,function(eff){
+      ns <- setdiff(rownames(nativeModel$inner),rownames(eff))
+      for(n in ns){
+        eff <- rbind(0,eff)
+        rownames(eff)[1] <- n
+      }
+      eff[rownames(nativeModel$inner),colnames(nativeModel$inner)]
+    })
+    
     effects <- data.frame(relationships = pathLabels,
-                          direct = effs$Direct[pathIndices[-1,]],
-                          indirect = effs$Indirect[pathIndices[-1,]], 
-                          total = effs$Total[pathIndices[-1,]])
+                          direct = effs$Direct[pathIndices],
+                          indirect = effs$Indirect[pathIndices], 
+                          total = effs$Total[pathIndices])
 
     unidim <- data.frame(Mode = params$modes,
                          MVs = blocks,
                          C.alpha = ifelse(params$modes == "A",
                                           sapply(params$outer,function(indices){
+                                            if(length(indices) == 1) return(1)
                                             psych::alpha(S[indices,indices])$total[[2]]
                                           }, simplify = TRUE),
                                           0),
                          DG.rho = ifelse(params$modes == "A",
                                          sapply(params$outer,function(indices){
+                                           if(length(indices) == 1) return(1)
                                            pc <- psych::principal(S[indices,indices])
                                            std.loads <- pc$loadings
                                            numer.rho <- sum(std.loads)^2
@@ -415,21 +427,31 @@ matrixpls.plspm <-
                                          0),
                          
                          eig.1st = sapply(params$outer,function(indices){
+                           if(length(indices) == 1) return(1)
                            eigen(S_std[indices,indices])$values[1]
                          }, simplify = TRUE),   
                          eig.2nd = sapply(params$outer,function(indices){
+                           if(length(indices) == 1) return(0)
                            eigen(S_std[indices,indices])$values[2]
                          }, simplify = TRUE))
     
     # Goodness of Fit is square root of product of mean communality and mean R2
-    
+    # plspm calulates this a bit differently
+
     gof <- gof(matrixpls.res)
     class(gof) <- "numeric"
     
     # Crossloadings are the IC matrix
-    
-    crossloadings <- cbind(outer.mod.dataframe[,1:2],t(IC)/sqrt(diag(S)))
+
+    crossloadings <- cbind(outer.mod.dataframe[,1:2],
+                           t(IC[,as.character(outer.mod.dataframe$name)])/
+                             sqrt(diag(S))[as.character(outer.mod.dataframe$name)])
+
     rownames(crossloadings) <- NULL
+    
+    data <- as.data.frame(data)
+    attr(data,"row.names") <- as.character(attr(data,"row.names"))
+
     
     res = list(outer_model = outer.mod.dataframe, 
                inner_model = inner.mod, 
@@ -441,8 +463,8 @@ matrixpls.plspm <-
                unidim = unidim, 
                gof = gof, 
                boot = boot, 
-               data = as.data.frame(data), 
-               manifests = scale(data, scale=FALSE),
+               data = data, 
+               manifests = scale(data, scale=apply(data,2,sd)/sdv),
                model = model)
     
     #		out.weights = out.weights, 
