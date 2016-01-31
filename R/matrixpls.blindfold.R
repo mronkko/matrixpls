@@ -56,9 +56,12 @@ matrixpls.blindfold <- function(data, ..., predictFun = predict, nGroup = 4){
 #'squared prediction errors based on comparison of the \code{originalData} and 
 #'\code{predictedData} and \code{sso} is based on prediction with mean.
 #'
-#'The \code{q2} function calculates the Q2 predictive relevance statistics for 
+#'@param object matrixpls estimation result object produced by the \code{\link{matrixpls}} function.
 #'
-#'@template postestimationFunctions
+#'@param originalData A matrix or a data.frame containing the original data.
+#'
+#'@param predictedData A matrix or a data.frame containing the predicted data that are compared
+#'against the original data to calculate the predictive relevance statistic.
 #'
 #'@return A list with \code{total}, \code{block}, and \code{indicator} elements containing
 #'the Q2 predictive relevance statistics for the full dataset, for each indicator block, and
@@ -73,7 +76,12 @@ q2 <- function(object, originalData, predictedData){
   
   if(is.null(nGroup)) nGroup <- nrow(predictedData)
   
+  # Choose only variables that exists in both data frames / matrices and 
+  # sort the variables into same order
+  
   v <- intersect(colnames(originalData), colnames(predictedData))
+  originalData <- originalData[,v]
+  predictedData <- predictedData[,v]
   
   groups <- ceiling(1:nrow(predictedData)/nrow(predictedData)*nGroup)
   

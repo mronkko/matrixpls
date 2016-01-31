@@ -9,7 +9,10 @@ q2(object, originalData, predictedData)
 \arguments{
 \item{object}{matrixpls estimation result object produced by the \code{\link{matrixpls}} function.}
 
-\item{...}{All other arguments are ignored.}
+\item{originalData}{A matrix or a data.frame containing the original data.}
+
+\item{predictedData}{A matrix or a data.frame containing the predicted data that are compared
+against the original data to calculate the predictive relevance statistic.}
 }
 \value{
 A list with \code{total}, \code{block}, and \code{indicator} elements containing
@@ -24,16 +27,5 @@ crossvalidated predictions.
 The Q2 statistic is calculated as \code{1-sse/sso} where \code{sse} is the sum of 
 squared prediction errors based on comparison of the \code{originalData} and 
 \code{predictedData} and \code{sso} is based on prediction with mean.
-
-The \code{q2} function calculates the Q2 predictive relevance statistics for
-}
-\seealso{
-Other post-estimation functions: \code{\link{ave}},
-  \code{\link{cr}}, \code{\link{effects.matrixpls}},
-  \code{\link{fitSummary}}, \code{\link{fitted.matrixpls}},
-  \code{\link{gof}}, \code{\link{htmt}},
-  \code{\link{loadings.matrixpls}},
-  \code{\link{predict.matrixpls}}, \code{\link{r2}},
-  \code{\link{residuals.matrixpls}}
 }
 
