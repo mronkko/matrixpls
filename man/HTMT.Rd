@@ -26,7 +26,7 @@ Other post-estimation functions: \code{\link{ave}},
   \code{\link{cr}}, \code{\link{effects.matrixpls}},
   \code{\link{fitSummary}}, \code{\link{fitted.matrixpls}},
   \code{\link{gof}}, \code{\link{loadings.matrixpls}},
-  \code{\link{predict.matrixpls}}, \code{\link{r2}},
-  \code{\link{residuals.matrixpls}}
+  \code{\link{predict.matrixpls}}, \code{\link{q2}},
+  \code{\link{r2}}, \code{\link{residuals.matrixpls}}
 }
 

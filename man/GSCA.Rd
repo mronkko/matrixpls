@@ -49,11 +49,10 @@ under GPL3.
 }
 \examples{
 if(!require(ASGSCA)){
-    print("This example requires the ASGSCA package")
+    print("This example requires the ASGSCA package from Bioconductor")
 } else{
 # Run the example from ASGSCA package using GSCA estimation
 
-library(ASGSCA) 
 data(GenPhen)
 W0 <- matrix(c(rep(1,2),rep(0,8),rep(1,2),rep(0,8),rep(1,3),rep(0,7),rep(1,2)),
              nrow=8,ncol=4)
