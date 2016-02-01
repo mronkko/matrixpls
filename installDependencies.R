@@ -11,3 +11,5 @@ install.packages(c("assertive",
 "semPLS",
 "boot"), type = "source")
 
+source("https://bioconductor.org/biocLite.R")
+biocLite("ASGSCA")
