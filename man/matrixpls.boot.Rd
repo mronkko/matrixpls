@@ -36,11 +36,85 @@ vector is appended to bootstrap replication. Can be used for boostrapping additi
 statistics calculated based on the estimation results.}
 }
 \value{
-An object of class \code{\link[boot]{boot}}.
+An object of class \code{matrixplsboot} and \code{\link[boot]{boot}}.
 }
 \description{
 \code{matrixpls.boot} is a convenience method that implements bootstrapping of \code{matrixpls}
 with \code{\link[boot]{boot}} method of the \code{boot} package.
+}
+\section{Analyzing the boostrap results}{
+
+
+The output can be analyzed with any of the functions provided by the \code{\link[boot]{boot}} package.
+For example, the \code{\link[boot]{boot.ci}} function can be used for calculating confidence 
+intervals and the \code{\link[boot]{empinf}} function can be used to calculate influence values that may
+be useful for identifying outliers.
+
+The class \code{matrixplsboot} provides only a \code{summary} function, which calculates a set
+of statistics that are commonly of interest after boostrapping. This includes standard errors,
+t statistics (estimate / SE) and p-values based on Student's t distribution and standard normal
+distribution. Because the sampling distribution of the parameter estimates calculated by 
+\code{matrixpls} are not always known, the p-values cannot be expected to be unbiased.
+
+This concern
+applies particularly when using PLS weights. Because the PLS literature provides conflicting
+advice on which probability distribution to use as a reference, the \code{summary} method of 
+\code{matrixplsboot} produces two-tailed p-values based on four different probalility
+distributions. The \emph{regression} p values are based on comparing the t statistic against
+the references distribution used in regression analysis, namely Student's t distribution with 
+\code{n - k - 1} degrees of freedom. The \emph{Hair} p values are based on 
+Hair et al's (2014, p. 134) recommendation to ignore the number of independent variables 
+\code{k} and set the degrees of freedom to \code{n - 1}. The \emph{Henseler} p values are based
+on the recommendation by
+Henseler et al (2009, p. 305) that the degrees of freedom should be set as \code{n + m - 2},
+where \code{m}is always 1 and \code{n} is the number of bootstrap samples. The \code{z} p values
+are based on comparing the t statistic against the standard normal distibution. This choice
+can be motivated by asymptotic normality of the PLS estimates in certain conditions.
+}
+\examples{
+library(plspm)
+
+# Run the customer satisfaction example form plspm
+
+# load dataset satisfaction
+data(satisfaction)
+# inner model matrix
+IMAG = c(0,0,0,0,0,0)
+EXPE = c(1,0,0,0,0,0)
+QUAL = c(0,1,0,0,0,0)
+VAL = c(0,1,1,0,0,0)
+SAT = c(1,1,1,1,0,0)
+LOY = c(1,0,0,0,1,0)
+inner = rbind(IMAG, EXPE, QUAL, VAL, SAT, LOY)
+colnames(inner) <- rownames(inner)
+
+# Reflective model
+
+reflective<- matrix(
+  c(1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1),
+  27,6, dimnames = list(colnames(satisfaction)[1:27],colnames(inner)))
+
+# empty formative model
+
+formative <- matrix(0, 6, 27, dimnames = list(colnames(inner),
+                                              colnames(satisfaction)[1:27]))
+
+# Only 100 replications to make the example faster when running on single processor. 
+# Increase the number of replications (e.g. to 500) to get the BCa intervals
+
+matrixpls.boot.out <- matrixpls.boot(satisfaction[,1:27],
+                           model = list(inner = inner,
+                                        reflective = reflective,
+                                        formative = formative),
+                           R = 100)
+
+print(matrixpls.boot.out)
+summary(matrixpls.boot.out)
 }
 \seealso{
 \code{\link[boot]{boot}}
