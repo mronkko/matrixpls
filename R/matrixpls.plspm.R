@@ -32,6 +32,8 @@
 #'@example example/fragment-requirePlspm.R
 #'@example example/matrixpls.plspm-example.R
 #'@example example/fragment-endBlock.R
+#'
+
 
 
 matrixpls.plspm <-
@@ -118,12 +120,12 @@ matrixpls.plspm <-
     
     if(scaled){
       dataToUse <- scale(dataToUse)
-      S <- cor(dataToUse)
+      S <- stats::cor(dataToUse)
       S_std <- S
     }
     else{
-      S <- cov(dataToUse)
-      S_std <- cov2cor(S)
+      S <- stats::cov(dataToUse)
+      S_std <- stats::cov2cor(S)
     } 
     
     
@@ -140,10 +142,10 @@ matrixpls.plspm <-
         # We mimic this by standardizing the data
         
         if(scaled){
-          S_boot <- cor(originalData[indices,])
+          S_boot <- stats::cor(originalData[indices,])
         }
         else{
-          S_boot <- cov(originalData[indices,])
+          S_boot <- stats::cov(originalData[indices,])
         }
         
         tryCatch(
@@ -247,7 +249,7 @@ matrixpls.plspm <-
       df <- nrow(params$x)-sum(regressors)-1
       se <- sqrt((1-R2[row])/(df))*c(1,sqrt(1/uniq))
       tvalue <- inner/se
-      prob <- 2*(1- pt(abs(tvalue),df))
+      prob <- 2*(1- stats::pt(abs(tvalue),df))
       
       ret <- cbind(inner, se, tvalue, prob)
       
@@ -277,7 +279,7 @@ matrixpls.plspm <-
                                                 t(parallel::mcmapply(function(x){
                                                   
                                                   # Recover the data that were used in the bootrap replications and calculate indicator variances
-                                                  sdX <- apply(dataToUse[bootIndices[x,],],2,sd)
+                                                  sdX <- apply(dataToUse[bootIndices[x,],],2,stats::sd)
                                                   boot.res$t[x,bootLoadingIndices] / sdX									 														 	
                                                 },1:params$br)),
                                                 rownames(S)),
@@ -291,9 +293,9 @@ matrixpls.plspm <-
                                              
                                              # Recover the data that were used in the bootrap replication
                                              if(scaled)
-                                               S <- cor(dataToUse[bootIndices[x,],])
+                                               S <- stats::cor(dataToUse[bootIndices[x,],])
                                              else
-                                               S <- cov(dataToUse[bootIndices[x,],])
+                                               S <- stats::cov(dataToUse[bootIndices[x,],])
                                              
                                              # Reconstruct the matrices
                                              W <- matrix(0,nrow(W.model),ncol(W.model))
@@ -592,9 +594,9 @@ get_bootDataFrame <- function(t0, t, rownames){
   
   ret <- data.frame(Original = t0, 
                     Mean.Boot = apply(t, 2, mean), 
-                    Std.Error = apply(t, 2, sd), 
-                    perc.025 = apply(t, 2, quantile, 0.025),
-                    perc.975 = apply(t, 2, quantile, 0.975))
+                    Std.Error = apply(t, 2, stats::sd), 
+                    perc.025 = apply(t, 2, stats::quantile, 0.025),
+                    perc.975 = apply(t, 2, stats::quantile, 0.975))
   
   rownames(ret) <- rownames
   

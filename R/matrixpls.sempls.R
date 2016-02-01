@@ -51,7 +51,7 @@ matrixpls.sempls <-
     # checking the data
     data <- data[, model$manifest]
     N <- nrow(data)
-    missings <- which(complete.cases(data)==FALSE)
+    missings <- which(stats::complete.cases(data)==FALSE)
     if(length(missings)==0 & verbose){
       cat("All", N ,"observations are valid.\n")
       if(pairwise){
@@ -61,20 +61,20 @@ matrixpls.sempls <-
     }
     else if(length(missings)!=0 & !pairwise & verbose){
       # Just keeping the observations, that are complete.
-      data <- na.omit(data[, model$manifest])
+      data <- stats::na.omit(data[, model$manifest])
       cat("Data rows:", paste(missings, collapse=", "),
           "\nare not taken into acount, due to missings in the manifest variables.\n",
-          "Total number of complete cases:", N-length(missings), "\n")
+          "Total number of stats::complete.cases:", N-length(missings), "\n")
     }
     else if(verbose){
       cat("Data rows", paste(missings, collapse=", "),
           " contain missing values.\n",
-          "Total number of complete cases:", N-length(missings), "\n")
+          "Total number of stats::complete.cases:", N-length(missings), "\n")
     }
     ## check the variances of the data
-    if(!all(apply(data, 2, sd, na.rm=TRUE) != 0)){
+    if(!all(apply(data, 2, stats::sd, na.rm=TRUE) != 0)){
       stop("The MVs: ",
-           paste(colnames(data)[which(apply(data, 2, sd)==0)], collapse=", "),
+           paste(colnames(data)[which(apply(data, 2, stats::sd)==0)], collapse=", "),
            "\n  have standard deviation equal to 0.\n",
            "  Recheck model!\n")
     }
@@ -118,7 +118,7 @@ matrixpls.sempls <-
       outerEstimators[modeA] <- list(outer.modeA)
     }
     
-    S <- cov(data)
+    S <- stats::cov(data)
     
     if(convCrit=="relative"){
       convCheck <- convCheck.relative
@@ -155,7 +155,7 @@ matrixpls.sempls <-
     weights_evolution <- apply(whist, 1, function(x){
       
       Wnew[Wnew != 0] <- x
-      ret <- reshape(as.data.frame(Wnew),
+      ret <- stats::reshape(as.data.frame(Wnew),
                      v.names="weights",
                      ids=rownames(Wnew),
                      idvar="MVs",

@@ -301,7 +301,7 @@ weight.optim <- function(S, model, W.model,
   
   W <- W.model
   
-  optim.res <- optim(W.model[W.model != 0], fn = function(par, ...){
+  optim.res <- stats::optim(W.model[W.model != 0], fn = function(par, ...){
     W[W.model != 0] <- par
     # Use fixed weights estimation
     matrixpls.res <- matrixpls(S, model, W, weightFunction = weight.fixed,

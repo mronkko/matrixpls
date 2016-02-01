@@ -4,7 +4,7 @@
 \alias{matrixpls.blindfold}
 \title{Blindfold crossvalidation of predictions from matrixpls results}
 \usage{
-matrixpls.blindfold(data, ..., predictFun = predict, nGroup = 4)
+matrixpls.blindfold(data, ..., predictFun = stats::predict, nGroup = 4)
 }
 \arguments{
 \item{data}{Matrix or data frame containing the raw data.}

@@ -353,7 +353,7 @@ get_plsr1 <-function(C, nc=NULL, scaled=TRUE)
   if (is.null(nc))
     nc <- p
   # ============ setting inputs ==============
-  if (scaled) C <- cov2cor(C)
+  if (scaled) C <- stats::cov2cor(C)
   C.old <- C
   
   Ph <- matrix(NA, p, nc)# matrix of X-loadings

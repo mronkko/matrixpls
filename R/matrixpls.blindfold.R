@@ -23,7 +23,7 @@
 #'@export
 #'
 
-matrixpls.blindfold <- function(data, ..., predictFun = predict, nGroup = 4){
+matrixpls.blindfold <- function(data, ..., predictFun = stats::predict, nGroup = 4){
   
   
   data <- as.matrix(data)
@@ -34,7 +34,7 @@ matrixpls.blindfold <- function(data, ..., predictFun = predict, nGroup = 4){
 
   
   blindfold.out <- lapply(1:nGroup,function(group){
-    S <- cov(data[groups!=group,])
+    S <- stats::cov(data[groups!=group,])
     matrixpls.res <- matrixpls(S,...)
     predictFun(matrixpls.res,data[groups==group,])
   })

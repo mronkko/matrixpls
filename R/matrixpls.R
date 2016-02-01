@@ -181,6 +181,7 @@ NULL
 #'Wold, H. (1982). Soft modeling - The Basic Design And Some Extensions. In K. G. Jöreskog & S. Wold (Eds.),\emph{Systems under indirect observation: causality, structure, prediction} (pp. 1–54). Amsterdam: North-Holland.
 #'
 #'@export
+#'
 
 
 matrixpls <- function(S, model, W.model = NULL, weightFunction = weight.pls,
@@ -229,7 +230,7 @@ matrixpls <- function(S, model, W.model = NULL, weightFunction = weight.pls,
   ##################################################################################################
   
   if(standardize){
-    S <- cov2cor(S)
+    S <- stats::cov2cor(S)
     # cov2cor can result in nonsymmetrix matrix because of computational inaccuracy
     S[lower.tri(S)] <- t(S)[lower.tri(S)]
   }
@@ -294,7 +295,7 @@ print.matrixpls <- function(x, ...){
   
   boot.out <- attr(x,"boot.out")
   if(! is.null(boot.out)){
-    estimates$Std.Err. <- apply(boot.out$t[,indices],2,sd)
+    estimates$Std.Err. <- apply(boot.out$t[,indices],2,stats::sd)
   }
   
   print(estimates, ...)
@@ -320,7 +321,7 @@ summary.matrixpls <- function(object, ...){
   ret <- list(estimates = object,
               effects = effects(object),
               r2 = r2(object),
-              residuals = residuals(object),
+              residuals = stats::residuals(object),
               gof = gof(object),
               cr = cr(object),
               ave = ave(object))

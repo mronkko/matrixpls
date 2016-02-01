@@ -168,7 +168,7 @@ residuals.matrixpls <- function(object, ..., observed = TRUE) {
                     )
   }
   else{
-    C <- S-fitted(object)
+    C <- S-stats::fitted(object)
     indices <- list()
   }
   
@@ -732,7 +732,7 @@ fitSummary <- function(object){
   # Returns the minumum or NA if all are NA
   
   m <- function(x){
-    x <- na.exclude(x)
+    x <- stats::na.exclude(x)
     if(length(x) == 0 ) NA
     else min(x)
   }
@@ -741,8 +741,8 @@ fitSummary <- function(object){
               "Min AVE" = m(ave(object)$ave),
               "Min AVE - sq. cor" = m(ave(object)$ave_correlation),
               "Goodness of Fit" = gof(object),
-              SRMR = residuals(object)$indices$srmr,
-              "SRMR (Henseler)" = residuals(object)$indices$srmr_Henseler)
+              SRMR = stats::residuals(object)$indices$srmr,
+              "SRMR (Henseler)" = stats::residuals(object)$indices$srmr_Henseler)
   
   class(ret) <- "matrixplfitsummary"
   ret
