@@ -203,7 +203,7 @@ matrixpls.plspm <-
     
     outer.mod <- sapply(lvNames, function(lvName){
       row <- which(lvNames == lvName)
-      weights <- W[row,params$outer[[row]]]
+      weights <- W[row,params$outer[[row]]] *sdv
       std.loads <- IC_std[row,params$outer[[row]]]
       communal <- std.loads^2
       redundan <- communal * R2[row]
@@ -348,7 +348,7 @@ matrixpls.plspm <-
                                tol=params$tol, 
                                maxiter = params$maxiter,
                                plscomp = NULL),
-                  iter = attr(matrixpls.res,"iterations"),
+                  iter = attr(matrixpls.res,"iterations") + 1,
                   boot.val=params$boot.val, 
                   br=params$br, 
                   gens = list(obs=nrow(params$x),
@@ -451,8 +451,9 @@ matrixpls.plspm <-
     
     data <- as.data.frame(data)
     attr(data,"row.names") <- as.character(attr(data,"row.names"))
-
     
+    manifests <- scale(data, scale=FALSE)
+
     res = list(outer_model = outer.mod.dataframe, 
                inner_model = inner.mod, 
                path_coefs = inner, 
@@ -464,7 +465,7 @@ matrixpls.plspm <-
                gof = gof, 
                boot = boot, 
                data = data, 
-               manifests = scale(data, scale=apply(data,2,sd)/sdv),
+               manifests = manifests,
                model = model)
     
     #		out.weights = out.weights, 
