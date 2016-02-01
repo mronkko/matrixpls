@@ -29,12 +29,14 @@ Suggests:
     parallel,
     semPLS,
     boot,
-    Matrix
+    Matrix,
+    ASGSCA
 License: GPL-3
 LazyLoad: yes
 RoxygenNote: 5.0.1
 Collate:
     'matrixpls.R'
+    'matrixpls.blindfold.R'
     'matrixpls.boot.R'
     'matrixpls.convergenceCheck.R'
     'matrixpls.estimators.R'
