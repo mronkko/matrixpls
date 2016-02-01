@@ -67,7 +67,5 @@ export(weight.pls)
 export(weight.principal)
 export(weightSign.Wold1985)
 export(weightSign.dominantIndicator)
-importFrom(stats, complete.cases, cor, cov, cov2cor, effects,
-             fitted, loadings, na.omit, optim, pt, quantile, reshape,
-             residuals, sd)
-importFrom(methods,is)
+importFrom(stats,effects)
+importFrom(stats,loadings)

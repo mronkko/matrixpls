@@ -117,7 +117,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
     partable <- lavaan::lavaanify(model)
   } else if (is.partable(model)) {
     partable <- model
-  } else if (is(model, "lavaan")) {
+  } else if (methods::is(model, "lavaan")) {
     partable <- model@ParTable
   }
   

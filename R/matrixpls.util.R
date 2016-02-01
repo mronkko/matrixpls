@@ -105,11 +105,11 @@ parseModelToNativeFormat <- function(model){
     return(lavaanParTableToNativeFormat(model))
   } else if (is.lavaancall(model)) {
     browser()
-  } else if (is(model, "lavaan")) {
+  } else if (methods::is(model, "lavaan")) {
     return(lavaanParTableToNativeFormat(model@ParTable))
-    #	} else if (is(model, "MxModel")) {
+    #	} else if (methods::is(model, "MxModel")) {
     #		browser()
-    #	} else if (is(model, "SimSem")) {
+    #	} else if (methods::is(model, "SimSem")) {
     #		browser()
   } else {
     stop("Please specify an appropriate object for the 'model' argument: simsem model template, lavaan script, lavaan parameter table, list of options for the 'lavaan' function, or a list containing three matrices in the matrixpls native model format.")
