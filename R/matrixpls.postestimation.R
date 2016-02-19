@@ -471,14 +471,14 @@ print.matrixplsgof <- function(x, digits=getOption("digits"), ...){
 #'
 #'@export
 #'
-loadings.matrixpls <- function(object, ...){
+loadings <- function(object, ...){
   UseMethod("loadings")
 }
 
 #
 #'@S3method loadings matrixpls
 
-loadings <- function(object, ...) {
+loadings.matrixpls <- function(object, ...) {
   nativeModel <- attr(object,"model")
   IC <- attr(object,"IC")
   
