@@ -26,7 +26,7 @@ and results in an errors
 Other post-estimation functions: \code{\link{ave}},
   \code{\link{cr}}, \code{\link{effects.matrixpls}},
   \code{\link{fitSummary}}, \code{\link{gof}},
-  \code{\link{htmt}}, \code{\link{loadings.matrixpls}},
+  \code{\link{htmt}}, \code{\link{loadings}},
   \code{\link{predict.matrixpls}}, \code{\link{r2}},
   \code{\link{residuals.matrixpls}}
 }
