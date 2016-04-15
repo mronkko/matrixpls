@@ -191,7 +191,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
     # 4: At least one variance estimate is negative
     # 5: At least one correlation estimate is greater than 1 or less than -1
     
-    # Non-iterative weight functiosn do not return convergence status so both NULL
+    # Non-iterative weight functions do not return convergence status so both NULL
     # and TRUE are considered as converged
     
     if(is.null(attr(matrixpls.res,"converged")) ||
@@ -204,6 +204,17 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
       if(max(abs(C[lower.tri(C)]))>1){
         converged <- 5 
       }
+      
+      IC <- attr(matrixpls.res,"IC")
+      
+      # The indicators are not necessary standardized, so we need to rescale the IC matrix
+      
+      v <- diag(attr(matrixpls.res,"S"))[colnames(IC)]
+      
+      if(max(abs(IC %*% diag(1/sqrt(v))))>1){
+        converged <- 5 
+      }
+      
       # If the model is estimated with 2SLS, then checking C is not enough to check for admissible
       # solution. We need to calculate the explained variances of the endogenous composites
       
