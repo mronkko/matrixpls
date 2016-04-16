@@ -243,7 +243,7 @@ matrixpls <- function(S, model, W.model = NULL, weightFunction = weight.pls,
   
   # Correct the signs of the weights
   
-  if(!is.null(weightSignCorrection)) W <- weightSignCorrection(W)
+  if(!is.null(weightSignCorrection)) W <- weightSignCorrection(W, S)
   
   # Apply the parameter estimator and return the results
   
