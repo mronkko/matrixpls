@@ -240,14 +240,19 @@ summary.matrixplsboot <- function(object, ...){
 #'@S3method print matrixplsbootsummary
 
 print.matrixplsbootsummary <- function(x, ...){
+  p <- x$p
+  ci <- x$ci
+  
+  x$p <- NULL
+  x$ci <- NULL
+  
   class(x) <- "matrixplssummary"
   print(x)
   
   cat("\n Bootstrap SEs and significance tests\n")
-  print(x$p, ...)
+  print(p, ...)
 
   cat("\n Bootstrap confidence intervals\n")
-  ci <- x$ci
   ci <- data.frame(Estimate = ci[,1],
                 " (",
                 ci[,2],
