@@ -104,7 +104,7 @@ parseModelToNativeFormat <- function(model){
   } else if (is.partable(model)) {
     return(lavaanParTableToNativeFormat(model))
   } else if (is.lavaancall(model)) {
-    browser()
+    return(parseModelToNativeFormat(model$model))
   } else if (methods::is(model, "lavaan")) {
     return(lavaanParTableToNativeFormat(model@ParTable))
     #	} else if (methods::is(model, "MxModel")) {
