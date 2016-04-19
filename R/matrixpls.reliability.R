@@ -15,8 +15,12 @@
 #'
 #'@return a named vector of estimated composite reliabilities.
 #'
-#'@family reliability estimators
+#'@name reliabilityEstimators
 #'
+
+NULL
+
+#'@describeIn reliabilityEstimators Reliability estimation based on weights and loadings.
 #'@export
 
 reliability.weightLoadingProduct <- function(S, loadings, W, ...){
@@ -26,5 +30,20 @@ reliability.weightLoadingProduct <- function(S, loadings, W, ...){
   # Any composite with no reflective indicators is fixed to be perfectly reliable
   Q[apply(loadings==0,2,all)] <- 1
   
+  Q
+}
+
+#'@describeIn reliabilityEstimators Reliability estimation with Cronbach's alpha
+#'@export
+
+reliability.alpha <- function(S, loadings, W, ...){
+  
+  S <- stats::cov2cor(S)
+  
+  Q <- apply(W,1,function(w){
+    i <- which(w!=0)
+    if(length(i) == 1) return(1)
+    psych::alpha(S[i, i])$total[[1]]
+  })
   Q
 }
