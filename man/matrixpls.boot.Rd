@@ -6,7 +6,7 @@
 \usage{
 matrixpls.boot(data, ..., R = 500, signChangeCorrection = NULL,
   parallel = c("no", "multicore", "snow"), ncpus = getOption("boot.ncpus",
-  1L), stopOnError = FALSE, extraFun = NULL)
+  1L), dropInadmissible = FALSE, stopOnError = FALSE, extraFun = NULL)
 }
 \arguments{
 \item{data}{Matrix or data frame containing the raw data.}
@@ -27,6 +27,9 @@ matrixpls.boot(data, ..., R = 500, signChangeCorrection = NULL,
     integer: number of processes to be used in parallel operation:
     typically one would chose this to the number of available CPUs.
   }
+
+\item{dropInadmissible}{A logical indicating whether non-convergent and inadmissible replications
+should be discarded.}
 
 \item{stopOnError}{A logical indicating whether boostrapping should be continued when error occurs
 in a replication.}

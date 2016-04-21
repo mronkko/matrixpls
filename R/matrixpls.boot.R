@@ -45,6 +45,9 @@
 #'vector is appended to bootstrap replication. Can be used for boostrapping additional
 #'statistics calculated based on the estimation results.
 #'
+#'@param dropInadmissible A logical indicating whether non-convergent and inadmissible replications
+#' should be discarded.
+#' 
 #'@param stopOnError A logical indicating whether boostrapping should be continued when error occurs
 #' in a replication.
 #'
@@ -77,6 +80,7 @@ matrixpls.boot <- function(data, ..., R = 500,
                            signChangeCorrection = NULL,
                            parallel = c("no", "multicore", "snow"),
                            ncpus = getOption("boot.ncpus", 1L),
+                           dropInadmissible = FALSE,
                            stopOnError = FALSE,
                            extraFun = NULL){
   
@@ -85,7 +89,7 @@ matrixpls.boot <- function(data, ..., R = 500,
   if (missing(parallel)) parallel <- getOption("boot.parallel", "no")
   
   data <- as.matrix(data)
-
+  
   arguments <- list(...)
   
   # Prepare sign change corrections
@@ -111,37 +115,39 @@ matrixpls.boot <- function(data, ..., R = 500,
   # Bootstrap
   
   boot.out <- boot::boot(data,
-                   function(data, indices){
-                     
-                     S <- stats::cov(data[indices,])
-                     arguments <- c(list(S),arguments)
-                     
-                     if(stopOnError){
-                       boot.rep <- do.call(matrixpls, arguments)
-                     }
-                     else{
-                       tryCatch(
-                         boot.rep <- do.call(matrixpls, arguments)
-                       )
-                     }
-                     
-                     # Add additional statistics
-                     
-                     if(!is.null(extraFun)){
-                       a <- attributes(boot.rep)
-                       boot.rep <-c(boot.rep,extraFun(boot.rep))
-                       a$names <- names(boot.rep)
-                       attributes(boot.rep) <- a
-                     }
-                     
-                     # If the indices are not sorted, then this is not the original sample
-                     # and we can safely omit all attributes to save memory
-                     
-                     if(is.unsorted(indices)) attributes(boot.rep) <- NULL
-                     
-                     boot.rep
-                   },
-                   R, parallel = parallel, ncpus = ncpus)
+                         function(data, indices){
+                           
+                           S <- stats::cov(data[indices,])
+                           arguments <- c(list(S),arguments)
+                           
+                           if(stopOnError){
+                             boot.rep <- do.call(matrixpls, arguments)
+                           }
+                           else{
+                             tryCatch(
+                               boot.rep <- do.call(matrixpls, arguments)
+                             )
+                           }
+                           # Deal with inadmissibles
+                           if(dropInadmissible && convergenceStatus(boot.rep) != 0) return(NA)
+                           
+                           # Add additional statistics
+                           
+                           if(!is.null(extraFun)){
+                             a <- attributes(boot.rep)
+                             boot.rep <-c(boot.rep,extraFun(boot.rep))
+                             a$names <- names(boot.rep)
+                             attributes(boot.rep) <- a
+                           }
+                           
+                           # If the indices are not sorted, then this is not the original sample
+                           # and we can safely omit all attributes to save memory
+                           
+                           if(is.unsorted(indices)) attributes(boot.rep) <- NULL
+                           
+                           boot.rep
+                         },
+                         R, parallel = parallel, ncpus = ncpus)
   
   class(boot.out) <- c("matrixplsboot", class(boot.out))
   boot.out
@@ -160,81 +166,81 @@ print.matrixplsboot <- function(x, ...){
 #'@S3method summary matrixplsboot
 
 summary.matrixplsboot <- function(object, ...){
-	matrixpls.res <- object$t0
-	out <- summary(matrixpls.res)
-	attr(out,"boot.out") <- object
-	
-	cat("\nCalculating confidence intervals.\n")
-	
-	# Omit CIs for the weights
-	parameterIndices <- 1:(length(matrixpls.res) -
-	          sum(attr(matrixpls.res,"W")!=0))
-	
-	cis <- lapply(parameterIndices, function(i){
-	  ci <- boot::boot.ci(object,...,index = i, type = c("norm","basic", "perc"))
-	  cis <- c(matrixpls.res[i],ci$normal[2:3],ci$basic[4:5], ci$percent[,4:5],NA,NA)
-	  
-	  # BCa intervals cannot be always calculated
-	  
-	  tryCatch(
-	    cis[8:9] <- boot::boot.ci(object,...,index = i, type = "bca")$bca[,4:5],
-	    error = function(e){
-	      warning(e)
-	    })
-	  
-	  cis
-	})
-	
-	cis <- do.call(rbind,cis)
-	rownames(cis) <- names(matrixpls.res)[parameterIndices]
-	colnames(cis) <- c("Estimate","Norm low", "Norm up","Basic low", "Basic up",
-	                   "Perc low", "Perc up", "BCa low", "BCa up")
-	
-	out$ci <- cis
-	
-	# P-values
-	
-	# There is some disagreement on the degrees of freedom of the t-statistic in the PLS literature
-	
-	# Hair et al. (2014, p. 134) states that "the test statistic follows a t distribution with degrees of
-	# freedom […] equal to the number of observations minus 1" 
-	
-	dfHa <- nrow(object$data) - 1
-	  
-	# Henseler et al. (2009, p. 305) "the degrees of freedom for the test is  n + m – 2, where m is
-	# always 1 and n is the number of bootstrap samples. 
-	
-	dfHe <- object$R + 1 - 2
-	
-	# We need to get the number of IVs in the regression to calculate the regression p value
-	
-	IVs <- unlist(lapply(attr(matrixpls.res, "model"),function(modelmat){
-	  ivs <- rowSums(modelmat)
-	  mm <- sweep(modelmat,1,ivs,"*")
-	  mm[mm!=0]
-	}))
-	
-	ps <- lapply(parameterIndices, function(i){
-	  est <- object$t0[i]
-	  se <- stats::sd(object$t[,i])
-	  t <- est/se
-	  
-	 c(est,se,t,
-	    (1-stats::pt(t,dfHa-IVs[i]))*2, # Regression
-	    (1-stats::pt(t,dfHa))*2, # Hair
-	    (1-stats::pt(t,dfHe))*2, # Henseler
-	    (1-stats::pnorm(t))*2) # Standard normal
-	 
-	})
-	
-	ps <- do.call(rbind,ps)
-	rownames(ps) <- names(matrixpls.res)[parameterIndices]
-	
-	colnames(ps) <- c("Estimate","SE","t","p (regression)","p (Hair)", "p (Henseler)","p (z)")
-	out$p <- ps
-	
-	class(out) <- "matrixplsbootsummary"
-	out
+  matrixpls.res <- object$t0
+  out <- summary(matrixpls.res)
+  attr(out,"boot.out") <- object
+  
+  cat("\nCalculating confidence intervals.\n")
+  
+  # Omit CIs for the weights
+  parameterIndices <- 1:(length(matrixpls.res) -
+                           sum(attr(matrixpls.res,"W")!=0))
+  
+  cis <- lapply(parameterIndices, function(i){
+    ci <- boot::boot.ci(object,...,index = i, type = c("norm","basic", "perc"))
+    cis <- c(matrixpls.res[i],ci$normal[2:3],ci$basic[4:5], ci$percent[,4:5],NA,NA)
+    
+    # BCa intervals cannot be always calculated
+    
+    tryCatch(
+      cis[8:9] <- boot::boot.ci(object,...,index = i, type = "bca")$bca[,4:5],
+      error = function(e){
+        warning(e)
+      })
+    
+    cis
+  })
+  
+  cis <- do.call(rbind,cis)
+  rownames(cis) <- names(matrixpls.res)[parameterIndices]
+  colnames(cis) <- c("Estimate","Norm low", "Norm up","Basic low", "Basic up",
+                     "Perc low", "Perc up", "BCa low", "BCa up")
+  
+  out$ci <- cis
+  
+  # P-values
+  
+  # There is some disagreement on the degrees of freedom of the t-statistic in the PLS literature
+  
+  # Hair et al. (2014, p. 134) states that "the test statistic follows a t distribution with degrees of
+  # freedom […] equal to the number of observations minus 1" 
+  
+  dfHa <- nrow(object$data) - 1
+  
+  # Henseler et al. (2009, p. 305) "the degrees of freedom for the test is  n + m – 2, where m is
+  # always 1 and n is the number of bootstrap samples. 
+  
+  dfHe <- object$R + 1 - 2
+  
+  # We need to get the number of IVs in the regression to calculate the regression p value
+  
+  IVs <- unlist(lapply(attr(matrixpls.res, "model"),function(modelmat){
+    ivs <- rowSums(modelmat)
+    mm <- sweep(modelmat,1,ivs,"*")
+    mm[mm!=0]
+  }))
+  
+  ps <- lapply(parameterIndices, function(i){
+    est <- object$t0[i]
+    se <- stats::sd(object$t[,i])
+    t <- est/se
+    
+    c(est,se,t,
+      (1-stats::pt(t,dfHa-IVs[i]))*2, # Regression
+      (1-stats::pt(t,dfHa))*2, # Hair
+      (1-stats::pt(t,dfHe))*2, # Henseler
+      (1-stats::pnorm(t))*2) # Standard normal
+    
+  })
+  
+  ps <- do.call(rbind,ps)
+  rownames(ps) <- names(matrixpls.res)[parameterIndices]
+  
+  colnames(ps) <- c("Estimate","SE","t","p (regression)","p (Hair)", "p (Henseler)","p (z)")
+  out$p <- ps
+  
+  class(out) <- "matrixplsbootsummary"
+  out
 }
 
 #'@S3method print matrixplsbootsummary
@@ -251,22 +257,22 @@ print.matrixplsbootsummary <- function(x, ...){
   
   cat("\n Bootstrap SEs and significance tests\n")
   print(p, ...)
-
+  
   cat("\n Bootstrap confidence intervals\n")
   ci <- data.frame(Estimate = ci[,1],
-                " (",
-                ci[,2],
-                Normal=ci[,3],
-                ") (",
-                ci[,4],
-                Basic=ci[,5],
-                ") (",
-                ci[,6],
-                Percentile=ci[,7],
-                ") (",
-                ci[,8],
-                BCa=ci[,9],
-                ")")
+                   " (",
+                   ci[,2],
+                   Normal=ci[,3],
+                   ") (",
+                   ci[,4],
+                   Basic=ci[,5],
+                   ") (",
+                   ci[,6],
+                   Percentile=ci[,7],
+                   ") (",
+                   ci[,8],
+                   BCa=ci[,9],
+                   ")")
   colnames(ci)[c(2,3,5,6,8,9,11,12,14)] <- " "
   print(ci, ...)
   
