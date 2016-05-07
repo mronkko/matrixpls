@@ -235,7 +235,7 @@ weight.pls <- function(S, model, W.model,
       else{
         
         if(is.list(outerEstimators)) outerEstimator <- outerEstimators[[k]]
-        else outerEstimator <- outerEstimators[[k]]
+        else outerEstimator <- outerEstimators
         
         W.modelForThisEstimator <- W.model
         W.modelForThisEstimator[-k,] <- 0
