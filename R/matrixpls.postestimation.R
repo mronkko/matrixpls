@@ -575,9 +575,8 @@ predict.matrixpls <- function(object, newdata, ...){
   W <- attr(object,"W")
   inner <- attr(object,"inner")
   
-  reflective <- nativeModel$reflective
-  reflective[which(reflective==1)] <- object[grep("=~",names(object))]
-  
+  reflective <- attr(object,'reflective')
+
   # Reorder the variables in newdata
   data <- NULL
   
