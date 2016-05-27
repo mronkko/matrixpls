@@ -31,7 +31,7 @@
 #'@param parametersFormative A function used to estimate the \code{formative} model matrix. The
 #'  default is \code{\link{estimator.ols}}
 #'  
-#'@param disattenuate \code{TRUE} or \code{FALSE} (default) indicating whether \code{C} should be
+#'@param disattenuate If \code{TRUE}, \code{C} is
 #'  disattenuated before applying \code{parametersInner}.
 #'  
 #'@param reliabilities A function that provides the reliability estimates for disattenuation. The
@@ -73,11 +73,11 @@ params.separate <- function(S, model, W, ...,
     C <- C / sqrt(Q) %*% t(sqrt(Q))
     diag(C) <- 1
     
-    # Fix the IC matrix. Start by replacing correlations with the corrected loadings
+    # Fix the IC matrix. Start by replacing covariances with the corrected loadings
     tL <- t(reflectiveEstimates)
     IC[tL!=0] <- tL[tL!=0]
     
-    # Disattenuate the remaining correlations
+    # Disattenuate the remaining covariances
     IC[tL==0] <- (IC/sqrt(Q))[tL==0]
   }
   
