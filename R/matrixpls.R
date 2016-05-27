@@ -158,9 +158,9 @@ NULL
 #'
 #'@param weightSignCorrection A function that is applied to weights to correct their signs before parameter estimation.
 #'
-#'@param validateInput A boolean indicating whether the arguments should be validated.
+#'@param validateInput If \code{TRUE}, the arguments are validated.
 #'
-#'@param standardize A boolean indicating whether \code{S} is standardized
+#'@param standardize If \code{TRUE}, \code{S} is converted to a correlation matrix before analysis.
 #' 
 #'@param ... All other arguments are passed through to \code{weightFunction} and \code{parameterEstimator}.
 #'
