@@ -192,7 +192,8 @@ estimator.plscLoadings <- function(S, modelMatrix, W,  ...){
   # Dijkstra's correction
   
   # Determination of the correction factors, based on (11) of Dijkstra, April 7, 2011.
-  c2 <- rep(1,ab)
+  c2 <- rep(NA,ab)
+
   for (i in 1:ab) {
     idx <- p_refl[[i]][[1]]
     if (length(idx) > 1) { # only for latent factors, no need to correct for the single indicator for the phantom LV
@@ -213,6 +214,11 @@ estimator.plscLoadings <- function(S, modelMatrix, W,  ...){
     
     if(length(idx) > 1){
       L[idx,i] <- c[i]*W[i,idx]
+    }
+    else{
+      # Single indicators are assumed to be perfectly reliable. Because the factor variances are 1
+      # the loading is simply the square root of the variance of the indicators.
+      L[idx,i] <- sqrt(S[idx,idx])
     }
   }
   
@@ -242,7 +248,9 @@ estimator.efaLoadings <- function(S, modelMatrix, W,  ... , fm = "minres"){
     idx <- p_refl[[i]][[1]]
     
     if(length(idx) == 1){ # Single indicator
-      L[idx,i] <- 1
+      # Single indicators are assumed to be perfectly reliable. Because the factor variances are 1
+      # the loading is simply the square root of the variance of the indicators.
+      L[idx,i] <- sqrt(S[idx,idx])
     }
     else if(length(idx) == 2){ # Two indicators
       L[idx,i] <- sqrt(S[idx,idx][2])
