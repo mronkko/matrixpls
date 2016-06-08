@@ -1,4 +1,4 @@
-# Run the educaiton example from the book
+# Run the education example from the book
 
 # Sanchez, G. (2013) PLS Path Modeling with R
 # Trowchez Editions. Berkeley, 2013. 
@@ -80,4 +80,4 @@ cbind(PLSc = plsc.res1, PLSc_2sls = plsc.res2,
 # Compare the reliability estimates
 
 cbind(PLSc = attr(plsc.res1,"Q"), PLSc_2sls = attr(plsc.res2,"Q"), 
-      DR = attr(plsc.res3,"Q"),.gscac = attr(plsc.res4,"Q"))
+      DR = attr(plsc.res3,"Q"), GSCAc = attr(plsc.res4,"Q"))
