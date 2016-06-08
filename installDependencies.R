@@ -10,7 +10,9 @@ install.packages(c("assertive",
 "RUnit",
 "semPLS",
 "boot",
-"sem"))
+"sem",
+"rticles",
+"string"))
 
 source("https://bioconductor.org/biocLite.R")
 biocLite("ASGSCA")
