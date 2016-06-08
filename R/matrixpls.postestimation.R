@@ -542,68 +542,7 @@ print.matrixplscr <- function(x, ...){
   print.table(x, ...)
 }
 
-#'@title Predict method for matrixpls results
-#'
-#'@description
-#'
-#'The \code{matrixpls} method for the generic function \code{predict} predict.
-#'Predicts the reflective indicators of endogenous latent variables using
-#'estimated model and data for the indicators of exogenous latent variables
-#'
-#'@template postestimationFunctions
-#'
-#'@param newdata A data frame or a matrix containing data used for prediction.
-#'
-#'@return a matrix of predicted values for reflective indicators of endogenous latent variables.
-#'
-#'@references
-#'
-#'Wold, H. (1974). Causal flows with latent variables: Partings of the ways in the light of NIPALS modelling. \emph{European Economic Review}, 5(1), 67–86. doi:10.1016/0014-2921(74)90008-7
-#'
-#'
-#'@export
-#'
-#'@method predict matrixpls
-#'
-#'@S3method predict matrixpls
 
-
-predict.matrixpls <- function(object, newdata, ...){
-  
-  nativeModel <- attr(object,"model")
-  exog <- rowSums(nativeModel$inner)==0
-  W <- attr(object,"W")
-  inner <- attr(object,"inner")
-  
-  
-  reflective <- attr(object,"reflective")
-
-  # Reorder the variables in newdata
-  data <- NULL
-  
-  for(name in colnames(W)){
-    if(! name %in% colnames(newdata)){
-      data <- cbind(data,NA)
-    }
-    else{
-      data <- cbind(data,newdata[,name])
-    }
-  }
-  
-  colnames(data) <- colnames(W)
-  
-  LVScores <- as.matrix(data) %*% t(W)
-  
-  # Predict endog LVs usign reduced from equations
-  Beta <- inner[! exog, ! exog]
-  Gamma <- inner[! exog, exog]
-  
-  LVScoresEndo <- (LVScores[,exog] %*% t(Gamma)) %*% solve(diag(nrow(Beta))- t(Beta))
-  
-  LVScores[,! exog] <- LVScoresEndo
-  
-  LVScores %*% t(reflective)
-}
 
 #'@title Average Variance Extracted indices for matrixpls results
 #'
