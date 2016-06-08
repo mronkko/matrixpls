@@ -2,7 +2,7 @@
 % Please edit documentation in R/matrixpls.postestimation.R
 \name{fitted.matrixpls}
 \alias{fitted.matrixpls}
-\title{Model implied covariance matrix baesd on matrixpls results}
+\title{Model implied covariance matrix based on matrixpls results}
 \usage{
 \method{fitted}{matrixpls}(object, ...)
 }
