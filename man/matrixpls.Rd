@@ -32,9 +32,9 @@ model specification \code{model}, and weights \code{W} and returns a named vecto
 
 \item{...}{All other arguments are passed through to \code{weightFunction} and \code{parameterEstimator}.}
 
-\item{validateInput}{A boolean indicating whether the arguments should be validated.}
+\item{validateInput}{If \code{TRUE}, the arguments are validated.}
 
-\item{standardize}{A boolean indicating whether \code{S} is standardized}
+\item{standardize}{If \code{TRUE}, \code{S} is converted to a correlation matrix before analysis.}
 }
 \value{
 A named numeric vector of class \code{matrixpls} containing the parameter estimates followed by weights.

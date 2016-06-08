@@ -30,7 +30,7 @@ default is \code{\link{estimator.ols}}}
 \item{parametersFormative}{A function used to estimate the \code{formative} model matrix. The
 default is \code{\link{estimator.ols}}}
 
-\item{disattenuate}{\code{TRUE} or \code{FALSE} (default) indicating whether \code{C} should be
+\item{disattenuate}{If \code{TRUE}, \code{C} is
 disattenuated before applying \code{parametersInner}.}
 
 \item{reliabilities}{A function that provides the reliability estimates for disattenuation. The
