@@ -21,15 +21,30 @@ model <- '
     y6 ~~ y8
 '
 
-matrixpls.out <- matrixpls(cov(PoliticalDemocracy[1:60,]),model)
+matrixpls.out <- matrixpls(cov(PoliticalDemocracy),model)
 
-# Calculate predictions using the hold-out sample
+# Calculate within-sample predictions
 
-predictions <- predict(matrixpls.out, PoliticalDemocracy[61:75,])
-
-summary(predictions)
+predictions <- predict(matrixpls.out, PoliticalDemocracy)
 
 # Calculate root mean squared prediction errors
 
-sqrt(apply((predictions - PoliticalDemocracy[61:75,])^2,2,mean))
+sqrt(apply((predictions-PoliticalDemocracy[61:75,])**2,2,mean))
 
+# Q2 predictive relevance
+
+q2(PoliticalDemocracy, predictions, model)
+
+
+# Crossvalidation predictions using holdout samples and blindfolding
+
+predictions.holdout <- matrixpls.crossvalidate(PoliticalDemocracy,
+                                               model = model)
+
+q2(PoliticalDemocracy, predictions.holdout, model)
+
+predictions.blindfold <- matrixpls.crossvalidate(PoliticalDemocracy,
+                                                 model = model,
+                                                 blindfold = TRUE)
+
+q2(PoliticalDemocracy, predictions.blindfold, model)
