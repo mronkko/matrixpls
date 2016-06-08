@@ -105,15 +105,14 @@ residuals.matrixpls <- function(object, ..., observed = TRUE) {
   
   RMS <- function(num) sqrt(sum(num^2)/length(num))
   
-  
+  S <- attr(object,"S")
+  nativeModel <- attr(object,"model")
   
   # Equation numbers in parenthesis refer to equation number in Lohmoller 1989
   
   if(observed){
-    nativeModel <- attr(object,"model")
     
     W <- attr(object,"W")
-    S <- attr(object,"S")
     
     # Number of reflective indicators
     reflectiveIndicators<- rowSums(nativeModel$reflective)>0
@@ -160,7 +159,7 @@ residuals.matrixpls <- function(object, ..., observed = TRUE) {
     Q <- (W %*% S %*% t(W))[endog,endog] - R_star
     
     
-    indices <- list(Communality = psych::tr(H2)/k, # eq 2.109
+    indices <- c(Communality = psych::tr(H2)/k, # eq 2.109
                     Redundancy = psych::tr(F2)/k,  # eq 2.110
                     SMC = sum(r2)/h,         # eq 2.111
                     "RMS outer residual covariance" = RMS(C[lower.tri(C)]), # eq 2.118
@@ -174,7 +173,7 @@ residuals.matrixpls <- function(object, ..., observed = TRUE) {
   
   C_std <- diag(1/diag(S)) %*% C
   
-  indices <- c(indices,list(
+  indices <- c(indices,c(
                   
                   # SRMR as calculated in SEM. (Hu and Bentler, 1999, p. 3)
                   
@@ -182,7 +181,7 @@ residuals.matrixpls <- function(object, ..., observed = TRUE) {
                   
                   # SRMR calculated ignoring within block residuals from Henserler et al 2014.
                   
-                  SRMR_Henseler = RMS(C_std[nativeModel$reflective %*% t(nativeModel$reflective)==0]))
+                  "SRMR (Henseler)" = RMS(C_std[nativeModel$reflective %*% t(nativeModel$reflective)==0]))
   )
   
   if(observed){
@@ -199,7 +198,7 @@ residuals.matrixpls <- function(object, ..., observed = TRUE) {
 #'@S3method print matrixplsresiduals
 
 print.matrixplsresiduals <- function(x, ...){
-  if("outer" %in% names(x)){
+  if("inner" %in% names(x)){
     cat("\n Inner model (composite) residual covariance matrix\n")
     print(x$inner, ...)
     cat("\n Outer model (indicator) residual covariance matrix\n")
@@ -210,7 +209,7 @@ print.matrixplsresiduals <- function(x, ...){
     print(x$outer, ...)
   }
   cat("\n Residual-based fit indices\n")
-  print(data.frame(Value = unlist(x$indices)), ...)
+  print(x$indices, ...)
 }
 
 #'@title Model implied covariance matrix based on matrixpls results
@@ -676,12 +675,12 @@ fitSummary <- function(object){
     else min(x)
   }
   
-  ret <- list("Min CR" = m(cr(object)),
+  ret <- c("Min CR" = m(cr(object)),
               "Min AVE" = m(ave(object)$ave),
               "Min AVE - sq. cor" = m(ave(object)$ave_correlation),
               "Goodness of Fit" = gof(object),
-              SRMR = stats::residuals(object)$indices$srmr,
-              "SRMR (Henseler)" = stats::residuals(object)$indices$srmr_Henseler)
+              stats::residuals(object)$indices[6:7]
+           )
   
   class(ret) <- "matrixplfitsummary"
   ret
@@ -691,5 +690,9 @@ fitSummary <- function(object){
 
 print.matrixplfitsummary <- function(x, ...){
   cat("\n Summary indices of model fit\n")
-  print(data.frame(Value = unlist(x)), ...)
+  
+  x <- as.matrix(x)
+  colnames(x) <- "Value"
+  print(x)
+
 }

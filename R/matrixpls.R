@@ -291,11 +291,13 @@ print.matrixpls <- function(x, ...){
   indices <- ! grepl("=+", names(x), fixed=TRUE)
   toPrint <- x[indices]
   
-  estimates <- data.frame(Estimate = toPrint)
+  estimates <- as.matrix(toPrint)
+  colnames(estimates)[1] <- "Est."
   
   boot.out <- attr(x,"boot.out")
   if(! is.null(boot.out)){
-    estimates$Std.Err. <- apply(boot.out$t[,indices],2,stats::sd)
+    estimates <- cbind(estimates, apply(boot.out$t[,indices],2,stats::sd))
+    colnames(estimates)[2] <- "SE"
   }
   
   print(estimates, ...)

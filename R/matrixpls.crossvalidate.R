@@ -197,8 +197,8 @@ print.matrixplsq2 <- function(x, ...){
   cat(x$total, ...)
   if(! is.null(x$block)){
     cat("\n Block Q2\n")
-    print.table(x$block, ...)
+    print(x$block, ...)
   }
   cat("\n Indicator Q2\n")
-  print.table(x$indicator, ...)
+  print(x$indicator, ...)
 }
