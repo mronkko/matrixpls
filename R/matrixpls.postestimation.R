@@ -213,7 +213,7 @@ print.matrixplsresiduals <- function(x, ...){
   print(data.frame(Value = unlist(x$indices)), ...)
 }
 
-#'@title Model implied covariance matrix baesd on matrixpls results
+#'@title Model implied covariance matrix based on matrixpls results
 #'
 #'@description
 #'
