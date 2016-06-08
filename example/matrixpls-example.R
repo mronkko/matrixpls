@@ -32,11 +32,11 @@ formative <- matrix(0, 6, 27, dimnames = list(colnames(inner),
 
 # Estimation using covariance matrix
 
-matrixpls.out <- matrixpls(cov(satisfaction[,1:27]),
+satisfaction.out <- matrixpls(cov(satisfaction[,1:27]),
                            model = list(inner = inner,
                                         reflective = reflective,
                                         formative = formative))
 
-print(matrixpls.out)
+print(satisfaction.out)
 
 

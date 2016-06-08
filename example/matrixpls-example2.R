@@ -20,5 +20,5 @@ model <- '
     y6 ~~ y8
 '
 
-matrixpls.out <- matrixpls(cov(PoliticalDemocracy),model)
-print(matrixpls.out)
+political.out <- matrixpls(cov(PoliticalDemocracy),model)
+print(political.out)

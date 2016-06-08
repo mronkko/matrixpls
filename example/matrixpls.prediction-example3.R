@@ -23,17 +23,6 @@ predictions <- predict(matrixpls.out, mobi)
 
 sqrt(apply((predictions-mobi[61:75,])**2,2,mean))
 
-# Q2 predictive relevance
-
-q2(mobi, predictions, model)
-
-# Crossvalidation predictions using holdout samples and blindfolding
-
-predictions.holdout <- matrixpls.crossvalidate(mobi,
-                                               model = model,
-                                               standardize = FALSE)
-
-q2(mobi, predictions.holdout, model)
 
 # Mimic the blindfolding procedure used in semPLS
 
@@ -43,6 +32,7 @@ predictions.blindfold <- matrixpls.crossvalidate(mobi,
                                                  predictionType = "redundancy",
                                                  groups = 4)
 
+# Q2 predictive relevance
 
 q2(mobi, predictions.blindfold, model)
 
