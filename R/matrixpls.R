@@ -326,7 +326,8 @@ summary.matrixpls <- function(object, ...){
               residuals = stats::residuals(object),
               gof = gof(object),
               cr = cr(object),
-              ave = ave(object))
+              ave = ave(object),
+              htmt = htmt(object))
   
   class(ret) <-("matrixplssummary")
   

@@ -36,9 +36,9 @@ LazyLoad: yes
 RoxygenNote: 5.0.1
 Collate:
     'matrixpls.R'
-    'matrixpls.blindfold.R'
     'matrixpls.boot.R'
     'matrixpls.convergenceCheck.R'
+    'matrixpls.crossvalidate.R'
     'matrixpls.estimators.R'
     'matrixpls.inner.R'
     'matrixpls.optim.R'
@@ -46,6 +46,7 @@ Collate:
     'matrixpls.params.R'
     'matrixpls.plspm.R'
     'matrixpls.postestimation.R'
+    'matrixpls.predict.R'
     'matrixpls.reliability.R'
     'matrixpls.sempls.R'
     'matrixpls.signAmbiquityCorrection.R'

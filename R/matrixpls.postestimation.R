@@ -168,7 +168,7 @@ residuals.matrixpls <- function(object, ..., observed = TRUE) {
   }
   else{
     C <- S-stats::fitted(object)
-    indices <- list()
+    indices <- c()
   }
   
   C_std <- diag(1/diag(S)) %*% C
@@ -198,7 +198,8 @@ residuals.matrixpls <- function(object, ..., observed = TRUE) {
 #'@S3method print matrixplsresiduals
 
 print.matrixplsresiduals <- function(x, ...){
-  if("inner" %in% names(x)){
+
+    if("inner" %in% names(x)){
     cat("\n Inner model (composite) residual covariance matrix\n")
     print(x$inner, ...)
     cat("\n Outer model (indicator) residual covariance matrix\n")
@@ -208,8 +209,11 @@ print.matrixplsresiduals <- function(x, ...){
     cat("\n Model implied residual covariance matrix\n")
     print(x$outer, ...)
   }
+
   cat("\n Residual-based fit indices\n")
-  print(x$indices, ...)
+  i <- as.matrix(x$indices)
+  colnames(i) <- "Value"
+  print(i, ...)
 }
 
 #'@title Model implied covariance matrix based on matrixpls results
@@ -355,17 +359,6 @@ fitted.matrixpls <- function(object, ...) {
   rownames(Sigma) <- colnames(Sigma) <- rownames(S)
   
   Sigma
-}
-
-#'@S3method print matrixplsresiduals
-
-print.matrixplsresiduals <- function(x, ...){
-  cat("\n Inner model (composite) residual covariance matrix\n")
-  print(x$inner, ...)
-  cat("\n Outer model (indicator) residual covariance matrix\n")
-  print(x$outer, ...)
-  cat("\n Residual-based fit indices\n")
-  print(data.frame(Value = unlist(x$indices)), ...)
 }
 
 #'@title R2	for matrixpls results
@@ -648,8 +641,15 @@ htmt <- function(object, ...){
   htmt <- meanBlockCor*lower.tri(meanBlockCor) /
     sqrt(diag(meanBlockCor) %o% diag(meanBlockCor))
   
+  class(htmt) <- "matrixplshtmt"
   htmt
 }
+
+print.matrixplshtmt <- function(x, ...){
+  cat("\n Heterotrait-monotrait matrix\n")
+  print.table(x, ...)
+}
+
 
 #'@title Summary of model fit of PLS model
 #'

@@ -37,7 +37,7 @@
 #'
 #'@param R Number of bootstrap samples to draw.
 #'
-#'@param ... All other arguments are passed through to \code{\link{matrixpls}}.
+#'@param ... All other arguments are passed through to \code{\link{matrixpls}} and \code{\link[boot]{boot}}.
 #'
 #'@param signChangeCorrection Sign change correction function.
 #'
@@ -53,6 +53,7 @@
 #'
 #'@inheritParams boot::boot
 #'
+#'@inheritParams matrixpls-common
 #'
 #'@return An object of class \code{matrixplsboot} and \code{\link[boot]{boot}}.
 #'
@@ -76,7 +77,7 @@
 #'Rönkkö, M., McIntosh, C. N., & Antonakis, J. (2015). On the adoption of partial least squares in psychological research: Caveat emptor. \emph{Personality and Individual Differences}, (87), 76–84. http://doi.org/10.1016/j.paid.2015.07.019
 #'
 #'
-matrixpls.boot <- function(data, ..., R = 500,
+matrixpls.boot <- function(data, model, ..., R = 500,
                            signChangeCorrection = NULL,
                            parallel = c("no", "multicore", "snow"),
                            ncpus = getOption("boot.ncpus", 1L),
@@ -88,9 +89,13 @@ matrixpls.boot <- function(data, ..., R = 500,
   
   if (missing(parallel)) parallel <- getOption("boot.parallel", "no")
   
+  
+  model <- parseModelToNativeFormat(model)
+
+  data <- data[,rownames(model$reflective)]
   data <- as.matrix(data)
   
-  arguments <- list(...)
+  arguments <- list(model = model, ...)
   
   # Prepare sign change corrections
   
@@ -113,9 +118,9 @@ matrixpls.boot <- function(data, ..., R = 500,
   }
   
   # Bootstrap
-  
+
   boot.out <- boot::boot(data,
-                         function(data, indices){
+                         function(data, indices, ...){
                            
                            S <- stats::cov(data[indices,])
                            arguments <- c(list(S),arguments)
@@ -147,7 +152,7 @@ matrixpls.boot <- function(data, ..., R = 500,
                            
                            boot.rep
                          },
-                         R, parallel = parallel, ncpus = ncpus)
+                         R, parallel = parallel, ncpus = ncpus, ...)
   
   class(boot.out) <- c("matrixplsboot", class(boot.out))
   boot.out
@@ -259,22 +264,22 @@ print.matrixplsbootsummary <- function(x, ...){
   print(p, ...)
   
   cat("\n Bootstrap confidence intervals\n")
-  ci <- data.frame(Estimate = ci[,1],
+  ci <- data.frame(Estimate = ci[,1]," ",
                    " (",
-                   ci[,2],
-                   Normal=ci[,3],
+                   ci[,2]," ",
+                   Norm=ci[,3],
                    ") (",
-                   ci[,4],
+                   ci[,4]," ",
                    Basic=ci[,5],
                    ") (",
-                   ci[,6],
-                   Percentile=ci[,7],
+                   ci[,6]," ",
+                   Perc=ci[,7],
                    ") (",
-                   ci[,8],
+                   ci[,8]," ",
                    BCa=ci[,9],
                    ")")
-  colnames(ci)[c(2,3,5,6,8,9,11,12,14)] <- " "
-  print(ci, ...)
+  colnames(ci)[-c(1,6,10,14,18)] <- " "
+  print(ci, ..., print.gap = 0)
   
 }
 

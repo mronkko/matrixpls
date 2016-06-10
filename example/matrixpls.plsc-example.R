@@ -29,7 +29,7 @@ formative <- matrix(0, 6, 23)
 colnames(inner) <- colnames(reflective) <- rownames(formative) <- rownames(inner)
 rownames(reflective) <- colnames(formative) <- colnames(education)[2:24]
 
-model <- list(inner = inner,
+education.model <- list(inner = inner,
               reflective = reflective,
               formative = formative)
 
@@ -40,13 +40,13 @@ S <- cor(education[,2:24])
 
 # PLSc with OLS regression
 
-plsc.res1 <- matrixpls(S,model,
+education.out <- matrixpls(S,education.model,
                       disattenuate = TRUE,
                       parametersReflective = estimator.plscLoadings)
 
 # PLSc with 2SLS regresssion
 
-plsc.res2 <- matrixpls(S,model,
+education.out2 <- matrixpls(S,education.model,
                       disattenuate = TRUE,
                       parametersReflective = estimator.plscLoadings,
                       parametersInner = estimator.tsls)
@@ -55,7 +55,7 @@ plsc.res2 <- matrixpls(S,model,
 # Disattenuated regression with unit-weighted scales and exploratory factor analysis
 # reliability estimates (with unconstrained MINRES estimator)
 
-plsc.res3 <- matrixpls(S,model,
+education.out3 <- matrixpls(S,education.model,
                        disattenuate = TRUE,
                        weightFunction = weight.fixed,
                        parametersReflective = estimator.efaLoadings)
@@ -64,7 +64,7 @@ plsc.res3 <- matrixpls(S,model,
 # confirmatory factor analysis reliability estimates
 
 
-plsc.res4 <- matrixpls(S,model,
+education.out4 <- matrixpls(S,education.model,
                        disattenuate = TRUE,
                        innerEstimator = inner.gsca,
                        outerEstimators = outer.gsca,
@@ -74,10 +74,10 @@ plsc.res4 <- matrixpls(S,model,
 
 # Compare the results
 
-cbind(PLSc = plsc.res1, PLSc_2sls = plsc.res2, 
-      DR = plsc.res3,.gscac = plsc.res4)
+cbind(PLSc = education.out, PLSc_2sls = education.out2, 
+      DR = education.out3,.gscac = education.out4)
 
 # Compare the reliability estimates
 
-cbind(PLSc = attr(plsc.res1,"Q"), PLSc_2sls = attr(plsc.res2,"Q"), 
-      DR = attr(plsc.res3,"Q"), GSCAc = attr(plsc.res4,"Q"))
+cbind(PLSc = attr(education.out,"Q"), PLSc_2sls = attr(education.out2,"Q"), 
+      DR = attr(education.out3,"Q"), GSCAc = attr(education.out4,"Q"))

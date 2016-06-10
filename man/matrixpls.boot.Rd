@@ -4,14 +4,19 @@
 \alias{matrixpls.boot}
 \title{Bootstrapping of matrixpls function}
 \usage{
-matrixpls.boot(data, ..., R = 500, signChangeCorrection = NULL,
+matrixpls.boot(data, model, ..., R = 500, signChangeCorrection = NULL,
   parallel = c("no", "multicore", "snow"), ncpus = getOption("boot.ncpus",
   1L), dropInadmissible = FALSE, stopOnError = FALSE, extraFun = NULL)
 }
 \arguments{
 \item{data}{Matrix or data frame containing the raw data.}
 
-\item{...}{All other arguments are passed through to \code{\link{matrixpls}}.}
+\item{model}{There are two options for this argument: 1. lavaan script or lavaan parameter
+table, or 2. a list containing three matrices
+\code{inner}, \code{reflective}, and \code{formative} defining the free regression paths
+in the model.}
+
+\item{...}{All other arguments are passed through to \code{\link{matrixpls}} and \code{\link[boot]{boot}}.}
 
 \item{R}{Number of bootstrap samples to draw.}
 

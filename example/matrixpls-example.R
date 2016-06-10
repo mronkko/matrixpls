@@ -30,12 +30,15 @@ reflective<- matrix(
 formative <- matrix(0, 6, 27, dimnames = list(colnames(inner),
                                               colnames(satisfaction)[1:27]))
 
+satisfaction.model <- list(inner = inner,
+                           reflective = reflective,
+                           formative = formative)
+
 # Estimation using covariance matrix
 
+
 satisfaction.out <- matrixpls(cov(satisfaction[,1:27]),
-                           model = list(inner = inner,
-                                        reflective = reflective,
-                                        formative = formative))
+                           model = satisfaction.model)
 
 print(satisfaction.out)
 
