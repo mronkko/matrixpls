@@ -1,1 +1,17 @@
-attribute;descriptionW;the weight matrixmodel;the model specification in native formatcall;the function callS;the sample covariance matrixE;inner weight matrixiterations;the number of iterations used by the weight algorithmconverged;\code{TRUE} if the weight algorithm converged and \code{FALSE} otherwisehistory;weight optimization history as a matrixC;the composite correlation matrix (after disattenuation, if requested)IC;the indicator-composite covariance matrix (after disattenuation, if requested)inner;the \code{inner} model matrix with estimated parametersreflective;the \code{reflective} model matrix with estimated parametersformative;the \code{formative} model matrix with estimated parametersQ;the reliability estimates used in dissattenuationc;the PLSc loading estimate correction factors
+attribute;order;description
+S;k x k;the sample covariance matrix
+reflective;k x l;the \code{reflective} model matrix with estimated parameters
+c;l;the PLSc loading estimate correction factors
+Q;l;the reliability estimates used in dissattenuation
+R;l;true reliabilities of composites (squared correlation between composites and simulated latent variable values)
+formative;l x k;the \code{formative} model matrix with estimated parameters
+IC;l x k;the indicator-composite covariance matrix (after disattenuation, if requested)
+W;l x k;the weight matrix
+C;l x l;the composite correlation matrix (after disattenuation, if requested)
+E;l x l;inner weight matrix
+inner;l x l;the \code{inner} model matrix with estimated parameters
+call;;the function call
+converged;;\code{TRUE} if the weight algorithm converged and \code{FALSE} otherwise
+history;;weight optimization history as a matrix
+iterations;;the number of iterations used by the weight algorithm
+model;;the model specification in native format

@@ -11,11 +11,11 @@
 #'@return Value of the optimization criterion.
 #'
 #'@seealso \code{\link{weight.optim}}
-#'@name optimCriterion
+#'@name optim
 NULL
 
 
-#'@describeIn optimCriterion maximizes the sum of R2 statistics of the \code{inner} matrix
+#'@describeIn optim maximizes the sum of R2 statistics of the \code{inner} matrix
 #'@export
 
 optim.maximizeInnerR2 <- function(matrixpls.res){
@@ -23,7 +23,7 @@ optim.maximizeInnerR2 <- function(matrixpls.res){
 }
 
 
-#'@describeIn optimCriterion maximizes the sum of R2 statistics of the \code{reflective} matrix.
+#'@describeIn optim maximizes the sum of R2 statistics of the \code{reflective} matrix.
 #'@export
 
 optim.maximizeIndicatorR2 <- function(matrixpls.res){
@@ -32,7 +32,7 @@ optim.maximizeIndicatorR2 <- function(matrixpls.res){
   -sum(diag(lambda %*% IC))
 }
 
-#'@describeIn optimCriterion maximizes the sum of R2 statistics of the \code{inner} and \code{reflective} matrices.
+#'@describeIn optim maximizes the sum of R2 statistics of the \code{inner} and \code{reflective} matrices.
 #'@export
 
 
@@ -40,7 +40,7 @@ optim.maximizeFullR2 <- function(matrixpls.res){
   optim.maximizeIndicatorR2(matrixpls.res) + optim.maximizeInnerR2(matrixpls.res)
 }
 
-#'@describeIn optimCriterion minimies the generalized structured component analysis criterion. See \link{GSCA}
+#'@describeIn optim minimies the generalized structured component analysis criterion. See \link{GSCA}
 #'@export
 
 optim.gsca <- function(matrixpls.res){
