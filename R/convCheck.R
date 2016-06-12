@@ -10,11 +10,11 @@
 #'
 #'@return Scalar value of the convergence criterion
 #'
-#'@name convergenceCheck
+#'@name convCheck
 NULL
 
 
-#'@describeIn convergenceCheck  maximum of relative differences between
+#'@describeIn convCheck  maximum of relative differences between
 #'weights from two iterations
 #'
 #'@export
@@ -22,7 +22,7 @@ convCheck.relative <- function(Wnew, Wold){
   max(abs((Wold[Wnew != 0]-Wnew[Wnew != 0])/Wnew[Wnew != 0]))
 }
 
-#'@describeIn convergenceCheck maximum of squared absolute 
+#'@describeIn convCheck maximum of squared absolute 
 #'differences between weights from two iterations.
 #'
 #'@export
@@ -31,7 +31,7 @@ convCheck.square <- function(Wnew, Wold){
   max((Wold-Wnew)^2)
 }
 
-#'@describeIn convergenceCheck maximum of absolute differences
+#'@describeIn convCheck maximum of absolute differences
 #'between weights from two iterations
 #'
 #'@export

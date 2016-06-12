@@ -12,7 +12,10 @@ q2(originalData, predictedData, model = NULL)
 \item{predictedData}{A matrix or a data.frame containing the predicted data that are compared
 against the original data to calculate the predictive relevance statistic.}
 
-\item{model}{}
+\item{model}{There are two options for this argument: 1. lavaan script or lavaan parameter
+table, or 2. a list containing three matrices
+\code{inner}, \code{reflective}, and \code{formative} defining the free regression paths
+in the model.}
 }
 \value{
 A list with \code{total}, \code{block}, and \code{indicator} elements containing

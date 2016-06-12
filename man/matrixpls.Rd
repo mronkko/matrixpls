@@ -4,8 +4,8 @@
 \alias{matrixpls}
 \title{Partial Least Squares and other composite variable models.}
 \usage{
-matrixpls(S, model, W.model = NULL, weightFunction = weight.pls,
-  parameterEstimator = params.separate, weightSignCorrection = NULL, ...,
+matrixpls(S, model, W.model = NULL, weightFun = weightFun.pls,
+  parameterEstim = parameterEstim.separate, weightSign = NULL, ...,
   validateInput = TRUE, standardize = TRUE)
 }
 \arguments{
@@ -21,16 +21,21 @@ in the model.}
 the weight patter is defined based on the relationships in the \code{reflective} and  \code{formative}
 elements of \code{model}.}
 
-\item{weightFunction}{A function that takes three or more arguments, the data covariance matrix \code{S},
-a model specification \code{model}, and a weight pattern \code{W.model} and 
-returns a named vector of parameter estimates. The default is \code{\link{weight.pls}}}
+\item{weightFun}{A function for calculating indicator weights using the data covariance matrix
+\code{S}, a model specification \code{model}, and a weight pattern \code{W.model}. Returns
+a weigth matrix \code{W}. The default is \code{\link{weightFun.pls}}}
 
-\item{parameterEstimator}{A function that takes three or more arguments, the data covariance matrix \code{S},
-model specification \code{model}, and weights \code{W} and returns a named vector of parameter estimates. The default is \code{\link{params.separate}}}
+\item{parameterEstim}{A function for estimating the model parameters using
+the data covariance matrix \code{S}, model specification \code{model}, 
+and weight matrix \code{W}. Returns a named vector of parameter estimates.
+The default is \code{\link{parameterEstim.separate}}}
 
-\item{weightSignCorrection}{A function that is applied to weights to correct their signs before parameter estimation.}
+\item{weightSign}{A function for resolving weight sign ambiquity based on the data covariance matrix
+\code{S} and a weight matrix \code{W}.  Returns
+a weigth matrix \code{W}. See \code{\link{weightSign}}
+for details.}
 
-\item{...}{All other arguments are passed through to \code{weightFunction} and \code{parameterEstimator}.}
+\item{...}{All other arguments are passed through to \code{weightFun} and \code{parameterEstim}.}
 
 \item{validateInput}{If \code{TRUE}, the arguments are validated.}
 
@@ -66,8 +71,8 @@ uses the weights to estimate the parameters of a statistical model.
 }
 \details{
 \code{matrixpls} is the main function of the matrixpls package. This function
-parses a model object and then uses the results to call \code{weightFunction} to
-to calculate indicator weight. After this the \code{parameterEstimator} function is
+parses a model object and then uses the results to call \code{weightFun} to
+to calculate indicator weight. After this the \code{parameterEstim} function is
 applied to the indicator weights, the data covariance matrix,
 and the model object and the resulting parameter estimates are returned.
 
@@ -112,10 +117,10 @@ Rosseel, Y. (2012). lavaan: An R Package for Structural Equation Modeling. \emph
 Wold, H. (1982). Soft modeling - The Basic Design And Some Extensions. In K. G. Jöreskog & S. Wold (Eds.),\emph{Systems under indirect observation: causality, structure, prediction} (pp. 1–54). Amsterdam: North-Holland.
 }
 \seealso{
-Weight algorithms: \code{\link{weight.pls}}; \code{\link{weight.fixed}}; \code{\link{weight.optim}}; \code{\link{weight.principal}}; \code{\link{weight.factor}}
+Weight algorithms: \code{\link{weightFun.pls}}; \code{\link{weightFun.fixed}}; \code{\link{weightFun.optim}}; \code{\link{weightFun.principal}}; \code{\link{weightFun.factor}}
 
 Weight sign corrections:\code{\link{weightSign.Wold1985}}; \code{\link{weightSign.dominantIndicator}}
 
-Parameter estimators: \code{\link{params.separate}}
+Parameter estimators: \code{\link{parameterEstim.separate}}
 }
 

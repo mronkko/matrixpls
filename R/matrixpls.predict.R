@@ -10,7 +10,7 @@
 #'
 #'@param newData A data frame or a matrix containing data used for prediction.
 #'
-#'@predictionType "exogenous" (default) predicts indicators from exogenous composites. "redundancy"
+#'@param predictionType "exogenous" (default) predicts indicators from exogenous composites. "redundancy"
 #'and "communality" are alternative strategies described by Chin (2010).
 #'
 #'@param means A vector of means of the original data used to calculate intercepts for the

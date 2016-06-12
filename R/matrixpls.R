@@ -36,9 +36,9 @@
 #'
 #'\preformatted{
 #'matrixpls(S, model, W.model = NULL, 
-#'           weightFunction = weight.pls, 
-#'           parameterEstimator = params.separate,
-#'           weightSignCorrection = NULL, ..., 
+#'           weightFun = weightFun.pls, 
+#'           parameterEstim = parameterEstim.separate,
+#'           weightSign = NULL, ..., 
 #'           validateInput = TRUE, standardize = TRUE)
 #'}
 #'
@@ -47,8 +47,8 @@
 #'which is estimated in the second stage and \code{W.model} defines how the indicators are to be
 #'aggregated as composites. If \code{W.model} is left undefined, it will be constructed based on
 #'\code{model} following rules that are explained elsewhere in the documentation.
-#' \code{weightFunction} and 
-#'\code{parameterEstimator} are functions that 
+#' \code{weightFun} and 
+#'\code{parameterEstim} are functions that 
 #'implement the first and second task of the function respectively. All other arguments are passed 
 #'down to these two functions, which in turn can pass arguments to other functions that they call.
 #'
@@ -61,13 +61,13 @@
 #'
 #'\preformatted{
 #'matrixpls(S, model, 
-#'           outerEstimators = outer.modeB,
-#'           innerEstimator = inner.centroid)
+#'           outerEstim = outerEstim.modeB,
+#'           innerEstim = innerEstim.centroid)
 #'}
 #'
-#'The arguments \code{outerEstimators} and \code{innerEstimator} are not defined by the
-#'\code{matrixpls} function, but are passed down to \code{weight.pls} which is used as the default
-#'\code{weightFunction}. \code{outer.modeB} and \code{inner.centroid} are themselves functions provided
+#'The arguments \code{outerEstim} and \code{innerEstim} are not defined by the
+#'\code{matrixpls} function, but are passed down to \code{weightFun.pls} which is used as the default
+#'\code{weightFun}. \code{outerEstim.modeB} and \code{innerEstim.centroid} are themselves functions provided
 #'by the \pkg{matrixpls} package, which perform the actual inner and outer estimation stages of the
 #'PLS algorithm. Essentially, all parts of the estimation algorithm can be provided as arguments for
 #'the main function. This allows for adjusting the inner workings of the algorithm in a way that is
@@ -78,12 +78,12 @@
 #'
 #'\preformatted{
 #'myModeB <- function(...)\{
-#'   abs(outer.ModeB(...))
+#'   abs(outerEstim.ModeB(...))
 #'\}
 #'
 #'matrixpls(S, model,
-#'           outerEstimators = myModeB,
-#'           innerEstimator = inner.centroid)
+#'           outerEstim = myModeB,
+#'           innerEstim = innerEstim.centroid)
 #'}
 #'
 #'@references
@@ -125,6 +125,56 @@
 #'@name matrixpls-common
 NULL
 
+#'All estimation function types
+#'
+#'The following describes all estimation function types used in \pkg{matrixpls} package.
+#'
+#'@param weightFun A function for calculating indicator weights using the data covariance matrix
+#' \code{S}, a model specification \code{model}, and a weight pattern \code{W.model}. Returns
+#' a weigth matrix \code{W}. The default is \code{\link{weightFun.pls}}
+#'
+#'@param parameterEstim A function for estimating the model parameters using
+#'the data covariance matrix \code{S}, model specification \code{model}, 
+#'and weight matrix \code{W}. Returns a named vector of parameter estimates.
+#'The default is \code{\link{parameterEstim.separate}}
+#'
+#'@param estimator A function for estimating the parameters of one model matrix using
+#'the data covariance matrix \code{S}, a model matrix \code{modelMatrix}, and a weight matrix
+#'\code{W}. Disattenuated composite correlation matrix \code{C} and indicator composite 
+#'covariance matrix \code{IC} are optional. Returns matrix of parameter estimates.
+#'The default is \code{\link{estimator.ols}}
+#'
+#'@param weightSign A function for resolving weight sign ambiquity based on the data covariance matrix
+#' \code{S} and a weight matrix \code{W}.  Returns
+#' a weigth matrix \code{W}. See \code{\link{weightSign}}
+#' for details. 
+#' 
+#'@param outerEstim A function for calculating outer weights using the data covariance matrix
+#' \code{S}, a weight matrix \code{W}, an inner weight matrix \code{E},
+#'and a weight pattern \code{W.model}. Returns
+#'a weigth matrix \code{W}. See \code{\link{outerEstim}}.
+#'
+#'@param innerEstim A function for calculating inner weights using  the data covariance matrix
+#'\code{S}, a weight matrix \code{W}, and an inner model matrix \code{inner.mod}. Returns
+#'an inner weigth matrix \code{E}. The default is \code{\link{innerEstim.path}}.
+
+#'@param convCheck A function that takes the old \code{Wold} and new weight \code{Wold} matrices and
+#'returns a scalar that is compared against \code{tol} to check for convergence. The default
+#'is \code{\link{convCheck.absolute}}.
+#'
+#'@param optimCrit A function for calculating value for an optimization criterion based on a
+#'\code{matrixpls} result object. Returns a scalar. The default is \code{\link{optimCrit.maximizeInnerR2}}. 
+#'
+#'@param reliabilities A function for calculating reliability estimates based on the 
+#'data covariance matrix \code{S}, factor loading matrix \code{loadings}, and a weight matrix \code{W}.
+#'Returns a vector of reliability estimates. The default is
+#' \code{\link{reliabilityEstim.weightLoadingProduct}}
+#' 
+
+
+#'@name matrixpls-functions
+NULL
+
 # =========== Main functions ===========
 
 #'Partial Least Squares and other composite variable models.
@@ -133,8 +183,8 @@ NULL
 #'uses the weights to estimate the parameters of a statistical model.
 #'
 #'\code{matrixpls} is the main function of the matrixpls package. This function
-#'parses a model object and then uses the results to call \code{weightFunction} to
-#'to calculate indicator weight. After this the \code{parameterEstimator} function is
+#'parses a model object and then uses the results to call \code{weightFun} to
+#'to calculate indicator weight. After this the \code{parameterEstim} function is
 #'applied to the indicator weights, the data covariance matrix,
 #'and the model object and the resulting parameter estimates are returned.
 #'
@@ -148,28 +198,20 @@ NULL
 #'elements of \code{model}.
 #'
 #'@inheritParams matrixpls-common
-#'
-#'@param weightFunction A function that takes three or more arguments, the data covariance matrix \code{S},
-#'a model specification \code{model}, and a weight pattern \code{W.model} and 
-#' returns a named vector of parameter estimates. The default is \code{\link{weight.pls}}
-#'
-#'@param parameterEstimator A function that takes three or more arguments, the data covariance matrix \code{S},
-#'model specification \code{model}, and weights \code{W} and returns a named vector of parameter estimates. The default is \code{\link{params.separate}}
-#'
-#'@param weightSignCorrection A function that is applied to weights to correct their signs before parameter estimation.
+#'@inheritParams matrixpls-functions
 #'
 #'@param validateInput If \code{TRUE}, the arguments are validated.
 #'
 #'@param standardize If \code{TRUE}, \code{S} is converted to a correlation matrix before analysis.
 #' 
-#'@param ... All other arguments are passed through to \code{weightFunction} and \code{parameterEstimator}.
+#'@param ... All other arguments are passed through to \code{weightFun} and \code{parameterEstim}.
 #'
 #'@seealso 
-#'Weight algorithms: \code{\link{weight.pls}}; \code{\link{weight.fixed}}; \code{\link{weight.optim}}; \code{\link{weight.principal}}; \code{\link{weight.factor}}
+#'Weight algorithms: \code{\link{weightFun.pls}}; \code{\link{weightFun.fixed}}; \code{\link{weightFun.optim}}; \code{\link{weightFun.principal}}; \code{\link{weightFun.factor}}
 #'
 #'Weight sign corrections:\code{\link{weightSign.Wold1985}}; \code{\link{weightSign.dominantIndicator}}
 #'
-#'Parameter estimators: \code{\link{params.separate}}
+#'Parameter estimators: \code{\link{parameterEstim.separate}}
 #'
 #'@return A named numeric vector of class \code{matrixpls} containing the parameter estimates followed by weights.
 #'
@@ -184,8 +226,8 @@ NULL
 #'
 
 
-matrixpls <- function(S, model, W.model = NULL, weightFunction = weight.pls,
-                      parameterEstimator = params.separate, weightSignCorrection = NULL,
+matrixpls <- function(S, model, W.model = NULL, weightFun = weightFun.pls,
+                      parameterEstim = parameterEstim.separate, weightSign = NULL,
                       ..., validateInput = TRUE, standardize = TRUE) {
   
   
@@ -237,17 +279,17 @@ matrixpls <- function(S, model, W.model = NULL, weightFunction = weight.pls,
   
   # Calculate weight.
   
-  W <- weightFunction(S, W.model = W.model,
-                      model = nativeModel, parameterEstimator = params.separate,
+  W <- weightFun(S, W.model = W.model,
+                      model = nativeModel, parameterEstim = parameterEstim.separate,
                       ..., validateInput = validateInput, standardize = standardize)
   
   # Correct the signs of the weights
   
-  if(!is.null(weightSignCorrection)) W <- weightSignCorrection(W, S)
+  if(!is.null(weightSign)) W <- weightSign(W, S)
   
   # Apply the parameter estimator and return the results
   
-  estimates <- parameterEstimator(S, model, W, ...)
+  estimates <- parameterEstim(S, model, W, ...)
   
   ##################################################################################################
   #

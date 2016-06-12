@@ -10,7 +10,7 @@
 #'Parameter estimation functions estimate the parameters of a model matrix (\code{inner},
 #'\code{reflective}, or \code{formative}). These functions can be used as \code{parametersInner},
 #'\code{parametersReflective}, and \code{parametersFormative} arguments for 
-#'\code{\link{params.separate}}.
+#'\code{\link{parameterEstim.separate}}.
 #'
 #'When two-stage least squares regression is applied with \code{estimator.tsls}, all
 #'exogenous variables are used as instrumental varuables. There is currently no check of whether sufficient
@@ -41,11 +41,11 @@
 #'
 #'@return A matrix with estimated parameters.
 #'
-#'@name parameterEstimators
+#'@name estimator
 #'
 NULL
 
-#'@describeIn parameterEstimators parameter estimation with OLS regression. Can be applied to \code{inner}, \code{reflective},
+#'@describeIn estimator parameter estimation with OLS regression. Can be applied to \code{inner}, \code{reflective},
 #'or \code{formative} matrix.
 #'@export
 
@@ -94,7 +94,7 @@ estimator.ols <- function(S, modelMatrix, W, ..., C = NULL, IC = NULL){
   return(modelMatrix)
 }
 
-#'@describeIn parameterEstimators parameter estimation with two-stage least squares regression. For \code{inner} matrix only.
+#'@describeIn estimator parameter estimation with two-stage least squares regression. For \code{inner} matrix only.
 #'@export
 
 
@@ -157,7 +157,7 @@ estimator.tsls <- function(S, modelMatrix, W, ..., C){
   return(modelMatrix)
 }
 
-#'@describeIn parameterEstimators parameter estimation with Dijkstra's (2011) PLSc correction for loadings.  For \code{reflective} matrix only.
+#'@describeIn estimator parameter estimation with Dijkstra's (2011) PLSc correction for loadings.  For \code{reflective} matrix only.
 #'@author Mikko Rönkkö, Wenjing Huang, Theo Dijkstra
 #'
 #'@references
@@ -226,7 +226,7 @@ estimator.plscLoadings <- function(S, modelMatrix, W,  ...){
   return(L)
 }
 
-#'@describeIn parameterEstimators parameter estimation with one indicator block at at time with exploratory
+#'@describeIn estimator parameter estimation with one indicator block at at time with exploratory
 #'factor analysis using the \code{\link[psych]{fa}} function from the \code{psych} package. For \code{reflective} matrix only.
 #'@param fm factoring method for estimating the factor loadings. Passed through to \code{\link[psych]{fa}}.
 #'@export
@@ -262,7 +262,7 @@ estimator.efaLoadings <- function(S, modelMatrix, W,  ... , fm = "minres"){
   return(L)
 }
 
-#'@describeIn parameterEstimators Estimates a maximum likelihood confirmatory factor analysis with \code{\link[lavaan]{lavaan}}.  For \code{reflective} matrix only.
+#'@describeIn estimator Estimates a maximum likelihood confirmatory factor analysis with \code{\link[lavaan]{lavaan}}.  For \code{reflective} matrix only.
 #'@export
 
 estimator.cfaLoadings <- function(S, modelMatrix, W, ...){
@@ -317,7 +317,7 @@ estimator.cfaLoadings <- function(S, modelMatrix, W, ...){
 }
 
 
-#'@describeIn parameterEstimators parameter estimation with PLS regression. For \code{inner} matrix only.
+#'@describeIn estimator parameter estimation with PLS regression. For \code{inner} matrix only.
 #'@export
 #'@author
 #'Mikko Rönkkö, Gaston Sanchez, Laura Trinchera, Giorgio Russolillo

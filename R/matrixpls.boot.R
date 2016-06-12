@@ -39,7 +39,7 @@
 #'
 #'@param ... All other arguments are passed through to \code{\link{matrixpls}} and \code{\link[boot]{boot}}.
 #'
-#'@param signChangeCorrection Sign change correction function.
+#'@param signChange Sign change correction function.
 #'
 #'@param extraFun A function that takes a \code{matrixpls} object and returns a numeric vector. The
 #'vector is appended to bootstrap replication. Can be used for boostrapping additional
@@ -78,7 +78,7 @@
 #'
 #'
 matrixpls.boot <- function(data, model, ..., R = 500,
-                           signChangeCorrection = NULL,
+                           signChange = NULL,
                            parallel = c("no", "multicore", "snow"),
                            ncpus = getOption("boot.ncpus", 1L),
                            dropInadmissible = FALSE,
@@ -99,17 +99,17 @@ matrixpls.boot <- function(data, model, ..., R = 500,
   
   # Prepare sign change corrections
   
-  if(! is.null(signChangeCorrection)){
+  if(! is.null(signChange)){
     Worig <- attr(matrixpls(stats::cov(data),...), "W")
     
     # Get the original weight function
-    weightFunction <- arguments[["weightFunction"]]
-    if(is.null(weightFunction)) weightFunction <- weight.pls
+    weightFun <- arguments[["weightFunction"]]
+    if(is.null(weightFun)) weightFunction <- weightFun.pls
     
     # Wrap inside sign change correction
-    arguments[["weightFunction"]] <- function(S, ...){
-      Wrep <- weightFunction(S, ...)
-      W <- signChangeCorrection(Worig, Wrep)
+    arguments[["weightFun"]] <- function(S, ...){
+      Wrep <- weightFun(S, ...)
+      W <- signChange(Worig, Wrep)
       W <- scaleWeights(S, W)
       attributes(W) <- attributes(Wrep)
       W

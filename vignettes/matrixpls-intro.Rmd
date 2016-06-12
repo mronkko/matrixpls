@@ -1,0 +1,1312 @@
+---
+author:
+  name: Mikko Rönkkö
+  affiliation: Aalto University
+  address: >
+      Aalto University, School of Science
+      Department of Industrial Management, Institute of Strategy and Venturing
+      PO Box 15500, FI-00076 Aalto, Finland
+  email: mikko.ronkko@aalto.fi
+title:
+  # formatted: "\\pkg{matrixpls}: Matrix-based Partial Least Squares estimation"
+  # If you use tex in the formatted title, also supply version without
+  #plain:     "matrixpls: Matrix-based Partial Least Squares estimation"
+  # For running headers, if needed
+  #short:     "\\pkg{matrixpls}: Matrix-based PLS"
+  
+  formatted: "Introduction to \\pkg{matrixpls}"
+  plain:     "Introduction to matrixpls"
+  short:     "Introduction to \\pkg{matrixpls}"
+  
+abstract: >
+  \pkg{matrixpls} calculates composite variable models using partial least squares (PLS)
+  algorithm and related methods. In contrast to most other PLS software which implement
+  the raw data version of the algorithm, \pkg{matrixpls} works with data covariance matrices. The 
+  algorithms are designed to be computationally efficient, modular in programming, and well documented.
+  \pkg{matrixpls} integrates with \pkg{simsem} to enable Monte Carlo simulations with as little custom
+  programming as possible.
+keywords:
+# at least one keyword must be supplied
+  formatted: [partial least squares, generalized structured component analysis, composite-based modeling, "\\proglang{R}"]
+  plain:     [partial least squares, generalized structured component analysis, composite-based modeling, R]
+
+preamble: >
+  \usepackage{amsmath,amsfonts,amssymb}
+  \usepackage{bm}
+  \usepackage{placeins}
+  \usepackage{longtable}
+  \usepackage{booktabs}
+  
+bibliography: matrixpls-intro.bib
+output: rticles::jss_article
+#output:
+#  pdf_document:
+#    keep_md:true
+
+vignette: >
+  %\VignetteIndexEntry{Introduction to matrixpls}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+
+---
+
+# Introduction
+
+\pkg{matrixpls} calculates models where sets of indicator variables are combined as weighted composites. 
+These composites are then used to estimate a statistical model describing the relationships between
+the composites and composites and indicators. While a number of such methods exists, the partial
+least squares (PLS) technique is perhaps the most widely used.
+
+PLS has recently gained popularity in several disciplines as an alternative approach to structural 
+equation modeling (SEM) or as an alternative to SEM itself 
+[@hair_use_2012;@hair_assessment_2012;@ringle_critical_2012;@ronkko_critical_2013] 
+The route through which PLS emerged into the mainstream in these disciplines was rather unorthodox.
+The PLS method was first published in the 1966 and slowly developed through the 70's and early 80's
+by Herman Wold [-@wold_nonlinear_1966;-@wold_causal_1974;-@wold_model_1980;-@joreskog_soft_1982;-@wold_systems_1985].
+Originally developed as an iterative least squares method for calculating principal components,
+canonical correlations, and other similar statistic, the method was later adopted as an approximate
+estimation algorithm for structural equation models with latent variables. However, 
+Dijkstra [-@dijkstra_comments_1983] soon proved that the PLS method was not consistent when used for this
+purpose and the PLS method never gained much attention from other econometricians or other
+researchers specializing in statistical analysis. Consequently, the PLS method is currently almost 
+completely absent from the mainstream journals on research methods [@ronkko_critical_2013]. 
+
+The PLS method re-emerged, however, in the marketing and information systems disciplines 
+[@hair_partial_2012], in which the popularity of the method can be attributed to a number of
+introductory articles that present PLS as an SEM method that has less stringent assumptions
+concerning the data and that avoids many of the perceived difficulties of SEM. The articles
+published by these applied scholars, and particularly a paper by Fornell and Bookstein [-@fornell_two_1982] and a book
+chapter by Chin [-@chin_partial_1998], formed the core of the modern understanding of the PLS method.
+These publications were followed by a number of articles that provided guidelines for application of
+PLS in disciplines such as strategic management [@hulland_use_1999], operations management
+[@peng_using_2012], marketing [@hair_use_2011], and information systems 
+[@gefen_update_2011].
+
+Today PLS is used extensively in information systems and marketing 
+[@hair_assessment_2012;@henseler_use_2009;@ringle_critical_2012] and is increasingly used in 
+management and organizational research [@hair_use_2012;@ronkko_critical_2013], and has also been
+introduced into psychology [@willaby_testing_2015]. However, the popularity of the method has
+also brought with it an increasing number of arcticles critical of the method 
+[@ronkko_critical_2013;@evermann_is_2013;@ronkko_effects_2014;@ronkko_adoption_2015;@ronkko_construct_2010;@antonakis_making_2010;@goodhue_does_2012;@goodhue_why_2013]. These critics claim that many of the beliefs about the capabilities of the
+PLS method as an estimator of latent variable structural equations are unsubstantiated and not true,
+that the method capitalizes on chance, and that it does not have valid statistical tests.
+Some even go as far as declaring that the PLS method should never be used [@antonakis_making_2010].
+
+PLS has been challenged by algorithms that are argued to be superior by their 
+developers. Hwang and Takane [-@hwang_generalized_2014;-@hwang_generalized_2004] proposed generalized structured component 
+analysis (GSCA) arguing that it is superior over PLS because it has an explicit optimization criterion,
+which the PLS algorithm lacks. Dijkstra [-@dijkstra_consistent_2011;@dijkstra_consistent_2015;@dijkstra_consistent_2015-1]
+proposed that PLS can be made consistent by applying disattenuation, referring to this estimator as
+PLSc. Huang [-@huang_plse:_2013;@bentler_components_2014] proposed two additional estimators that
+parameterize LISREL estimators based on Dijkstra's PLSc estimator. These estimators, referred
+to as PLSe1 an PLSe2 are argued to be more efficient than the consistent PLSc estimator.
+
+The \pkg{matrixpls} package implements a collection of PLS techniques as well as the more recent 
+GSCA and PLSc
+<!--- PLSe1, and PLSe2 --->
+techniques and older methods based on analysis with composite variables,
+such as regression with
+unit weighted composites or factor scores. The package provides a unified
+framework that enables the comparison and analysis of these algorithms. In contrast to previous R
+packages for PLS, such as \pkg{plspm} [@plspm] and \pkg{semPLS} [@sempls] and all currently
+available commercial PLS software, which work with
+raw data, \pkg{matrixpls} calculates the indicator weights and model estimates from data covariance 
+matrices. Working with covariance data allows for reanalyzing covariance matrices that are sometimes
+published as appendices of articles, is computationally more efficient, and lends itself more easily
+for formal analysis than implementations based on raw data. 
+
+\pkg{matrixpls} has modular design that is easily expanded and contains more calculation options
+than the two other PLS packages for \proglang{R}. To allow validation of the algorithms by end users
+and to help porting existing analysis files from the two other \proglang{R} packages to 
+\pkg{matrixpls}, the package contains compatibility functions for both \pkg{plspm} and \pkg{semPLS}.
+
+## Overview of design principles and the package functionality
+
+```{r, include = FALSE}
+# Load all packages that we need
+library(semPLS)
+library(simsem)
+library(lavaan)
+library(matrixpls)
+library(boot)
+# Read content from matrixpls.R and include here
+
+options(digits=2)
+
+print.matrix <- function(x,...){
+  if(is.numeric(x)){
+    x <- round(x, digits = 2)
+    print.default(x, ...)
+  } 
+  else print.default(x,...)
+}
+
+print.numeric <- function(x,...){
+  print.default(round(x, digits = 2),...)
+}
+
+library(stringr)
+
+readParagraphsFromMan <- function(fileName, paragraphs){
+  
+  tf <- paste("../../man/",fileName,".Rd",sep="")
+  #    tempfile()
+  
+  #  system(paste(shQuote(file.path(R.home("bin"), "R")), 
+  #               "CMD", "Rdconv","-o",tf, "-t","latex", 
+  #               paste("../../man/",fileName,".Rd",sep=""))) 
+  
+  text <- readChar(tf, file.info(tf)$size)
+  text <- strsplit(text,paste("\n\n|",
+                              "\\}\n\\\\description\\{|",
+                              "\\}\n\\\\details\\{|",
+                              "\\}\n\\\\usage\\{|",
+                              "\\}\n\\\\arguments\\{",sep=""))
+  
+  text <- paste(text[[1]][paragraphs],collapse="\n\n")
+  text <- str_replace_all(text,"\\\\link\\{([a-z]*)\\}","\\1")
+  
+  text <- str_replace_all(text,"\\\\preformatted\\{","\\\\begin\\{verbatim\\}")
+  text <- str_replace_all(text,"\n\\}","\n\\\\end\\{verbatim\\}\n")
+  text <- str_replace_all(text,"\\\\\\}","\\}")
+  text <- str_replace_all(text,"\\\\\\{","\\{")
+  text
+}
+
+text <- readParagraphsFromMan("matrixpls-package",6:14)
+``` 
+
+`r text`
+
+Extending the package with more functions is explained in more detail in the end of the paper.
+
+```{r, include = FALSE, echo=FALSE, warning=FALSE, cache=TRUE}
+library(matrixpls)
+library(plspm)
+library(semPLS)
+
+source("../../demo/benchmark.R")
+
+R <- 100
+Rboot <- 1000
+
+# Adapted from detectCores in parallel
+CPUinfo <- "(CPU info not available)"
+
+systems <- list(darwin = "/usr/sbin/sysctl -n machdep.cpu.brand_string 2>/dev/null")
+
+for (i in seq(systems)) if (length(grep(paste0("^", names(systems)[i]), R.version$os))) 
+  for (cmd in systems[i]) {
+    a <- try(suppressWarnings(system(cmd, TRUE)), silent = TRUE)
+    if (inherits(a, "try-error")) 
+      next
+    CPUinfo <- a
+  }
+
+``` 
+
+
+## Model matrices
+
+Model can be specified in the lavaan format [@rosseel_lavaan:_2012] or the native matrixpls format.
+The native model format is a list of three binary matrices, \code{inner}, \code{reflective},
+and \code{formative} specifying the free parameters of a model: \code{inner} (\code{l x l}) specifies the 
+regressions between composites, \code{reflective} (\code{k x l}) specifies the regressions of observed
+data on composites, and \code{formative} (\code{l x k}) specifies the regressions of composites on the
+observed data. Here \code{k} is the number of observed variables and \code{l} is the number of composites.
+
+If the model is specified in lavaan format, the native
+format model is derived from this model by assigning all regressions between latent
+variables to \code{inner}, all factor loadings to \code{reflective}, and all regressions
+of latent variables on observed variables to \code{formative}. Regressions between
+observed variables and all free covariances are ignored. All parameters that are
+specified in the model will be treated as free parameters.
+
+The original papers about Partial Least Squares, as well as many of the current PLS
+implementations, impose restrictions on the matrices \code{inner},
+\code{reflective}, and \code{formative}: \code{inner} must be a lower triangular matrix,
+\code{reflective} must have exactly one non-zero value on each row and must have at least
+one non-zero value on each column, and \code{formative} must only contain zeros.
+Some PLS implementations allow \code{formative} to contain non-zero values, but impose a
+restriction that the sum of \code{reflective} and \code{t(formative)} must satisfy
+the original restrictions of \code{reflective}. The only restrictions that matrixpls
+imposes on \code{inner}, \code{reflective}, and \code{formative} is that these must be
+binary matrices and that the diagonal of \code{inner} must be zeros.
+
+The argument \code{W.model} is a (\code{l x k}) matrix that indicates
+how the indicators are combined to form the composites. The original papers about
+Partial Least Squares as well as all current PLS implementations define this as
+\code{t(reflective) | formative}, which means that the weight patter must match the
+model specified in \code{reflective} and \code{formative}. Matrixpls does not
+require that \code{W.model} needs to match \code{reflective} and \code{formative}, but
+accepts any numeric matrix. If this argument is not specified, all elements of \code{W.model} that
+correspond to non-zero elements in the \code{reflective} or \code{formative} formative
+matrices receive the value 1.
+
+## Performance
+
+
+This design principle and the use of covariance matrices instead of raw data make
+\pkg{matrixpls} substantially more computationally efficient
+than the other two R packages that implement PLS path modeling algorithms.
+Table \ref{timings1} and \ref{timings2} benchmark the performance of \pkg{matrixpls} `r packageVersion("matrixpls")`
+against \pkg{plspm} `r packageVersion("plspm")` and
+\pkg{semPLS} `r packageVersion("semPLS")` using the \code{satisfaction} example distributed with
+\pkg{plspm} on \proglang{R} version `r getRversion()` running on `r CPUinfo`. Parallel
+bootstrapping results are presented only for \pkg{matrixpls} because the two other packages
+do not support parallel computing.
+
+\begin{table}[!htbp]
+\centering
+\caption{Timings for \pkg{plspm}, \pkg{semPLS}, and \pkg{matrixpls} for `r R` replications}
+\label{timings1}
+\begin{tabular}{lr}
+\toprule
+&Time elapsed (seconds)\\
+\midrule
+\pkg{plspm}&`r format(plspm_no_boot[[3]], nsmall=2, digits = 2)`\\
+\pkg{semPLS}&`r format(sempls_no_boot[[3]], nsmall=2, digits = 2)`\\
+\pkg{matrixpls}&`r format(matrixpls_no_boot[[3]], nsmall=2, digits = 2)`\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[!htbp]
+\centering
+\caption{Timings for \pkg{plspm}, \pkg{semPLS}, and \pkg{matrixpls} for `r Rboot` bootstrap replications}
+\label{timings2}
+\begin{tabular}{lr}
+\toprule
+&Time elapsed (seconds)\\
+\midrule
+\pkg{plspm}&`r format(plspm_boot[[3]], nsmall = 2, digits = 2)`\\
+\pkg{semPLS}&`r format(sempls_boot[[3]], nsmall = 2, digits = 2 )`\\
+\pkg{matrixpls} (single core)&`r format(matrixpls_boot[[3]], nsmall = 2 , digits = 2)`\\
+\pkg{matrixpls} (multicore)&`r format(matrixpls_boot_multicore[[3]], nsmall = 2 , digits = 2)`\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+# Estimation using covariance data
+
+The following sections provide an overview of the package functionality through code examples.
+
+## Basic PLS estimation
+
+In a typical PLS implementation, the indicator weights are calculated iteratively starting from equal 
+weights and then recalculating the weights for each composite in two steps, called inner and outer 
+estimation. In the inner estimation step, new composites are calculated as weighted sums of 
+"adjacent" composites, that is, composites that are directly related to the focal composite by 
+regression relationships. The three commonly used "schemes" for inner estimation are centroid, path,
+and factor schemes. In practice these results often very similar results and are thus not discussed
+in detail here, but detailed descriptions can be found in the \pkg{matrixpls} reference manual. 
+The inner estimation step is calculated based on composite correlation matrix \code{C}, which is 
+calculated as:
+
+\begin{eqnarray}
+\bm{C} = \bm{W}^\intercal \bm{S} \bm{W}
+\end{eqnarray}
+
+where $\bm{S}$ is the $(k \times k)$ indicator covariance matrix, and $\bm{W}$ is the $(l \times k)$ 
+weight matrix, and $k$ is the number of indicators and $l$ is the number of observed variables.
+
+In the outer estimation step, new indicator weights are calculated in one 
+of two ways. In Mode A estimation, the observed variables are regressed on the composites, whereas
+in Mode B estimation, the composites are regressed on the observed variables. The new indicator 
+weights are then used to calculate new composites for the following round of inner estimation.
+These two steps are repeated until the changes in the indicator weights become sufficiently small to
+consider the model converged.
+
+The correlations between the indicators and composites after inner estimation required for outer
+estimation are calculated as 
+
+\begin{eqnarray}
+\bm{IC} = \bm{S} \bm{W}  \bm{E}
+\end{eqnarray}
+
+where $\bm{E}$ is a $(l \times l)$ inner weight matrix.
+
+The \pkg{matrixpls} PLS  weight algorithm implementation is summarized in Table \ref{plsweights}
+
+\begin{table}[!htbp]
+\centering
+\caption{PLS weight algorithm}
+\label{plsweights}
+\begin{tabular}{lp{8cm}}
+\toprule
+Inner estimation & Inner estimation function is applied to the data covariance matrix \code{S},
+weight matrix \code{W}, and composite variable model matrix \code{inner}. The function returns an inner weight matrix \code{E}.\\
+Outer estimation& Outer estimation function is applied to the data covariance matrix \code{S},
+weight matrix \code{W}, inner weight matrix \code{E}, and weight model matrix \code{W.model}.
+The function returns a weight matrix \code{W}.\\
+Convergence check& Convergence check function is applied to the weight matrix \code{W} before and
+after outer estimation. This function returns a scalar that is compared
+against the tolerance value. If the scalar is smaller than the tolerance
+value, the algorithm converges. Otherwise, a new iteration is started.\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\FloatBarrier
+
+The PLS weight algorithm is implemented with the \code{weightFun.pls} function:
+
+```{r, include = TRUE, echo=FALSE, warning=FALSE, cache=FALSE}
+text <- readParagraphsFromMan("weightFun",2)
+``` 
+
+\begin{verbatim}
+`r text`
+\end{verbatim}
+
+The inner and outer estimation functions define the weight algorithm. The package includes all
+well-known and a number of less known functions. The built-in outer estimation functions are listed
+in Table \ref{plsouter} and Table \ref{plsinner} lists the inner estimators.
+
+\begin{table}[!htbp]
+\centering
+\caption{Outer weight functions}
+\label{plsouter}
+\begin{tabular}{lp{8cm}}
+\toprule
+outerEstim.modeA& PLS Mode A weights. Returns weights that are proportional to correlations between indicators and composites\\
+outerEstim.modeB& PLS Mode B weights. Returns weights that are proportional to coefficients from regression of composites on indicators. \\
+outerEstim.gsca& GSCA outer weights. Described later in the paper.\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[!htbp]
+\centering
+\caption{Inner weight functions}
+\label{plsinner}
+\begin{tabular}{lp{8cm}}
+\toprule
+innerEstim.path& Path weighting scheme. Returns inner weights based on regressions and correlations of adjacent composites. (default)\\
+innerEstim.centroid& Centroid weighting scheme. Returns signs of correlations of adjacent composites as weights\\
+innerEstim.factor&Factor weighting scheme. Returns correlations of adjacent compositesas weights\\
+innerEstim.identity& Returns identity matrix as inner weights. Each composite is used as its own inner approximation\\
+innerEstim.gsca&  GSCA inner weights. Described later in the paper.\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\code{outerEstim} can be either a single function or a list of functions with lenght equal to
+the number of composites. If just one function is provided, the same function will be used for all
+composites. The default is to use Mode A and Mode B based on the \code{reflective} and 
+\code{formative} parts of \code{model} following the tradition in the PLS literature. If at least
+one of the indicators that belong to a composite is specified as being regressed on
+the composite in the \code{reflective} matrix, then Mode A is used for that composite. Otherwise
+Mode B is used.
+
+After the weights have been calculated, the parameter estimator function defined provided in the
+\code{parameterEstim} argument is applied to the data covariance matrix \code{S}, the weight
+matrix \code{W}, and \code{model}. The default estimation command, \code{params.separate}, 
+processes the three model matrices, \code{inner}, \code{reflective}, and \code{formative},
+separately by default applying OLS regression row by row. This follows the tradition in PLS analysis.
+Extensions to this technique are discussed later in the paper when discussing consistent PLSc estimation.
+
+\FloatBarrier
+
+### Example: Customer satisfaction 
+
+The following code example demonstrates a PLS analysis by replicating the customer satisfaction
+example from the \pkg{plspm} package:
+
+
+\begin{small}
+```{r, echo=FALSE, warnings = FALSE, include=FALSE}
+library(knitr)
+library(matrixpls)
+read_chunk('../../example/matrixpls-example.R', labels = "e1")
+```
+
+```{r e1}
+```
+
+\end{small}
+
+### Example: Political democracy
+
+The following code example demonstrates a PLS analysis by replicating the political democracy
+example from the \pkg{lavaan} package:
+
+\begin{small}
+
+```{r, echo=FALSE, warnings = FALSE, include=FALSE}
+
+# Suppress long output
+
+print.matrix <- function(x,...){
+  if(is.numeric(x)){
+    x <- round(x, digits = 2)
+    omit <- FALSE
+    
+    if(nrow(x)>11){
+      x <- x[1:7,, drop = FALSE]
+      omit <- TRUE
+    }
+    if(ncol(x)>11){
+      x <- x[,1:11, drop = FALSE]
+      omit <- TRUE
+    }
+    print.default(x, ...)
+    
+    if(omit) cat("\n(part of the output omitted)\n")
+  } 
+  else print.default(x,...)
+}
+
+read_chunk('../../example/matrixpls-example2.R', labels = "e2")
+```
+
+```{r e2}
+```
+\end{small}
+
+The \code{matrixpls} function returns a vector of estimates with the class \code{matrixpls}. The
+final values of the matrices used in the iterative estimation procedure, weight history, and other
+data about the calcuation are returned as attributes:
+
+\begin{small}
+
+```{r}
+names(attributes(political.out))
+```
+
+\end{small}
+
+Because the \code{matrixpls} function aggregates preliminary results from all calculation stages,
+the exact matrices that are returned depend on the functions and options used. All matrices are
+described later in the paper.
+
+## Traditional indicator weighting schemes
+
+\pkg{matrixpls} implements three traditional indicator weighting systems: equal weights, factor 
+score weights, and principal component weights. The weights are calculated blockwise using the
+factor analysis and principal component analysis functions form the \pkg{psych} package 
+[@revelle_psych:_2015].
+
+The following code example demonstrates the use of these three indicator weighting systems
+and compares the results with the PLS results for the political democracy example.
+
+### Example: Traditional indicator weighting systems
+
+\begin{small}
+
+```{r}
+fixed.out <- matrixpls(cov(PoliticalDemocracy),model,
+                       weightFun = weightFun.fixed)
+factor.out <- matrixpls(cov(PoliticalDemocracy),model,
+                        weightFun = weightFun.factor)
+principal.out <- matrixpls(cov(PoliticalDemocracy),model,
+                           weightFun = weightFun.principal)
+
+cbind(political.out, fixed.out, factor.out, principal.out)
+```
+
+\end{small}
+
+Because the results objects are vectors, we can conveniently bind them as a matrix for comparison.
+The differences are small, which is to be expected because indicator weighting has generally a very
+small effect on reliability [@cohen_things_1990;@raju_accuracy_1999;@bobko_usefulness_2007].
+
+## Optimized weights
+
+The third alternative to PLS weight calculation and the more traditional indicator weight algorithms
+is optimized weights. These weights are numerically optimized to minimize a criterion value
+calculated based on the \code{matrixpls} result object. (Maximization can be done by taking a negative
+of the criterion.) Although PLS weights are
+often claimed to be optimal in the literature about PLS, the literature is unclear for which
+specific purpose the weights are
+optimal for and we consequently also lack any proofs of optimality [@ronkko_adoption_2015]. In
+contrast, numerical optimization of weights can be used to produce optimal weights.
+
+
+Optimized weights are calculated with the \code{weightFun.optim} function:
+
+\begin{verbatim}
+weightFun.optim(S, model, W.model, parameterEstim = parameterEstim.separate,
+  optimCrit = optimCrit.maximizeInnerR2, method = "BFGS", ...,
+  validateInput = TRUE, standardize = TRUE)
+\end{verbatim}
+
+The function signature is very similar to the \code{matrixpls} function. The \code{optimCriterion}
+is a function that calculates the criterion value from \code{matrixpls} return object. The criterion
+is minimized by adjusting the weights using the \code{optim} function from the \pkg{stats} package.
+The default optimization method is Broyden–Fletcher–Goldfarb–Shannon algorithm, but this can be
+changed with the \code{method} argument and other parameters, which are passed on to \code{optim}.
+
+The optimization starts by applying \code{parameterEstim} to the starting weights and calculates
+the criterion value based on the results using \code{optimCriterion} function. After this, the
+algorithm tries several alternative weights to decide the direction and step size which are used to
+decide on the new weights. Optimization proceeds then by calculating a new criterion value with the
+new weights and then calculating new direction and step size. This iterative adjustment of weights
+continues until convergence. \pkg{matrixpls} provides three built-in optimization criterion 
+functions shown in Table \ref{optimweights}.
+
+\begin{table}[!htbp]
+\centering
+\caption{Weight optimization criterion functions}
+\label{optimweights}
+\begin{tabular}{ll}
+\toprule
+optimCrit.maximizeInnerR2&Returns the negative of mean of $R^2$ of all regressions in\\
+&the \code{inner} matrix. Leads to maximising the mean $R^2$\\
+&of these regressions. (default)\\\\
+
+optimCrit.maximizeIndicatorR2&Returns the negative of mean of $R^2$ of all regressions in\\
+&the \code{reflective} matrix. Leads to maximising the mean\\
+&$R^2$ of these regressions.\\\\
+
+optimCrit.maximizeFullR2&Returns the negative of mean of $R^2$ of all regressions in\\
+&the \code{inner} matrix and the \code{reflective} matrix. Leads\\
+&to maximising the mean of $R^2$ of these regressions.\\\\
+optimCrit.gsca& GSCA optimization criterion. \\
+&Described later in the paper.\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\FloatBarrier
+
+### Example: Comparing inner model explained variance over four sets of weights
+
+In the example below we create an arbitrary correlation matrix of six variables which we use to 
+define three composites, A, B, and C of two indicators each. The composite C is then regressed
+on A and B. We compare the $R^2$ value of this regression using two sets of PLS weights, 
+equal weights, and weights optimized for maximizing $R^2$.
+
+\begin{small}
+
+```{r}
+S <- diag(6)
+S[upper.tri(S, diag = FALSE)] <- c(.3,
+                                   -.4,-.4,
+                                   .4,.4,.3,
+                                   .3,.3,.3,.3,
+                                   .3,.3,.3,.3,.3)
+S[lower.tri(S, diag = FALSE)] <- t(S)[lower.tri(S, diag = FALSE)]
+
+inner <- matrix(c(0,0,1,
+                  0,0,1,
+                  0,0,0),3,3)
+
+reflective <- diag(3)[rep(1:3, each = 2),]
+formative <- matrix(0,3,6)
+
+colnames(inner) <- rownames(inner) <- colnames(reflective) <- 
+  rownames(formative) <- c("A","B","C")
+colnames(S) <- rownames(S) <- colnames(formative) <- 
+  rownames(reflective) <- c("a1","a2","b1","b2","c1","c2")
+
+model <- list(inner = inner,
+              reflective = reflective,
+              formative = formative)
+
+modeA <- matrixpls(S,model, outerEstim = outerEstim.modeA)
+modeB <- matrixpls(S,model, outerEstim = outerEstim.modeB)
+fixed <- matrixpls(S,model, weightFun = weightFun.fixed)
+optimR2 <- matrixpls(S,model, weightFun = weightFun.optim)
+
+rbind(ModeA = r2(modeA),
+      ModeB = r2(modeB),
+      Fixed = r2(fixed),
+      Optim = r2(optimR2))
+
+```
+
+\end{small}
+
+In this particular scenario, the optimized weights result in 118% higher $R^2$ value than either of
+the PLS weights.
+
+## GSCA estimation
+
+Generalized structured component analysis differes from PLS by defining an explicit optimization
+criterion and an algorithm for weight calculation [@hwang_generalized_2004]. However, the initially
+presented algorith contained a scaling error that was corrected only after six years in 2010
+[@hwang_comparative_2010;@henseler_comparative_2010;@hwang_web_2010;@henseler_why_2012].
+\pkg{matrixpls} addresses the scaling issue by always standardizing composites and unless the
+\code{standardize} option is set to false also the indicators.
+
+The optimization criterion for the corrected GSCA is to minimize the sum of squares of all 
+regressions specified in \code{inner} and \code{reflective}, which is equivalent to maximixing the
+sum of $R^2$ of these regressions. In the original GSCA specification, the
+formative model, if included, always overlap completely with the indicators forming the composite
+and therefore the $R^2$ of regressions in the \code{formative} part of the model is always 1 and
+therefore the \code{formative} matrix is ignored when calculating the GSCA weights.
+
+The GSCA estimation algorithm consists of two steps. In the first step, all model regressions are estimated
+by minimizing the sum of squared residuals keeping the weights fixed. In the second step, the sum 
+of squared residuals of the same regressions are minimized for weights keeping the regression 
+coefficients fixed.
+
+\pkg{matrixpls} implementes GSCA using the functions \code{innerEstim.gsca} and \code{outerEstim.gsca} that are
+used with the \code{weightFun.pls} weight function. 
+The algorithm starts by generating initial composites using the starting weights. The intial
+composites are first used to estimate the inner weight matrix $\bm{E}$ consisting of the regression
+coefficients between the composites using the function \code{innerEstim.gsca}. Because some
+of the composites are exogenous to other composites, the $\bm{E}$ matrix from GSCA inner estimation
+should not be used with PLS outer estimation functions.
+
+The outer estimation function \code{outerEstim.gsca} starts by estimating the regression models between
+indicators and composites using the \code{reflective} matrix. These
+regression coefficients and the $\bm{E}$ matrix can be combined to form the 
+$\bm{A}$ matrix in the Hwang and Takane [-@hwang_generalized_2004] article. This completes the first 
+step of the GSCA estimation algorithm.
+
+In the second step, the weights are updated holding the regression coeffiecients fixed. Because
+one weight can be used in multiple equations, the sum of squares cannot be minimized by estimating
+each regression equation separately. Rather, the weights are updated one composite at a time taking
+into consideration all equations where the composite is used. 
+In Hwang and Takane [-@hwang_generalized_2004], the weights for one composite are
+defined by specifying a series of regression analyses where the
+indicators are independent variables. These regressions are then estimated
+simultaneously by stacking the data so that the system of equations
+can be estimated with OLS estimator in one go. This is equivalent to collecting all covariances 
+between the independent variables and dependent variables into a matrix and then taking a mean over 
+all dependent variables so that we have a vector of mean covariances for each independent variable. 
+This aggregated covariance vector is then used with the sample covariance matrix of the independent
+variables obtain new least squares estimates of the weights for the composite.
+
+Hwang and Takane present the above mention algorithm as a way to
+minimize the GSCA estimation criterion. However, they note that the algorithm many not result in
+global optimum [@hwang_generalized_2004, pp. 87-88]. In \code{matrixpls} these scenarios can be
+addressed by using numerical optimization with the \code{weightFun.optim} weight function and
+\code{optimCrit.gsca} optimization criterion, which together maximize the GSCA estimation criterion
+by using numerical optimization of the weights. Because the GSCA optimization criterion does not
+have known closed-form derivatives, the hessian matrix used by the optimization algorithm
+must be calculated numerically. This makes the weight optimization technique much slower than the
+alternating least squares technique.
+
+The example below demonstrates this and compares the results against GSCA implementation provided
+by the \pkg{ASGSCA} package [@asgsca] available throuh Bioconductor.
+
+### Example: GSCA estimation with alternating least squares and direct numerical optimization
+
+\begin{small}
+```{r, echo=FALSE, warnings = FALSE, include=FALSE}
+library(knitr)
+library(matrixpls)
+library(ASGSCA)
+read_chunk('../../example/gsca-example.R', labels = "e3")
+```
+
+```{r e3}
+```
+
+\end{small}
+
+## PLSc and other disattenuation techniques
+
+Recent research by Dijkstra and coauthors
+[-@dijkstra_consistent_2011;@dijkstra_consistent_2015;@dijkstra_consistent_2015-1] introduced
+the correction for attenuation to PLS literature. Labeled as PLSc, Dijkstra's technique consists
+of four enhancements to the traditional PLS analysis:
+
+1. Consistent estimation of factor loadings
+2. Consistent estimation of the reliabilities of weighted composite
+3. Application of correction for attenuation using the reliability estimates
+4. (optionally) two-stage least square (2SLS) estimation of the \code{inner} matrix regressions
+
+\code{matrixpls} implements this full collection of techniques with a collection of functions. 
+Table \ref{loadestimators} list the included factor loading estimation functions.
+
+
+\begin{table}[!htbp]
+\centering
+\caption{Factor loading estimation functions}
+\label{loadestimators}
+\begin{tabular}{ll}
+\hline
+estimator.regression&Estimates loadings as regressions of indicators on composites.\\
+&(default)\\\\
+estimator.plscLoadings&Dijkstra's technique. Estimates loadings one block at a time\\
+&using MINRES estimator and constraining the loadings to\\
+&be proportinal to the weights.\\\\
+estimator.efaLoadings&Estimates loadings one block at a time with using the \code{fa}\\
+&function of the \pkg{psych} package. Defaults to MINRES estimator,\\
+&but this can be changed with the \code{fm} parameter.\\\\
+estimator.cfaLoadings&Estimates all loadings simultaneously with using the \code{cfa}\\
+&function of the \pkg{lavaan} package. Defaults to ML estimator,\\
+&but this can be changed with the \code{estimator} parameter.\\
+\hline
+\end{tabular}
+\end{table}
+
+The consistency of the loading estimates produced by Dijkstra's technique 
+(\code{estimator.plscLoadings}) requires that 
+the weights are are asymptotically proportional to the loadings. With PLS Mode A weights
+this is the case. The more traditional factor analysis techniques, implemented in the
+\code{estimator.efaLoadings} and \code{estimator.cfaLoadings}
+do not depend on any particular set of weights and are therefore more general.
+
+Setting the \code{disattenuate} parameter to \code{TRUE} enables disattenuation of the
+composite correlation matrix. The composite reliabilities required for disattenuation are calculated
+with the function provided as the \code{reliabilities} parameter. The default reliability function
+is a general function for calculating the reliability of a weighted composites, of which Dijkstra's
+reliability function is a special case. The estimated reliabilities are available as the
+\code{Q} vector after estimation. 
+
+\FloatBarrier
+
+The following code example demonstrates the use of disattenuation.
+
+### Example: PLSc and other dissattenuation techniques
+
+\begin{small}
+```{r, echo=FALSE, warnings = FALSE, include=FALSE}
+library(knitr)
+library(matrixpls)
+read_chunk('../../example/matrixpls.plsc-example.R', labels = "e4")
+```
+
+```{r e4}
+```
+
+\end{small}
+
+
+<!--- ## PLSe1, PLSe2, and other parameterizations of \pkg{lavaan} estimators} --->
+
+# Postestimation tools
+
+\pkg{matrixpls} package contains a collection of postestimation functions that can be applied to
+\code{matrixpls} objects produced by the \code{matrixpls} functions. These postestimation
+functions can be used to calculate predictions, model indices, and perform diagnostics on the
+results.
+
+## Predictions
+
+The \code{predict} function can be used to calculate predictions based on the \code{matrixpls}
+object and a dataset. Although originally developed with a strong focus on prediction of indicators,
+the current partial least squares literature uses the term prediction for multiple different meanings
+[@shmueli_elephant_2016]. In \pkg{matrixpls}, the default technique for
+calculating predictions follows Wold's original
+approach [@wold_systems_1985]. 
+
+1. Composites that are exogenous in the \code{inner} model matrix are calculated as weighted sums of their indicators
+2. The remaining composites are predicted using the equations in \code{inner} model matrix
+3. The indicators are predicted using the equations in the \code{reflective} model matrix
+
+Also two alternative prediction strategies, labeled as "redundancy" and "communality" 
+by Chin [-@chin_how_2010] are implemented.
+
+The \code{predict} function then returns the matrix of indicators. The following example
+demonstrates calculating a model with a sample, calculating predictions from a hold-out samples,
+blindfolding, assessing prediction error, and calculating the $Q^2$ predictive relevance
+statistics.
+
+### Example: Predictions using the ECSI mobi dataset
+
+\begin{small}
+
+```{r, echo=FALSE, warnings = FALSE, include=FALSE, cache = FALSE}
+library(knitr)
+library(matrixpls)
+read_chunk('../../example/matrixpls.prediction-example3.R', labels = "e5")
+```
+
+```{r e5}
+```
+
+\end{small}
+
+## Residual analysis
+
+The \code{residuals} function calculates two kinds of residuals. The observed residuals are 
+empirical residuals as presented by Lohmöller [-@lohmoller_latent_1989, ch 2.4] 
+or model implied residuals as used by Henseler et al. [-@henseler_common_2014]. The model implied
+residuals are calculated by comparing the fitted covariance matrix, obtained with the 
+\code{fitted} function, against the observed covariance matrix. \code{fitted} computes the model
+implied covariance matrix by combining inner, reflective, and formative as a simultaneous equations
+system. The error terms are constrained to be uncorrelated and covariances between exogenous 
+variables are fixed at their sample values. Defining a composite as dependent variable in both
+inner and formative creates an impossible model and results in an error.
+
+Two versions of the SRMR index are provided for both types of residuals,
+the traditional SRMR that includes all residual
+covariances, and the version proposed by Henseler et al. [-@henseler_common_2014] where 
+the within-block residual covariances are ignored.
+
+### Example: Calculating observed and implied residuals
+
+\begin{small}
+
+```{r, echo=TRUE, warnings = TRUE, include=TRUE}
+residuals(political.out)
+
+residuals(political.out, observed = FALSE)
+```
+
+\end{small}
+
+## Commonly used model quality indices
+
+\pkg{matrixpls} implements a number of model quality indices. Each index or set of indices is 
+implemented as a separate function. The \code{summary} method of
+\code{matrixpls} object prints out a collection of these indicess. 
+
+### Example: Calculating model quality indices
+
+\begin{small}
+
+```{r, echo=TRUE, warnings = TRUE, include=TRUE}
+summary(political.out)
+```
+
+\end{small}
+
+# Bootstrapping
+
+The variance of the PLS results is typically estimated with boostrapping. Bootstrapping is needed
+because the sampling distribution of PLS and other model-dependent indicator weights is unknown and 
+therefore there is no closed form solutions to the standard errors of the parameter estimates.
+
+\pkg{matrixpls} implements bootstrapping by integrating with the \pkg{boot} package [@canty_boot_2016;@davison_bootstrap_1997] with the 
+\code{matrixpls.boot} function. The function takes the following arguments:
+
+```{r, include = TRUE, echo=FALSE, warning=FALSE, cache=FALSE}
+library(boot)
+text <- readParagraphsFromMan("matrixpls.boot",2)
+``` 
+
+\begin{verbatim}
+`r text`
+\end{verbatim}
+
+\code{data} is a data.frame or a matrix of raw data, from which \code{R} bootstrap samples are drawn.
+In addition to the data and the number of samples, the function requires
+also that \code{model} is specified. As with most functions in \pkg{matrixpls}, 
+\code{matrixpls.boot} passes most of its arguments down to other functions and accepts any
+additional arguments used by \code{matrixpls} or \code{boot}. The arguments of the \code{boot} 
+function allow 
+
+\code{parallel} and \code{ncpus} can be used to enable parallel processing of bootstrap replications.
+By default, all bootstrap replications are calculated on a single processor core. Computational time
+can be reduced significantly by dividing the bootstrap replications on multiple processor cores.
+The only drawback in using parallel processing is that if any of the bootstrap replications 
+produced an error, the full error message is discarded. Therefore, when troubleshooting an analysis,
+it is always a good idea to start by disabling parallel processing.
+
+By default, only the parameter estimates are boostrapped, but boostrapping other statistics is 
+possible with the \code{extraFun} argument. 
+
+### Example: Boostrapping estimates
+
+The following example demonstrates bootstrapping the
+estimates. Because the \code{summary} method prints out the full \code{matrixpls} summary, including
+all estimates and model quality indices, only the parts relevant to bootstrapping are shown.
+
+\begin{small}
+
+```{r, eval = FALSE}
+set.seed(1)
+
+boot.out <- matrixpls.boot(satisfaction, model = satisfaction.model, R = 500,
+                           parallel = "multicore", ncpus = parallel::detectCores())
+
+# Summary method prints confidence intervals and p values
+summary(boot.out)
+```
+```{r, echo=FALSE, warnings = FALSE, cache = TRUE}
+
+boot.out <- matrixpls.boot(satisfaction, model = satisfaction.model, R = 500,
+                           parallel = "multicore", ncpus = parallel::detectCores())
+
+# Summary method prints confidence intervals and p values
+b <- summary(boot.out)
+b$ci <- round(b$ci, digits = 2)
+
+tf <- tempfile()
+
+{
+  sink(tf)
+  print(b)
+  sink()
+}
+
+l <- readLines(tf)
+cat(paste(l[c(117:119,108:128,117:119)], collapse="\n"))
+
+```
+
+\end{small}
+
+The first output block shows the parameter estimates, boostrap standard errors, 
+t statistics (estimate/SE), and four different p values.
+
+The significance of OLS regression coefficients, used as the default parameter estimation technique,
+is tested by the one-sample t test with n – k – 1 degrees of freedom, where n is the number of
+observations and k is the number of independent variables [@wooldridge_introductory_2009, sec. 4.2].
+However, introductory texts on PLS argue that the degrees of freedom should be n – 1 
+[@hair_primer_2014, p. 134] or n + m – 2, where m is always 1 and n is the number of bootstrap
+samples [@henseler_use_2009, p. 305]. The cited sources do not explain how these alternative
+references distributions are derived. Finally, p values can also be calculated with the z test. 
+The four p values "regression", "Hair", "Henseler", and "z" refer to these four techniques in this
+order.
+
+The second output block shows confidence intervals, calculated with the \code{boot.ci} function of 
+the \pkg{boot} package.
+
+### Example: Boostrap-based model testing
+
+The following example demonstrates how bootstrapping can be used to generate an empical reference
+distribution for a model test statistic for the education analysis presented earlier in the paper.
+The approach is based on the idea presented by Yuan and
+Hayashi [-@yuan_bootstrap_2003] and its adaptation to PLS by Dijkstra and Henseler
+[-@dijkstra_consistent_2015]\footnote{This example is based on code contributed by Florian Schuberth.}.
+
+\begin{small}
+
+```{r, echo=FALSE, warnings = FALSE, include=FALSE, eval = TRUE}
+print.numeric <- function(x,...){
+  print.default(x,...)
+}
+```
+```{r, echo=TRUE, warnings = TRUE, include=TRUE, eval = TRUE, cache = TRUE}
+
+# Define a function that calculates the test statistic as the squared Euclidean distance
+# between the empirical and the model implied correlation matrix 
+
+calculateTestStat <- function(matrixpls.res){
+  S <- attr(matrixpls.res,"S")
+  Sigma <- fitted(matrixpls.res)
+  sum((S-Sigma)[lower.tri(S, diag = FALSE)]**2) 
+}
+
+# Function that tranforms the data sets in the way proposed by Yuan & Hayashi (2003)
+
+scaleDataSet <- function(data, Sigma){
+  
+  S <- cor(data)
+  
+  # Ensure that the variables are in the same order
+  if(! identical(colnames(S), colnames(Sigma))) stop("data is inconsistent with Sigma")
+  
+  # singular value decomposition
+  Ssvd=svd(S); Sigsvd=svd(Sigma)
+  dS=Ssvd$d; dSig=Sigsvd$d
+  uS=Ssvd$u; uSig=Sigsvd$u
+  vS=Ssvd$v; vSig=Sigsvd$v
+  #S**(-1/2)
+  S_half=uS%*%(diag(dS**(-1/2)))%*%t(vS)
+  # Sigma_hat**(1/2)
+  Sig_half=uSig%*%(diag(dSig**(1/2)))%*%t(vSig)
+  # scale factor Sig_hat**(1/2)%*%S**(-1/2)
+  sf=S_half%*%Sig_half
+  
+  sdata <- as.matrix(data)%*%sf
+  colnames(sdata) <- colnames(data)
+  sdata
+}
+
+# Calculate the empirical reference distribution
+
+scaledEducation <- scaleDataSet(education[,2:24], fitted(education.out))
+
+set.seed(1)
+
+boot.out <- matrixpls.boot(scaledEducation,
+                           model = education.model,
+                           disattenuate = TRUE,
+                           parametersReflective = estimator.plscLoadings,
+                           R = 5000, parallel = "multicore", ncpus = parallel::detectCores(),
+                           # Calculate the test statistic for each bootstrap replication
+                           extraFun = calculateTestStat)
+
+# The reference distribution is stored as the last entry in the boostrap results
+
+ref <- boot.out$t[,ncol(boot.out$t)]
+testStat <- calculateTestStat(education.out)
+
+# Get the p value
+sum(ref>testStat)/length(ref)
+
+# Present the disribution and the value of the statistic graphically
+plot(density(ref), xlim = c(0, max(c(ref,testStat))), main = "Distribution of the test statistic")
+abline(v=testStat, col = "red")
+```
+\end{small}
+
+```{r, echo=FALSE, warnings = FALSE, include=FALSE, eval = TRUE}
+print.numeric <- function(x,...){
+  print.default(round(x, digits = 2),...)
+}
+```
+
+In this example, the bootstrap-based model test conclusively rejects the model. 
+
+# Monte Carlo simulations
+
+\pkg{matrixpls} integratates with \pkg{simsem} [@pornprasertmanit_simsem_2016] Monte Carlo 
+simulation framework. Monte Carlo simulation involves drawing multiple independent samples of 
+random variables from a population model chosen by the researcher, using each of these samples to 
+estimate a model, and collecting the results [@boomsma_reporting_2013]. After a sufficient number
+of replications have been generated, the results of the replications are analyzed, typically by
+calculating summary statistics, such as the bias or mean squared error, or by plotting the sampling
+distributions of the estimates. Monte Carlo simulations are commonly used to analyze the robustness
+of estimators under violation of their assumptions (e.g., small sample size, non-normal data),
+to compare estimators under different conditions, and to analyze procedures for which there are no theoretical results that could be used [@boomsma_reporting_2013]. 
+
+Given that the sampling distribution of PLS weights remains unknown, most methodological research
+on the algorithm is based on simulations. However, simulations can be useful for applied researchers
+as well. Besides important for power analysis [@aguirre-urreta_sample_2015],
+simulations can be useful in teaching or self-learning of statistical techniques
+[@antonakis_making_2010]. 
+
+Monte Carlo simulations are implemented with the \code{matrixpls.sim} function:
+
+```{r, include = FALSE}
+text <- readParagraphsFromMan("matrixpls.sim",2)
+# Load simsem so that it is available for examples
+library(simsem)
+``` 
+
+\begin{verbatim}
+`r text`
+\end{verbatim}
+
+The \code{nRep} argument defines the number of Monte Carlo replications. \code{model} is a 
+\pkg{matrixpls} model specification, either in the native format or as \pkg{lavaan} syntax. If 
+\pkg{lavaan} syntax is used, then that syntax can be used for defining the population model.
+alternatively, the \code{generate} argument defining the data generation model is required. This
+argument is not part of the function definition, but is passed through to \code{sim} function of
+\pkg{simsem} package.
+
+The \code{cilevel}, \code{citype}, and \code{boot.R} define how bootstrapped confidence intervals
+are calculated. The \code{outfundata}, \code{outfun}, and \code{prefun} are functions that can be used for
+post-processing individual replications or pre-processing datasets. \code{fitIndices} a function
+that is used for calculating model quality indices after estimation.
+
+\code{matrixpls.sim} integrates tightly with the  \code{sim} function of
+\pkg{simsem} package. Monte Carlo simulation can be thought of consisting of four types of tasks:
+1) controlling the simulation, 2) generating the datasets, 3) calculating statistics based on 
+the datasets, and 4) summarizing the results. Out of these four tasks, only calculation of 
+statistics is done by \pkg{matrixpls} and other three tasks are handled by \pkg{simsem}. Planning
+of simulation studies should therefore be started by studying the \pkg{simsem} package
+documentation.
+
+## Example: Power analysis
+
+This example demonstrates power analysis by implementing the non-normal condition from the 
+article by Aguirre-Urreta and Rönkkö [-@aguirre-urreta_sample_2015]. The simulation 
+runs 1000 replications with 500 bootstrap samples each for a total of 501 000 PLS analyses.
+
+\begin{small}
+```{r, cache=TRUE}
+library(simsem)
+
+model<-"! factor loadings
+A=~0.7*x1 + 0.7*x2 + 0.7*x3
+B=~0.7*x4 + 0.7*x5 + 0.8*x6 + 0.8*x7
+C=~0.6*x8 + 0.6*x9 + 0.6*x10 + 0.8*x11 + 0.8*x12
+D=~0.8*x13 + 0.8*x14 + 0.8*x15
+
+!latent regressions
+D ~ 0.3*A + 0.3*C
+C ~ 0.1*B + 0.5*A
+
+! error variances, variances and covariances
+A ~~ 1.0*A
+B ~~ 1.0*B
+C ~~ 0.71*C
+D ~~ 0.725*D
+B ~~ 0.3*A
+x1 ~~ 0.51*x1
+x2 ~~ 0.51*x2
+x3 ~~ 0.51*x3
+x4 ~~ 0.51*x4
+x5 ~~ 0.51*x5
+x6 ~~ 0.36*x6
+x7 ~~ 0.36*x7
+x8 ~~ 0.64*x8
+x9 ~~ 0.64*x9
+x10 ~~ 0.64*x10
+x11 ~~ 0.36*x11
+x12 ~~ 0.36*x12
+x13 ~~ 0.36*x13
+x14 ~~ 0.36*x14
+x15 ~~ 0.36*x15"
+
+
+# Non-normal data
+
+skewness <- c(0.50, 0.50, 0.50, 0.50, 0.50,
+              0.50, 0.50, 0.50, 0.75, 0.75,
+              0.75, 0.75, 0.75, 0.75, 0.75)
+
+kurtosis <-  c(1, 1, 1, 1, 1,
+               1, 1, 1, 1.50, 1.50,
+               1.50, 1.50, 1.50, 1.50, 1.50)
+
+# Simulate 
+
+nonNorm <- matrixpls.sim(1000, model,                         # Basic arguments 
+                         generate = list(model = model,       # Data generation
+                                         skewness = skewness,
+                                         kurtosis = kurtosis),
+                         n=100,  
+                         multicore = TRUE,                    # Additional arguments
+                         completeRep = TRUE)
+
+```
+```{r, eval = FALSE}
+# Print the results
+summary(nonNorm)
+```
+```{r, echo = FALSE, cache=TRUE}
+# Custom summary function to abbreviate the column names
+{
+object <- nonNorm
+digits <-  2 
+usedFit <- NULL
+alpha <- NULL
+usedFit <- simsem:::cleanUsedFit(usedFit, colnames(object@fit))
+cat("RESULT OBJECT\n")
+cat("Model Type\n")
+print(object@modelType)
+cleanObj <- simsem:::clean(object)
+
+cat("========= Fit Indices Cutoffs ============\n")
+print(round(simsem:::summaryFit(object, alpha = alpha, usedFit = usedFit), digits))
+
+cat("========= Parameter Estimates and Standard Errors ============\n")
+sparam <- simsem:::summaryParam(object, digits=digits)
+sparam <- round(sparam, digits = 2)
+colnames(sparam) <-c("Est. Avg",
+                     "Est. SD",
+                     "Avg SE",
+                     "Power",
+                     "Param",
+                     "Bias",
+                     "Coverage")
+print(sparam)
+# Correlation between Fit Indices
+
+cat("================== Replications =====================\n")
+cat(paste("Number of replications", "=", object@nRep, "\n"))
+cat(paste("Number of converged replications", "=", sum(object@converged == 0), "\n"))
+cat("Number of nonconverged replications: \n")
+cat(paste("   1.", "Nonconvergent Results", "=", sum(object@converged == 1), "\n"))
+cat(paste("   2.", "Nonconvergent results from multiple imputation", "=", sum(object@converged == 2), "\n"))
+cat(paste("   3.", "At least one SE were negative or NA", "=", sum(object@converged == 3), "\n"))
+cat(paste("   4.", "At least one variance estimates were negative", "=", sum(object@converged == 4), "\n"))
+cat(paste("   5.", "At least one correlation estimates were greater than 1 or less than -1", "=", sum(object@converged == 5), "\n"))
+cat(paste("   6.", "Model-implied covariance matrices of any groups of latent variables are not\npositive definite", "=", sum(object@converged == 6), "\n"))
+}
+```
+\end{small}
+The timings of the simulation demonstrate what kind of computation times can be expected
+for this kind of analysis.
+\begin{small}
+```{r, cache=TRUE}
+summaryTime(nonNorm)
+```
+\end{small}
+
+## Example: True reliabilities and distribution of estimates
+
+The following example replicates a simulation study presented by Rönkkö and Evermann
+[-@ronkko_critical_2013]. The example demonstrates comparing the sampling distribution of
+reliability of a composite and its correlation with another composite over three different
+indicator weighting techniques: PLS Mode A, PLS Mode B, and unit weights.
+
+\begin{small}
+
+```{r, echo=FALSE, warnings = FALSE, include=FALSE, cache = FALSE}
+read_chunk('../../example/matrixpls.sim-example3.R', labels = "re2013")
+```
+
+```{r re2013, cache = FALSE, results="hide", cache = TRUE}
+```
+
+\end{small}
+
+# Technical details
+
+As explained in Section 1.1, \pkg{matrixpls} works by applying a series of functions on matrices
+containing covariances, weights, and model specifications. The matrices are listed in Table \ref{matrices} and functions in Table \ref{functions}. The package can be extended by using
+user written functions in place of any of the built-in functions. Reference manual provides
+nore details on the built-in function implementations.
+
+\begin{table}[!htbp]
+\centering
+\caption{Types of funcions used by \pkg{matrixpls}}
+\label{functions}
+\begin{tabular}{lp{10cm}}
+\toprule
+Function&Description\\
+\midrule
+\code{weightFun}&A function for calculating indicator weights using the data covariance matrix
+ \code{S}, a model specification \code{model}, and a weight pattern \code{W.model}. Returns
+ a weigth matrix \code{W}.\\
+
+\code{parameterEstim}& A function for estimating the model parameters using
+the data covariance matrix \code{S}, model specification \code{model}, 
+and weight matrix \code{W}. Returns a named vector of parameter estimates.\\
+
+
+\code{estimator}& A function for estimating the parameters of one model matrix using
+the data covariance matrix \code{S}, a model matrix \code{modelMatrix}, and a weight matrix
+\code{W}. Disattenuated composite correlation matrix \code{C} and indicator composite 
+covariance matrix \code{IC} are optional. Returns matrix of parameter estimates with
+the same dimensions as \code{modelMatrix}.\\
+
+
+\code{weightSign}&  A function for resolving weight sign ambiquity based on the data covariance matrix
+ \code{S} and a weight matrix \code{W}.  Returns
+ a weigth matrix \code{W}.\\
+
+\code{outerEstim}&  A function for calculating outer weights using the data covariance matrix
+ \code{S}, a weight matrix \code{W}, an inner weight matrix \code{E},
+and a weight pattern \code{W.model}. Returns
+a weigth matrix \code{W}.\\
+
+\code{innerEstim}&  A function for calculating inner weights using  the data covariance matrix
+\code{S}, a weight matrix \code{W}, and an inner model matrix \code{inner.mod}. Returns
+an inner weigth matrix \code{E}.\\ 
+
+\code{convCheck}&  A function that takes the old \code{Wold} and new weight \code{Wold} matrices and
+returns a scalar that is compared against \code{tol} to check for convergence.\\
+
+\code{optimCrit}&  A function for calculating value for an optimization criterion based on a
+\code{matrixpls} result object. Returns a scalar.\\
+
+\code{reliabilities}&  A function for calculating reliability estimates based on the 
+data covariance matrix \code{S}, factor loading matrix \code{loadings}, and a weight matrix \code{W}.
+Returns a vector of reliability estimates. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[!htbp]
+\centering
+\caption{Matrices and other objects used and returned by \pkg{matrixpls} functions}
+\label{matrices}
+\begin{tabular}{llp{10cm}}
+\toprule
+Matrix or&Matrix&Description\\
+attribute&order&\\
+```{r kable, results = "asis", echo = FALSE}
+library(xtable)
+attributeFile <- read.csv2("../../man-roxygen/attributes.csv",stringsAsFactors = FALSE)
+attributeFile$attribute <- paste("\\code{",attributeFile$attribute,"}", sep="")
+
+print(xtable(attributeFile),
+      sanitize.text.function = identity,
+      comment = FALSE,
+      include.rownames = FALSE,
+      include.colnames = FALSE,
+      booktabs = TRUE,
+      only.contents = TRUE)
+```
+\multicolumn{3}{l}{\footnotesize \code{k} is the number of observed variables and \code{l} is the number of composites.}
+\end{tabular}
+\end{table}
+
+\FloatBarrier
+
+
+# References

@@ -10,6 +10,7 @@
 #'@template weightSpecification
 #'
 #'@inheritParams matrixpls-common
+#'@inheritParams matrixpls-functions
 #'
 #'@param validateInput A boolean indicating whether the validity of the parameter values should be tested.
 #'
@@ -20,35 +21,28 @@
 #'
 #'@template weights-return
 #'
-#'@templateVar attributes weight.pls,S E iterations converged history
+#'@templateVar attributes weightFun.pls,S E iterations converged history
 #'@template attributes
 #'
-#'@name weightAlgorithms
+#'@name weightFun
 NULL
 
 
-#'@describeIn weightAlgorithms partial Least Squares and other iterative two-stage weight algorithms.
+#'@describeIn weightFun partial Least Squares and other iterative two-stage weight algorithms.
 #'
 #'@details
 #'
-#'\code{weight.pls} calculates indicator weights by calling the 
-#'\code{innerEstimator} and \code{outerEstimators} iteratively until either the convergence criterion or
+#'\code{weightFun.pls} calculates indicator weights by calling the 
+#'\code{innerEstim} and \code{outerEstim} iteratively until either the convergence criterion or
 #'maximum number of iterations is reached and provides the results in a matrix.
 
-#'@param outerEstimators A function or a list of functions used for outer estimation. If
+#'@param outerEstim A function or a list of functions used for outer estimation. If
 #'the value of this parameter is a function, the same function is applied to all
 #'composites. If the value is a list, the composite \code{n} is estimated
 #'with the estimator in the \code{n}th position in the list. If this argument is
-#'\code{NULL} the \code{\link{outer.modeA}} is used for all composites that are linked to at least
-#'one indicator in the \code{reflective} matrix.\code{\link{outer.modeB}} is used for all other
-#'composites. See \code{\link{outerEstimators}}.
-#'
-#'@param innerEstimator A function used for inner estimation. The default is \code{\link{inner.path}}.
-#' See \code{\link{innerEstimators}}.
-
-#'@param convCheck A function that takes the old and new weight matrices and
-#'returns a scalar that is compared against \code{tol} to check for convergence. The default
-#'is \code{\link{convCheck.absolute}}. See \code{\link{convergenceCheck}}.
+#'\code{NULL} the \code{\link{outerEstim.modeA}} is used for all composites that are linked to at least
+#'one indicator in the \code{reflective} matrix.\code{\link{outerEstim.modeB}} is used for all other
+#'composites. See \code{\link{outerEstim}}.
 #'
 #'
 #'@param tol Decimal value indicating the tolerance criterion for convergence. 
@@ -62,9 +56,9 @@ NULL
 
 #'@export
 
-weight.pls <- function(S, model, W.model,
-                       outerEstimators = NULL, 
-                       innerEstimator = inner.path, ..., 
+weightFun.pls <- function(S, model, W.model,
+                       outerEstim = NULL, 
+                       innerEstim = innerEstim.path, ..., 
                        convCheck = convCheck.absolute,
                        variant = "lohmoller",
                        tol = 1e-05, iter = 100, validateInput = TRUE) {
@@ -103,22 +97,22 @@ weight.pls <- function(S, model, W.model,
       stop("Variant must be \"lohmoller\" or \"wold\"")
     }
     
-    # outerEstimators must be a list of same length as number of rows in inner.mod or
+    # outerEstim must be a list of same length as number of rows in inner.mod or
     # a function
-    if(! is.null(outerEstimators)){
-      if(is.list(outerEstimators)){
-        assertive::assert_is_identical_to_true(length(outerEstimators) == nrow(W.model))
-        for(outerEstimator in outerEstimators){
-          assertive::assert_is_function(outerEstimator)
+    if(! is.null(outerEstim)){
+      if(is.list(outerEstim)){
+        assertive::assert_is_identical_to_true(length(outerEstim) == nrow(W.model))
+        for(outerEstim in outerEstim){
+          assertive::assert_is_function(outerEstim)
         }
       }
       else{
-        assertive::assert_is_function(outerEstimators)
+        assertive::assert_is_function(outerEstim)
       }
     }
     
-    if(! is.null(innerEstimator)){
-      assertive::assert_is_function(innerEstimator)
+    if(! is.null(innerEstim)){
+      assertive::assert_is_function(innerEstim)
     }
     # tol must be non negative
     assertive::assert_all_are_non_negative(tol)
@@ -133,18 +127,18 @@ weight.pls <- function(S, model, W.model,
   # If the outer estimators (tpyically Mode A and Mode B) are not defined, default to using
   # Mode A for reflective composites and Mode B for formative composites
   
-  if(is.null(outerEstimators)){
+  if(is.null(outerEstim)){
     hasFormativeIndicators <- any(nativeModel$formative == 1)
     hasReflectiveIndicators <- any(nativeModel$reflective == 1)
     
-    if(! hasFormativeIndicators) outerEstimators = outer.modeA
-    else if (! hasReflectiveIndicators) outerEstimators = outer.modeB
+    if(! hasFormativeIndicators) outerEstim = outerEstim.modeA
+    else if (! hasReflectiveIndicators) outerEstim = outerEstim.modeB
     else{
       # composites with at least one reflective indicator are ModeA and others are ModeB
-      outerEstimators <- list()
+      outerEstim <- list()
       for(composite in 1:ncol(nativeModel$reflective)){
-        if(any(nativeModel$reflective[,composite] == 1)) outerEstimators[[composite]] <- outer.modeA
-        else outerEstimators[[composite]] <- outer.modeB
+        if(any(nativeModel$reflective[,composite] == 1)) outerEstim[[composite]] <- outerEstim.modeA
+        else outerEstim[[composite]] <- outerEstim.modeB
       }
     }
   }
@@ -170,10 +164,10 @@ weight.pls <- function(S, model, W.model,
   
   # Set up outer estimators
   
-  if(is.list(outerEstimators)){
-    uniqueOuterEstimators <- unique(outerEstimators)
-    outerEstimatorIndices <- lapply(uniqueOuterEstimators, function(x){
-      sapply(outerEstimators, function(y){
+  if(is.list(outerEstim)){
+    uniqueOuterEstimators <- unique(outerEstim)
+    outerEstimIndices <- lapply(uniqueOuterEstimators, function(x){
+      sapply(outerEstim, function(y){
         identical(y,x)})
     })
   }
@@ -206,8 +200,8 @@ weight.pls <- function(S, model, W.model,
     for(k in compositeIndices){
       # Get new inner weights from inner estimation
       
-      if(! is.null(innerEstimator)){
-        E <- innerEstimator(S, W, inner.mod, model = model, ...)
+      if(! is.null(innerEstim)){
+        E <- innerEstim(S, W, inner.mod, model = model, ...)
       }
       
       # Get new weights from outer estimation
@@ -215,18 +209,18 @@ weight.pls <- function(S, model, W.model,
       # Lohmöller
       
       if(is.na(k)){
-        if(is.list(outerEstimators)){
+        if(is.list(outerEstim)){
           
           # Run each estimator separately
           
           for(i in 1:length(uniqueOuterEstimators)){
             W.modelForThisEstimator <- W.model
-            W.modelForThisEstimator[!outerEstimatorIndices[[i]],] <- 0
-            W[outerEstimatorIndices[[i]],] <- uniqueOuterEstimators[[i]](S, W_old, E, W.modelForThisEstimator,...)[outerEstimatorIndices[[i]],]
+            W.modelForThisEstimator[!outerEstimIndices[[i]],] <- 0
+            W[outerEstimIndices[[i]],] <- uniqueOuterEstimators[[i]](S, W_old, E, W.modelForThisEstimator,...)[outerEstimIndices[[i]],]
           }
         }
         else{
-          W <- outerEstimators(S, W_old, E, W.model, model = model, ...)
+          W <- outerEstim(S, W_old, E, W.model, model = model, ...)
         }	
       }
       
@@ -234,12 +228,12 @@ weight.pls <- function(S, model, W.model,
       
       else{
         
-        if(is.list(outerEstimators)) outerEstimator <- outerEstimators[[k]]
-        else outerEstimator <- outerEstimators
+        if(is.list(outerEstim)) outerEstim <- outerEstim[[k]]
+        else outerEstim <- outerEstim
         
         W.modelForThisEstimator <- W.model
         W.modelForThisEstimator[-k,] <- 0
-        W[W.modelForThisEstimator != 0] <- outerEstimator(S, W_old, E, W.modelForThisEstimator,...)[W.modelForThisEstimator != 0]        
+        W[W.modelForThisEstimator != 0] <- outerEstim(S, W_old, E, W.modelForThisEstimator,...)[W.modelForThisEstimator != 0]        
       }
       W <- scaleWeights(S, W)
     }
@@ -249,7 +243,7 @@ weight.pls <- function(S, model, W.model,
     
     # Check convergence. If we are not using inner estimator, converge to the first iteration
     
-    if(is.null(innerEstimator) || convCheck(W,W_old) < tol){
+    if(is.null(innerEstim) || convCheck(W,W_old) < tol){
       converged <- TRUE
       break;
     }
@@ -271,10 +265,10 @@ weight.pls <- function(S, model, W.model,
 
 #'@details
 #'
-#'\code{weight.optim} calculates indicator weights by optimizing the indicator
+#'\code{weightFun.optim} calculates indicator weights by optimizing the indicator
 #'weights against the criterion function using \code{\link[stats]{optim}}. The
 #'algoritmh works by first estimating the model with the starting weights. The
-#'resulting \code{matrixpls} object is passed to the \code{optimCriterion}
+#'resulting \code{matrixpls} object is passed to the \code{optimCrit}
 #'function, which evaluates the optimization criterion for the weights. The
 #'weights are adjusted and new estimates are calculated until the optimization
 #'criterion converges.
@@ -283,18 +277,14 @@ weight.pls <- function(S, model, W.model,
 #'
 #'@param method The minimization algorithm to be used. See \code{\link[stats]{optim}}
 #' for details. Default is \code{"BFGS"}.
-#' 
-#'@param optimCriterion A function that taking an object of class class 
-#'\code{matrixpls} and returning a scalar. The default is \code{\link{optim.maximizeInnerR2}}. 
-#'See \code{\link{optimCriterion}}
 #'
 #'@example example/matrixpls.optim-example.R
-#'@describeIn weightAlgorithms calculates a set of weights to minimize an optimization criterion.
+#'@describeIn weightFun calculates a set of weights to minimize an optimization criterion.
 #'@export
 
-weight.optim <- function(S, model, W.model,
-                         parameterEstimator = params.separate, 
-                         optimCriterion = optim.maximizeInnerR2, method = "BFGS",
+weightFun.optim <- function(S, model, W.model,
+                         parameterEstim = parameterEstim.separate, 
+                         optimCrit = optimCrit.maximizeInnerR2, method = "BFGS",
                          ..., 
                          validateInput = TRUE,
                          standardize = TRUE) {
@@ -304,11 +294,11 @@ weight.optim <- function(S, model, W.model,
   optim.res <- stats::optim(W.model[W.model != 0], fn = function(par, ...){
     W[W.model != 0] <- par
     # Use fixed weights estimation
-    matrixpls.res <- matrixpls(S, model, W, weightFunction = weight.fixed,
-                               parameterEstimator = params.separate,
+    matrixpls.res <- matrixpls(S, model, W, weightFun = weightFun.fixed,
+                               parameterEstimator = parameterEstim.separate,
                                ..., validateInput = FALSE, standardize = standardize)
     
-    optimCriterion(matrixpls.res)
+    optimCrit(matrixpls.res)
   }, method = method, ...)
   
   W[W.model != 0] <- optim.res$par
@@ -325,11 +315,11 @@ weight.optim <- function(S, model, W.model,
   
 }
 
-#'@describeIn weightAlgorithms returns the starting weights.
+#'@describeIn weightFun returns the starting weights.
 #'@export
 
 
-weight.fixed <- function(S, model, W.model = NULL,
+weightFun.fixed <- function(S, model, W.model = NULL,
                          ..., 
                          standardize = TRUE) {
   
@@ -346,10 +336,10 @@ weight.fixed <- function(S, model, W.model = NULL,
   
 }
 
-#'@describeIn weightAlgorithms blockwise factor score weights.
+#'@describeIn weightFun blockwise factor score weights.
 #'@description
 #'
-#'\code{weight.factor} calculates weights by estimating a common factor analysis model with a single factor for each 
+#'\code{weightFun.factor} calculates weights by estimating a common factor analysis model with a single factor for each 
 #'indicator block and using the resulting estimates to calculate factor score weights
 #'
 #'@param fm factoring method for estimating the common factor model. Possible values are
@@ -360,7 +350,7 @@ weight.fixed <- function(S, model, W.model = NULL,
 
 
 
-weight.factor <- function(S, model, W.model = NULL, ..., fm ="minres",
+weightFun.factor <- function(S, model, W.model = NULL, ..., fm ="minres",
                           standardize = TRUE) {
   
   # Set up a weight pattern
@@ -387,16 +377,16 @@ weight.factor <- function(S, model, W.model = NULL, ..., fm ="minres",
   
 }
 
-#'@describeIn weightAlgorithms blockwise principal component weights.
+#'@describeIn weightFun blockwise principal component weights.
 #'
 #'@description
 #'
-#'\code{weight.principal} calculates weights by calculating a principal component analysis for each 
+#'\code{weightFun.principal} calculates weights by calculating a principal component analysis for each 
 #'indicator block and returning the weights for the first principal component.
 #'
 #'@export
 
-weight.principal <- function(S, model, W.model = NULL, ..., 
+weightFun.principal <- function(S, model, W.model = NULL, ..., 
                              standardize = TRUE) {
   
   # Set up a weight pattern

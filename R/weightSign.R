@@ -11,12 +11,12 @@
 #'
 #'The sign indeterminacy
 #'corrections should not be confused with sign chance corrections applied to boostrap samples 
-#'(See \code{\link{signChangeCorrection}}).
+#'(See \code{\link{signChange}}).
 #'
 #'@inheritParams matrixpls-common
 #'@return \code{W} after sign correction.
 #'
-#'@name signAmbiquityCorrection
+#'@name weightSign
 #'
 #'@references
 #'Wold, H. (1985). Partial Least Squares. In S. Kotz & N. L. Johnson (Eds.), Encyclopedia  of 
@@ -27,7 +27,7 @@
 #
 NULL
 
-#'@describeIn signAmbiquityCorrection Adjust the signs of W so that the majority of the indicators are positively 
+#'@describeIn weightSign Adjust the signs of W so that the majority of the indicators are positively 
 #'correlated with the composite as proposed by Wold (1985).
 #'
 #'@export
@@ -39,7 +39,7 @@ weightSign.Wold1985 <- function(W,S){
   sweep(W, 1,ifelse(signSums<0, -1, 1),"*")
 }
 
-#'@describeIn signAmbiquityCorrection Adjust the signs of W so that the first indicator of each composite has positive
+#'@describeIn weightSign Adjust the signs of W so that the first indicator of each composite has positive
 #'weight.
 #'
 #'@export

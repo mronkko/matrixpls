@@ -22,7 +22,7 @@
 #'The sign chance
 #'corrections should not be confused with sign indeterminacy corrections applied to 
 #'individual analyses
-#'(See \code{\link{signAmbiquityCorrection}}).
+#'(See \code{\link{weightSign}}).
 
 #'
 #'@param Worig The original weight matrix.
@@ -34,7 +34,7 @@
 #'@seealso
 #'\code{\link{matrixpls.boot}}
 #'
-#'@name signChangeCorrection
+#'@name signChange
 #'
 #'
 #'@references 
@@ -47,7 +47,7 @@
 #'\href{http://doi.org/10.1016/j.paid.2015.07.019}{DOI:10.1016/j.paid.2015.07.019}
 NULL
 
-#'@describeIn signChangeCorrection individual sign change correction
+#'@describeIn signChange individual sign change correction
 #'@export
 
 
@@ -55,7 +55,7 @@ signChange.individual <- function(Worig,W){
   W * sign(Worig) * sign(W)
 }
 
-#'@describeIn signChangeCorrection individual sign change correction
+#'@describeIn signChange individual sign change correction
 #'@export
 
 signChange.construct <- function(Worig,W){

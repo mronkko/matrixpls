@@ -10,6 +10,11 @@ matrixpls.crossvalidate(data, model, ..., predictFun = stats::predict,
 \arguments{
 \item{data}{Matrix or data frame containing the raw data.}
 
+\item{model}{There are two options for this argument: 1. lavaan script or lavaan parameter
+table, or 2. a list containing three matrices
+\code{inner}, \code{reflective}, and \code{formative} defining the free regression paths
+in the model.}
+
 \item{...}{All other arguments are passed through to \code{\link{matrixpls}} and \code{predictFun}.}
 
 \item{predictFun}{The function used to calculate the predictions.}

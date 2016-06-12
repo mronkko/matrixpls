@@ -87,19 +87,19 @@ matrixpls.sempls <-
     # Select the function according to the weighting scheme
     if(wscheme %in% c("A", "centroid")) {
       # Start of matrixpls code
-      innerEstimator <- inner.centroid
+      innerEstim <- innerEstim.centroid
       # End of matrixpls code
       result$weighting_scheme <- "centroid"
     }
     else if(wscheme %in% c("B", "factorial")) {
       # Start of matrixpls code
-      innerEstimator <- inner.factor
+      innerEstim <- innerEstim.factor
       # End of matrixpls code
       result$weighting_scheme <- "factorial"
     }
     else if(wscheme %in% c("C", "pw", "pathWeighting")) {
       # Start of matrixpls code
-      innerEstimator <- inner.path
+      innerEstim <- innerEstim.path
       # End of matrixpls code
       result$weighting_scheme <- "path weighting"
     }
@@ -110,12 +110,12 @@ matrixpls.sempls <-
     modes <- unlist(lapply(model$blocks, function(x) attr(x,"mode")))
     modeA <- modes == "A"
     
-    if(max(modeA) == 0) outerEstimators <- outer.modeB	
-    else if(min(modeA) == 1) outerEstimators <- outer.modeA
+    if(max(modeA) == 0) outerEstim <- outerEstim.modeB	
+    else if(min(modeA) == 1) outerEstim <- outerEstim.modeA
     else{
-      outerEstimators <- list(rep(NA,length(modeA)))
-      outerEstimators[!modeA] <- list(outer.modeB)
-      outerEstimators[modeA] <- list(outer.modeA)
+      outerEstim <- list(rep(NA,length(modeA)))
+      outerEstim[!modeA] <- list(outerEstim.modeB)
+      outerEstim[modeA] <- list(outerEstim.modeA)
     }
     
     S <- stats::cov(data)
@@ -135,8 +135,8 @@ matrixpls.sempls <-
     
     matrixpls.res <- matrixpls(S,
                                matrixpls.model,
-                               innerEstimator = innerEstimator,
-                               outerEstimators = outerEstimators,
+                               innerEstim = innerEstim,
+                               outerEstim = outerEstim,
                                convCheck = convCheck, tol = tol,
                                standardize = FALSE)
     

@@ -29,6 +29,8 @@
 #'
 #'@param ... All other arguments are passed through to \code{\link{matrixpls}} and \code{predictFun}.
 #'
+#'@inheritParams matrixpls-common
+#'
 #'@return A matrix containing predictions calculated with cross-validation.
 #'
 #'@export
@@ -124,7 +126,8 @@ matrixpls.crossvalidate <- function(data, model, ..., predictFun = stats::predic
 #'@param predictedData A matrix or a data.frame containing the predicted data that are compared
 #'against the original data to calculate the predictive relevance statistic.
 #'
-#'@param model 
+#'@inheritParams matrixpls-common
+#'
 #'@return A list with \code{total}, \code{block}, and \code{indicator} elements containing
 #'the Q2 predictive relevance statistics for the full dataset, for each indicator block, and
 #'for each indicator

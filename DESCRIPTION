@@ -2,8 +2,8 @@ Encoding: UTF-8
 Package: matrixpls
 Type: Package
 Title: Matrix-Based Partial Least Squares Estimation
-Version: 0.7.1
-Date: 2016-2-19
+Version: 1.0.0
+Date: 2016-6-12
 Authors@R: c(person("Mikko", "Rönkkö", role=c("aut", "cre"),
     email = "mikko.ronkko@aalto.fi"))
 Maintainer: Mikko Rönkkö <mikko.ronkko@aalto.fi>
@@ -30,27 +30,30 @@ Suggests:
     semPLS,
     boot,
     Matrix,
-    ASGSCA
+    ASGSCA,
+    knitr,
+    R.rsp
 License: GPL-3
 LazyLoad: yes
 RoxygenNote: 5.0.1
 Collate:
+    'convCheck.R'
+    'estimator.R'
+    'innerEstim.R'
     'matrixpls.R'
     'matrixpls.boot.R'
-    'matrixpls.convergenceCheck.R'
     'matrixpls.crossvalidate.R'
-    'matrixpls.estimators.R'
-    'matrixpls.inner.R'
     'matrixpls.optim.R'
-    'matrixpls.outer.R'
-    'matrixpls.params.R'
     'matrixpls.plspm.R'
     'matrixpls.postestimation.R'
     'matrixpls.predict.R'
-    'matrixpls.reliability.R'
     'matrixpls.sempls.R'
-    'matrixpls.signAmbiquityCorrection.R'
-    'matrixpls.signChangeCorrection.R'
     'matrixpls.sim.R'
     'matrixpls.util.R'
-    'matrixpls.weights.R'
+    'outerEstim.R'
+    'paramEstimator.R'
+    'reliabilityEstim.R'
+    'signChange.R'
+    'weightFun.R'
+    'weightSign.R'
+VignetteBuilder: R.rsp

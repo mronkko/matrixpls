@@ -38,17 +38,17 @@
 #'@references
 #'Lohmöller J.-B. (1989) \emph{Latent variable path modeling with partial least squares.} Heidelberg: Physica-Verlag.
 #'
-#'@name innerEstimators
+#'@name innerEstim
 NULL
 
 #'@title Generalized structured component analysis (GSCA) weights
 #'
 #'@description
 #'
-#'When used with \code{\link{weight.pls}}, \code{\link{inner.gsca}} and 
-#'\code{\link{outer.gsca}} implement the generalized structured component analysis
-#'indicator weighting system. Using \code{\link{weight.optim}} with the
-#'\code{\link{optim.gsca}} optimization criterion provides an anternative
+#'When used with \code{\link{weightFun.pls}}, \code{\link{innerEstim.gsca}} and 
+#'\code{\link{outerEstim.gsca}} implement the generalized structured component analysis
+#'indicator weighting system. Using \code{\link{weightFun.optim}} with the
+#'\code{\link{optimCrit.gsca}} optimization criterion provides an anternative
 #'approach to calculate GSCA weights by direct numerical minimization of the
 #'GSCA criterion function.
 #'
@@ -65,10 +65,10 @@ NULL
 #'
 #'The first step of GSCA estimation method is calculation of regressions
 #'coefficients \code{A} given weights \code{W} and \code{V}. The function
-#'\code{\link{inner.gsca}} update the part of \code{A} corresponding to 
+#'\code{\link{innerEstim.gsca}} update the part of \code{A} corresponding to 
 #'regressions between the composites, corresponding to \code{E} matrix in 
 #'matrixpls. The regressions between composites and indicators are estimated
-#'in \code{\link{outer.gsca}}.
+#'in \code{\link{outerEstim.gsca}}.
 #'
 #'This algorithm for estimating the relationships between the composites
 #'is therefore identical to the PLS path weighting scheme with
@@ -78,7 +78,7 @@ NULL
 
 #'The second step of GSCA is calculating a new set of weights conditional on
 #'the regression coeffcients \code{A} to minimize the sum of error terms in
-#'the regressions. This step is implemented in \code{\link{outer.gsca}} after
+#'the regressions. This step is implemented in \code{\link{outerEstim.gsca}} after
 #'updating the regresions between indicators and composites.
 
 #'The implementation of GSCA in \pkg{matrixpls} differs from the Hwang & Takane (2004)
@@ -88,7 +88,7 @@ NULL
 #'the indicators and compositess. Since these covariances need to be calculated in the second step, it is more
 #'efficient to not calculate them during the first step.
 #'
-#'A part of the code for \code{\link{outer.gsca}} is adopted from the \pkg{ASGCA} package, licenced
+#'A part of the code for \code{\link{outerEstim.gsca}} is adopted from the \pkg{ASGCA} package, licenced
 #'under GPL3.
 #'
 #'@author Mikko Rönkkö, Hela Romdhani, Stepan Grinek, Heungsun Hwang, Aurelie Labbe.
@@ -108,22 +108,22 @@ NULL
 NULL
 
 
-#'@describeIn innerEstimators inner estimation with centroid scheme.
+#'@describeIn innerEstim inner estimation with centroid scheme.
 #'@export
 
-inner.centroid <- function(S, W, inner.mod, ignoreInnerModel = FALSE, ...){
+innerEstim.centroid <- function(S, W, inner.mod, ignoreInnerModel = FALSE, ...){
   
   # Centroid is just the sign of factor weighting
   
-  E <- sign(inner.factor(S, W, inner.mod, ignoreInnerModel, ...))
+  E <- sign(innerEstim.factor(S, W, inner.mod, ignoreInnerModel, ...))
   
   return(E)
 }
 
-#'@describeIn innerEstimators inner estimation with path scheme.
+#'@describeIn innerEstim inner estimation with path scheme.
 #'@export
 
-inner.path <- function(S, W, inner.mod, ...){
+innerEstim.path <- function(S, W, inner.mod, ...){
   
   # Calculate the composite covariance matrix
   C <- W %*% S %*% t(W)
@@ -140,10 +140,10 @@ inner.path <- function(S, W, inner.mod, ...){
   return(E)
 }
 
-#'@describeIn innerEstimators inner estimation with factor scheme.
+#'@describeIn innerEstim inner estimation with factor scheme.
 #'@export
 
-inner.factor <- function(S, W, inner.mod, ignoreInnerModel = FALSE, ...){
+innerEstim.factor <- function(S, W, inner.mod, ignoreInnerModel = FALSE, ...){
   
   # Calculate the composite covariance matrix
   
@@ -164,18 +164,18 @@ inner.factor <- function(S, W, inner.mod, ignoreInnerModel = FALSE, ...){
 
 
 
-#'@describeIn innerEstimators inner estimation with identity scheme.
+#'@describeIn innerEstim inner estimation with identity scheme.
 #'@export
 
-inner.identity <- function(S, W, inner.mod, ...){
+innerEstim.identity <- function(S, W, inner.mod, ...){
   return(diag(nrow(inner.mod)))
 }
 
-#'@describeIn innerEstimators inner estimation with generalized structured component analysis.
+#'@describeIn innerEstim inner estimation with generalized structured component analysis.
 #@describeIn GSCA inner estimation with generalized structured component analysis.
 #'@export
 
-inner.gsca <- function(S, W, inner.mod, ...){
+innerEstim.gsca <- function(S, W, inner.mod, ...){
   E <- estimator.ols(S, inner.mod,W)
   return(E)
 }

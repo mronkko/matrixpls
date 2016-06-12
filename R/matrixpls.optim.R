@@ -10,40 +10,40 @@
 #'
 #'@return Value of the optimization criterion.
 #'
-#'@seealso \code{\link{weight.optim}}
-#'@name optim
+#'@seealso \code{\link{weightFun.optim}}
+#'@name optimCrit
 NULL
 
 
-#'@describeIn optim maximizes the sum of R2 statistics of the \code{inner} matrix
+#'@describeIn optimCrit maximizes the sum of R2 statistics of the \code{inner} matrix
 #'@export
 
-optim.maximizeInnerR2 <- function(matrixpls.res){
+optimCrit.maximizeInnerR2 <- function(matrixpls.res){
   -sum(r2(matrixpls.res))
 }
 
 
-#'@describeIn optim maximizes the sum of R2 statistics of the \code{reflective} matrix.
+#'@describeIn optimCrit maximizes the sum of R2 statistics of the \code{reflective} matrix.
 #'@export
 
-optim.maximizeIndicatorR2 <- function(matrixpls.res){
+optimCrit.maximizeIndicatorR2 <- function(matrixpls.res){
   lambda <- loadings(matrixpls.res)
   IC <- attr(matrixpls.res,"IC")
   -sum(diag(lambda %*% IC))
 }
 
-#'@describeIn optim maximizes the sum of R2 statistics of the \code{inner} and \code{reflective} matrices.
+#'@describeIn optimCrit maximizes the sum of R2 statistics of the \code{inner} and \code{reflective} matrices.
 #'@export
 
 
-optim.maximizeFullR2 <- function(matrixpls.res){
-  optim.maximizeIndicatorR2(matrixpls.res) + optim.maximizeInnerR2(matrixpls.res)
+optimCrit.maximizeFullR2 <- function(matrixpls.res){
+  optimCrit.maximizeIndicatorR2(matrixpls.res) + optimCrit.maximizeInnerR2(matrixpls.res)
 }
 
-#'@describeIn optim minimies the generalized structured component analysis criterion. See \link{GSCA}
+#'@describeIn optimCrit minimies the generalized structured component analysis criterion. See \link{GSCA}
 #'@export
 
-optim.gsca <- function(matrixpls.res){
+optimCrit.gsca <- function(matrixpls.res){
   
   C <- attr(matrixpls.res,"C")
   IC <- attr(matrixpls.res,"IC")
@@ -66,43 +66,3 @@ optim.gsca <- function(matrixpls.res){
   #  sum(inner_resid, form_resid, refl_resid)
   sum(inner_resid, refl_resid)
 }
-
-
-# #'@title Optimization criterion for maximal prediction 
-# #'
-# #'@details Calculates the predicted variances of reflective indicators. The
-# #'prediction criterion is negative of the sum of predicted variances.
-# #'
-# #'@param matrixpls.res An object of class \code{matrixpls} from which the
-# #'criterion function is calculated
-# #'
-# #'@return Mean squared prediction error.
-# #'
-# #'@family Weight optimization criteria
-# #'
-# #'@export
-# #'
-# 
-# optim.maximizePrediction <- function(matrixpls.res){
-#   
-#   # TODO: convert to using the predict function
-#   
-#   C <- attr(matrixpls.res,"C")
-#   nativeModel <- attr(matrixpls.res,"model")
-#   exog <- rowSums(nativeModel$inner)==0
-#   W <- attr(matrixpls.res,"W")
-#   inner <- attr(matrixpls.res,"inner")
-#   
-#   reflective <- nativeModel$reflective
-#   reflective[which(reflective==1)] <- matrixpls.res[grep("=~",names(matrixpls.res))]
-#   
-#   # Predict endog LVs using reduced from equations
-#   Beta <- inner[! exog, ! exog]
-#   Gamma <- inner[! exog, exog]
-#   
-#   invBeta <- solve(diag(nrow(Beta)) - Beta)
-#   endogC <- invBeta %*% Gamma %*% C[exog,exog] %*% t(Gamma) %*% t(invBeta)
-#   C[!exog, !exog] <- endogC
-#   
-#   -sum(diag(reflective %*% C %*% t(reflective)))
-# }

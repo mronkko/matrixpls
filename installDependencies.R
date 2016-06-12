@@ -12,7 +12,8 @@ install.packages(c("assertive",
 "boot",
 "sem",
 "rticles",
-"string"))
+"string",
+"xtable"))
 
 source("https://bioconductor.org/biocLite.R")
 biocLite("ASGSCA")

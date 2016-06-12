@@ -11,7 +11,7 @@
 
 \item{...}{All other arguments are ignored.}
 
-\item{observed}{If \code{TRUE} (default) the observed residuals from the outer model regressions
+\item{observed}{If \code{TRUE} (default) the observed residuals from the outerEstim.model regressions
 (indicators regressed on composites) are returned. If \code{FALSE}, the residuals are calculated
 by combining  \code{inner}, \code{reflective}, and \code{formative} as a simultaneous equations
 system and subtracting the covariances implied by this system from the observed covariances.

@@ -43,9 +43,9 @@ with the indicators and composites using the weights. The main function takes th
 
 \preformatted{
 matrixpls(S, model, W.model = NULL, 
-          weightFunction = weight.pls, 
-          parameterEstimator = params.separate,
-          weightSignCorrection = NULL, ..., 
+          weightFun = weightFun.pls, 
+          parameterEstim = parameterEstim.separate,
+          weightSign = NULL, ..., 
           validateInput = TRUE, standardize = TRUE)
 }
 
@@ -54,8 +54,8 @@ works. \code{S}, is the data covariance or correlation matrix. \code{model} defi
 which is estimated in the second stage and \code{W.model} defines how the indicators are to be
 aggregated as composites. If \code{W.model} is left undefined, it will be constructed based on
 \code{model} following rules that are explained elsewhere in the documentation.
-\code{weightFunction} and 
-\code{parameterEstimator} are functions that 
+\code{weightFun} and 
+\code{parameterEstim} are functions that 
 implement the first and second task of the function respectively. All other arguments are passed 
 down to these two functions, which in turn can pass arguments to other functions that they call.
 
@@ -66,13 +66,13 @@ estimation could be specified as follows:
 
 \preformatted{
 matrixpls(S, model, 
-          outerEstimators = outer.modeB,
-          innerEstimator = inner.centroid)
+          outerEstim = outerEstim.modeB,
+          innerEstim = innerEstim.centroid)
 }
 
-The arguments \code{outerEstimators} and \code{innerEstimator} are not defined by the
-\code{matrixpls} function, but are passed down to \code{weight.pls} which is used as the default
-\code{weightFunction}. \code{outer.modeB} and \code{inner.centroid} are themselves functions provided
+The arguments \code{outerEstim} and \code{innerEstim} are not defined by the
+\code{matrixpls} function, but are passed down to \code{weightFun.pls} which is used as the default
+\code{weightFun}. \code{outerEstim.modeB} and \code{innerEstim.centroid} are themselves functions provided
 by the \pkg{matrixpls} package, which perform the actual inner and outer estimation stages of the
 PLS algorithm. Essentially, all parts of the estimation algorithm can be provided as arguments for
 the main function. This allows for adjusting the inner workings of the algorithm in a way that is
@@ -83,12 +83,12 @@ estimator that only produces positive weights by creating a custom function:
 
 \preformatted{
 myModeB <- function(...)\{
-  abs(outer.ModeB(...))
+  abs(outerEstim.ModeB(...))
 \}
 
 matrixpls(S, model,
-          outerEstimators = myModeB,
-          innerEstimator = inner.centroid)
+          outerEstim = myModeB,
+          innerEstim = innerEstim.centroid)
 }
 
 Model can be specified in the lavaan format or the native matrixpls format.

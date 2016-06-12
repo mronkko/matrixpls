@@ -12,6 +12,9 @@
 
 \item{newData}{A data frame or a matrix containing data used for prediction.}
 
+\item{predictionType}{"exogenous" (default) predicts indicators from exogenous composites. "redundancy"
+and "communality" are alternative strategies described by Chin (2010).}
+
 \item{means}{A vector of means of the original data used to calculate intercepts for the
 linear prediciton equations. If not provided, calculated from the new data or assumed zero.}
 

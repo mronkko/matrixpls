@@ -18,17 +18,17 @@
 #'
 #'@return A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.model}.
 #'
-#'@name outerEstimators
+#'@name outerEstim
 #'
 #'@references
 #'Lohmöller J.-B. (1989) \emph{Latent variable path modeling with partial least squares.} Heidelberg: Physica-Verlag.
 NULL
 
-#'@describeIn outerEstimators Mode A outer estimation.
+#'@describeIn outerEstim Mode A outer estimation.
 #'@export
 
 
-outer.modeA <- function(S, W, E, W.model, ...){
+outerEstim.modeA <- function(S, W, E, W.model, ...){
   
   # Calculate the covariance matrix between indicators and composites
   W_new <- E %*% W %*% S
@@ -39,11 +39,11 @@ outer.modeA <- function(S, W, E, W.model, ...){
   return(W_new)
 }
 
-#'@describeIn outerEstimators Mode B outerestimation.
+#'@describeIn outerEstim Mode B outerestimation.
 #'@export
 
 
-outer.modeB <- function(S, W, E, W.model, ...){
+outerEstim.modeB <- function(S, W, E, W.model, ...){
   
   # Calculate the covariance matrix between indicators and composites
   IC <- E %*% W %*% S
@@ -51,7 +51,7 @@ outer.modeB <- function(S, W, E, W.model, ...){
   # Set up a weight pattern
   W_new <- ifelse(W.model==0,0,1)
   
-  # Do the outer model regressions
+  # Do the outerEstim.model regressions
   
   for(row in which(rowSums(W_new)>0, useNames = FALSE)){
     indicatorIndices <- W_new[row,]==1
@@ -62,12 +62,12 @@ outer.modeB <- function(S, W, E, W.model, ...){
   
 }
 
-#'@describeIn outerEstimators outer estimation with generalized structured component analysis.
+#'@describeIn outerEstim outer estimation with generalized structured component analysis.
 #@describeIn GSCA outer estimation with generalized structured component analysis.
 #'@export
 
 
-outer.gsca <- function(S, W, E, W.model, model, ...){
+outerEstim.gsca <- function(S, W, E, W.model, model, ...){
   
   nativeModel <- parseModelToNativeFormat(model)
   

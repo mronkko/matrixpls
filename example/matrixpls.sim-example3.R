@@ -31,10 +31,10 @@ for(i in 1:6){
   population <- rep(1:2, each=3)[i]
   technique <-  rep(1:3, 2)[i]
   out <- matrixpls.sim(nRep = 500, model = analyzeModel,
-                       weightFunction = ifelse(technique == 1, weight.fixed, weight.pls),
+                       weightFun = ifelse(technique == 1, weightFun.fixed, weightFun.pls),
                        # Use Mode B for the third estimator, otherwise use Mode A
                        # This argument is ignored by fixed weights
-                       outerEstimators = ifelse(technique == 3, outer.modeB, outer.modeA),
+                       outerEstim = ifelse(technique == 3, outerEstim.modeB, outerEstim.modeA),
                        n = 100, generate = generateModels[[population]],
                        sequential = TRUE, saveLatentVar = TRUE,
                        multicore = TRUE, boot.R = FALSE, fitIndices = NULL)

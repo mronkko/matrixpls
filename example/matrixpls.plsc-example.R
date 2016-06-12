@@ -57,7 +57,7 @@ education.out2 <- matrixpls(S,education.model,
 
 education.out3 <- matrixpls(S,education.model,
                        disattenuate = TRUE,
-                       weightFunction = weight.fixed,
+                       weightFun = weightFun.fixed,
                        parametersReflective = estimator.efaLoadings)
 
 # Disattenuated GSCA with 2SLS regression after disattenuated based on 
@@ -66,8 +66,8 @@ education.out3 <- matrixpls(S,education.model,
 
 education.out4 <- matrixpls(S,education.model,
                        disattenuate = TRUE,
-                       innerEstimator = inner.gsca,
-                       outerEstimators = outer.gsca,
+                       innerEstim = innerEstim.gsca,
+                       outerEstim = outerEstim.gsca,
                        parametersInner = estimator.tsls,
                        parametersReflective = estimator.cfaLoadings)
 
@@ -75,7 +75,7 @@ education.out4 <- matrixpls(S,education.model,
 # Compare the results
 
 cbind(PLSc = education.out, PLSc_2sls = education.out2, 
-      DR = education.out3,.gscac = education.out4)
+      DR = education.out3, GSCAc = education.out4)
 
 # Compare the reliability estimates
 

@@ -49,7 +49,7 @@ matrixpls.plspm <-
     # =======================================================
     # checking arguments
     # =======================================================
-    params = get_params(x=Data, inner=path_matrix, outer=blocks, modes=modes, 
+    params = get_params(x=Data, path_matrix, outer=blocks, modes=modes, 
                         scheme=scheme, scaled=scaled, tol=tol, maxiter=maxiter,
                         boot.val=boot.val, br=br, plsr=FALSE, dataset=dataset)
     
@@ -97,18 +97,18 @@ matrixpls.plspm <-
     
     modeA <- params$modes == "A"
     
-    if(max(modeA) == 0) outerEstimators <- outer.modeB	
-    else if(min(modeA) == 1) outerEstimators <- outer.modeA
+    if(max(modeA) == 0) outerEstim <- outerEstim.modeB	
+    else if(min(modeA) == 1) outerEstim <- outerEstim.modeA
     else{
-      outerEstimators <- list(rep(NA,length(modeA)))
-      outerEstimators[!modeA] <- list(outer.modeB)
-      outerEstimators[modeA] <- list(outer.modeA)
+      outerEstim <- list(rep(NA,length(modeA)))
+      outerEstim[!modeA] <- list(outerEstim.modeB)
+      outerEstim[modeA] <- list(outerEstim.modeA)
     }
     
     
-    innerEstimator <- c(inner.centroid,
-                        inner.factor,
-                        inner.path)[[params$scheme]]
+    innerEstim <- c(innerEstim.centroid,
+                        innerEstim.factor,
+                        innerEstim.path)[[params$scheme]]
     
     # Convergence is checked with the following function in plspm
     
@@ -150,7 +150,7 @@ matrixpls.plspm <-
         
         tryCatch(
           matrixpls(S_boot, model = nativeModel, W.model = W.model, paramsInner = paramsInner,
-                    outerEstimators = outerEstimators, innerEstimator = innerEstimator,
+                    outerEstim = outerEstim, innerEstim = innerEstim,
                     tol = params$tol, iter = params$maxiter, convCheck = convCheck,
                     validateInput = FALSE, standardize = FALSE), 
           
@@ -166,7 +166,7 @@ matrixpls.plspm <-
     }
     else{
       matrixpls.res <- matrixpls(S, model = nativeModel, W.model = W.model, paramsInner = paramsInner,
-                                 outerEstimators = outerEstimators, innerEstimator = innerEstimator,
+                                 outerEstim = outerEstim, innerEstim = innerEstim,
                                  tol = params$tol, iter = params$maxiter, convCheck = convCheck,
                                  validateInput = FALSE, standardize = FALSE)
     }

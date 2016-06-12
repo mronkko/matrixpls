@@ -15,15 +15,15 @@
 #'
 #'@return a named vector of estimated composite reliabilities.
 #'
-#'@name reliabilityEstimators
+#'@name reliabilityEstim
 #'
 
 NULL
 
-#'@describeIn reliabilityEstimators Reliability estimation based on weights and loadings.
+#'@describeIn reliabilityEstim Reliability estimation based on weights and loadings.
 #'@export
 
-reliability.weightLoadingProduct <- function(S, loadings, W, ...){
+reliabilityEstim.weightLoadingProduct <- function(S, loadings, W, ...){
   
   Q <- diag(W %*% loadings)^2
   
@@ -33,10 +33,10 @@ reliability.weightLoadingProduct <- function(S, loadings, W, ...){
   Q
 }
 
-#'@describeIn reliabilityEstimators Reliability estimation with Cronbach's alpha
+#'@describeIn reliabilityEstim Reliability estimation with Cronbach's alpha
 #'@export
 
-reliability.alpha <- function(S, loadings, W, ...){
+reliabilityEstim.alpha <- function(S, loadings, W, ...){
   
   S <- stats::cov2cor(S)
   

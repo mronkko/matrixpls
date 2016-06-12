@@ -4,7 +4,7 @@
 \alias{matrixpls.boot}
 \title{Bootstrapping of matrixpls function}
 \usage{
-matrixpls.boot(data, model, ..., R = 500, signChangeCorrection = NULL,
+matrixpls.boot(data, model, ..., R = 500, signChange = NULL,
   parallel = c("no", "multicore", "snow"), ncpus = getOption("boot.ncpus",
   1L), dropInadmissible = FALSE, stopOnError = FALSE, extraFun = NULL)
 }
@@ -20,7 +20,7 @@ in the model.}
 
 \item{R}{Number of bootstrap samples to draw.}
 
-\item{signChangeCorrection}{Sign change correction function.}
+\item{signChange}{Sign change correction function.}
 
 \item{parallel}{
     The type of parallel operation to be used (if any).  If missing, the
