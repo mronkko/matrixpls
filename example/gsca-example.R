@@ -33,16 +33,16 @@ model <- list(inner = inner,
 # Estimate using alternating least squares
 
 matrixpls.res1 <- matrixpls(cov(GenPhen),  model,
-                            outerEstimators = outer.gsca,
-                            innerEstimator = inner.gsca)
+                            outerEstim = outerEstim.gsca,
+                            innerEstim = innerEstim.gsca)
 
 # Estimate using direct minimization of the estimation criterion
 # Set the convergence criterion to be slightly stricter than normally
 # to get indentical results
 
 matrixpls.res2 <- matrixpls(cov(GenPhen),  model,
-                            weightFunction = weight.optim,
-                            optimCriterion = optim.gsca,
+                            weightFun = weightFun.optim,
+                            optimCrit = optimCrit.gsca,
                             control = list(reltol = 1e-12))
 
 # Compare the weights
@@ -55,6 +55,6 @@ do.call(cbind,lapply(list(ASGSCA =GSCA.res[["Weight"]],
 
 # Check the criterion function values
 
-optim.gsca(matrixpls.res1)
-optim.gsca(matrixpls.res2)
+optimCrit.gsca(matrixpls.res1)
+optimCrit.gsca(matrixpls.res2)
 
