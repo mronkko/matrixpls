@@ -154,6 +154,13 @@ matrixpls.boot <- function(data, model, ..., R = 500,
                          },
                          R, parallel = parallel, ncpus = ncpus, ...)
   
+  # Clean inadmisibles
+  
+  if(dropInadmissible){
+    boot.out$t <- boot.out$t[which(apply(boot.out$t,1,function(x){all(! is.na(x))})),]
+    boot.out$R <- nrow(boot.out$t)
+  }
+  
   class(boot.out) <- c("matrixplsboot", class(boot.out))
   boot.out
 }
