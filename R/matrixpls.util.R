@@ -163,7 +163,7 @@ convergenceStatus <- function(matrixpls.res){
     
     C <- attr(matrixpls.res,"C")
     
-    if(max(abs(C[lower.tri(C)]))>1){
+    if(max(abs(C[lower.tri(C)]))>1 | !matrixcalc::is.positive.semi.definite(C)){
       converged <- 5 
     }
     
