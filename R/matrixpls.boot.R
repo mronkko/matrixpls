@@ -91,7 +91,7 @@ matrixpls.boot <- function(data, model, ..., R = 500,
   
   
   model <- parseModelToNativeFormat(model)
-
+  
   data <- data[,rownames(model$reflective)]
   data <- as.matrix(data)
   
@@ -118,7 +118,7 @@ matrixpls.boot <- function(data, model, ..., R = 500,
   }
   
   # Bootstrap
-
+  
   boot.out <- boot::boot(data,
                          function(data, indices, ...){
                            
@@ -133,6 +133,7 @@ matrixpls.boot <- function(data, model, ..., R = 500,
                                boot.rep <- do.call(matrixpls, arguments)
                              )
                            }
+                           
                            # Deal with inadmissibles
                            if(dropInadmissible && convergenceStatus(boot.rep) != 0) return(NA)
                            
@@ -189,16 +190,25 @@ summary.matrixplsboot <- function(object, ...){
                            sum(attr(matrixpls.res,"W")!=0))
   
   cis <- lapply(parameterIndices, function(i){
+    
+    cis <- c(matrixpls.res[i], rep(NA,8))
     ci <- boot::boot.ci(object,...,index = i, type = c("norm","basic", "perc"))
-    cis <- c(matrixpls.res[i],ci$normal[2:3],ci$basic[4:5], ci$percent[,4:5],NA,NA)
     
-    # BCa intervals cannot be always calculated
+    # CIs cannot always be calculated
     
-    tryCatch(
-      cis[8:9] <- boot::boot.ci(object,...,index = i, type = "bca")$bca[,4:5],
-      error = function(e){
-        warning(e)
-      })
+    if(! is.null(ci$normal[2:3])) cis[2:3] <- ci$normal[2:3]
+    if(! is.null(ci$basic[4:5])) cis[4:5] <- ci$basic[4:5]
+    if(! is.null(ci$percent[4:5])) cis[6:7] <- ci$percent[4:5]
+    
+    # BCa intervals some times produce errors
+    
+    tryCatch({
+      bcacis <- boot::boot.ci(object,...,index = i, type = "bca")$bca[,4:5]
+      if(!is.null(bcacis)) cis[8:9] <- bcacis
+    },
+    error = function(e){
+      warning(e)
+    })
     
     cis
   })
