@@ -134,8 +134,6 @@ matrixpls.boot <- function(data, model, ..., R = 500,
                              )
                            }
                            
-                           # Deal with inadmissibles
-                           if(dropInadmissible && convergenceStatus(boot.rep) != 0) return(NA)
                            
                            # Add additional statistics
                            
@@ -147,16 +145,20 @@ matrixpls.boot <- function(data, model, ..., R = 500,
                            }
                            
                            # If the indices are not sorted, then this is not the original sample
-                           # and we can safely omit all attributes to save memory
-                           
-                           if(is.unsorted(indices)) attributes(boot.rep) <- NULL
+                           # and we can safely omit all attributes to save memory. Also
+                           # deal with inadmissible estimates here
+
+                           if(is.unsorted(indices)){
+                             if(dropInadmissible && convergenceStatus(boot.rep) != 0) return(NA)
+                             attributes(boot.rep) <- NULL
+                           }
                            
                            boot.rep
                          },
                          R, parallel = parallel, ncpus = ncpus, ...)
   
   # Clean inadmisibles
-  
+
   if(dropInadmissible){
     boot.out$t <- boot.out$t[which(apply(boot.out$t,1,function(x){all(! is.na(x))})),]
     boot.out$R <- nrow(boot.out$t)
@@ -179,8 +181,12 @@ print.matrixplsboot <- function(x, ...){
 #'@S3method summary matrixplsboot
 
 summary.matrixplsboot <- function(object, ...){
+  
   matrixpls.res <- object$t0
+  
+  attr(matrixpls.res,"boot.out") <- object
   out <- summary(matrixpls.res)
+  
   attr(out,"boot.out") <- object
   
   cat("\nCalculating confidence intervals.\n")
