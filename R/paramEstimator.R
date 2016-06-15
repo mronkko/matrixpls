@@ -82,6 +82,9 @@ parameterEstim.separate <- function(S, model, W, ...,
     IC[tL==0] <- (IC/sqrt(Q))[tL==0]
   }
   
+  # C may be non-symmetric because of rounding errors. Force it to be symmetric
+  C[lower.tri(C)]=t(C)[lower.tri(C)]
+  
   formativeEstimates <- parametersFormative(S, nativeModel$formative, W, ..., IC = IC)  
   innerEstimates <- parametersInner(S, nativeModel$inner, W, ..., C = C)  
   
