@@ -143,27 +143,45 @@ matrixpls.boot <- function(data, model, ..., R = 500,
                              a$names <- names(boot.rep)
                              attributes(boot.rep) <- a
                            }
-                           
-                           # If the indices are not sorted, then this is not the original sample
-                           # and we can safely omit all attributes to save memory. Also
-                           # deal with inadmissible estimates here
 
+                           # Add convergence status as the last statistic. This will be removed
+                           # later
+
+                           boot.rep[length(boot.rep)+1] <- convergenceStatus(boot.rep)
+
+                           # If the indices are not sorted, then this is not the original sample
+                           # and we can safely omit all attributes to save memory. 
+                           
                            if(is.unsorted(indices)){
-                             if(dropInadmissible && convergenceStatus(boot.rep) != 0) return(NA)
                              attributes(boot.rep) <- NULL
                            }
                            
                            boot.rep
+                           
                          },
                          R, parallel = parallel, ncpus = ncpus, ...)
   
+  
+  # Store the convergence status frequencies
+  boot.out$convergence <- table(boot.out$t[,1])
+  
   # Clean inadmisibles
-
+  
+  i <- length(boot.out$t0)
+  
   if(dropInadmissible){
-    boot.out$t <- boot.out$t[which(apply(boot.out$t,1,function(x){all(! is.na(x))})),]
+    boot.out$t <- boot.out$t[boot.out$t[,i]==0,]
     boot.out$R <- nrow(boot.out$t)
   }
+
+  # Remove the convergence status from the estimates
+  a <- attributes(boot.out$t0)
+  a$names <- a$names[-length(boot.out$t0)]
+  boot.out$t <- boot.out$t[,-i]
+  boot.out$t0 <- boot.out$t0[-i]
+  attributes(boot.out$t0) <- a
   
+  # Set class and return
   class(boot.out) <- c("matrixplsboot", class(boot.out))
   boot.out
 }
