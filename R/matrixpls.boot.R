@@ -272,10 +272,10 @@ summary.matrixplsboot <- function(object, ...){
     t <- est/se
     
     c(est,se,t,
-      (1-stats::pt(t,dfHa-IVs[i]))*2, # Regression
-      (1-stats::pt(t,dfHa))*2, # Hair
-      (1-stats::pt(t,dfHe))*2, # Henseler
-      (1-stats::pnorm(t))*2) # Standard normal
+      (1-stats::pt(abs(t),dfHa-IVs[i]))*2, # Regression
+      (1-stats::pt(abs(t),dfHa))*2, # Hair
+      (1-stats::pt(abs(t),dfHe))*2, # Henseler
+      (1-stats::pnorm(abs(t)))*2) # Standard normal
     
   })
   
@@ -301,7 +301,7 @@ print.matrixplsbootsummary <- function(x, ...){
   class(x) <- "matrixplssummary"
   print(x)
   
-  cat("\n Bootstrap SEs and significance tests\n")
+  cat("\n Bootstrap SEs and two-tailed significance tests\n")
   print(p, ...)
   
   cat("\n Bootstrap confidence intervals\n")
