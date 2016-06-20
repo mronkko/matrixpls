@@ -625,7 +625,9 @@ print.matrixplsave <- function(x, ...){
 
 htmt <- function(object, ...){
   
-  S <- attr(object,"S")
+  #HTMT is calculated from correlation matrix
+  S <- cov2cor(attr(object,"S"))
+  
   reflective <- attr(object,"reflective")!=0
   
   # Mean within- and between-block correlations
