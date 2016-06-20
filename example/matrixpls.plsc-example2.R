@@ -51,8 +51,7 @@ library(matrixpls)
 sim.PLSf1 <- matrixpls.sim(nRep = REPLICATIONS, model = MODEL, n = SAMPLE, #General setup
                            disattenuate = TRUE,
                            fm = "minres", # Setup disattenuation with minres factor analysis
-                           outerEstimator = outer.factor, # Use factor scores as proxies.
-                           innerEstimator = NULL, # Factor score proxies do not use inner estimation
+                           weightFun = weightFun.factor, # Use factor scores as proxies.
                            boot.R = FALSE, # We are not interested in bootstrap
                            multicore = MULTICORE, fitIndices = NULL, stopOnError = TRUE)
 
@@ -60,13 +59,14 @@ sim.PLSf1 <- matrixpls.sim(nRep = REPLICATIONS, model = MODEL, n = SAMPLE, #Gene
 sim.PLSf2 <- matrixpls.sim(nRep = REPLICATIONS, model = MODEL, n = SAMPLE, #General setup
                            disattenuate = TRUE,
                            fm = "minres", # Setup disattenuation with minres factor analysis
-                           outerEstimator = outer.fixedWeights, # Use equal weights
-                           innerEstimator = NULL, # Equal weightproxies do not use inner estimation
+                           weightFun = weightFun.fixed, # Use equal weights
+                           parametersReflective = estimator.efaLoadings,
                            boot.R = FALSE, # We are not interested in bootstrap
                            multicore = MULTICORE, fitIndices = NULL, stopOnError = TRUE)
 
 sim.PLSc <- matrixpls.sim(nRep = REPLICATIONS, model = MODEL, n = SAMPLE, #General setup
                           disattenuate = TRUE,
+                          parametersReflective = estimator.plscLoadings,
                           boot.R = FALSE, # We are not interested in bootstrap
                           multicore = MULTICORE, fitIndices = NULL, stopOnError = TRUE)
 
