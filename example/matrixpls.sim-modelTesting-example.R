@@ -44,7 +44,7 @@ datmat.factor <-  sim(nRep = ndraws,
 # Estimate the model with PLSc (Dijkstra & Henseler (2015)) using the data sets created earlier
 sim.res <- matrixpls.sim(model = MODEL,
                          disattenuate = TRUE,
-                         reliabilities = reliability.weightLoadingProduct,
+                         reliabilities = reliabilityEstim.weightLoadingProduct,
                          parametersReflective = estimator.plscLoadings,
                          rawData = datmat.factor,
                          multicore = multi,
@@ -101,7 +101,7 @@ scaleddata <- mapply(scaleDataSet,
 
 # Calculate the empirical reference distribution
 sim.res2 <- matrixpls.sim(model = MODEL, disattenuate = TRUE,
-                          reliabilities = reliability.weightLoadingProduct,
+                          reliabilities = reliabilityEstim.weightLoadingProduct,
                           parametersReflective = estimator.plscLoadings,
                           rawData = scaleddata,
                           multicore = F,
