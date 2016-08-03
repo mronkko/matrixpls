@@ -151,8 +151,9 @@ residuals.matrixpls <- function(object, ..., observed = TRUE) {
     r2 <- r2(object)
     
     
-    # C in Lohmoller 1989 is different from the matrixpls C
-    # residual covariance matrix of indicators
+    # Lohmoller 1989 uses C for the residual covariance matrix of indicators
+    # matrixpls uses C for the composite correlation matrix, but from here on
+    # until the end of the function, C is used for the residual covariance matrix
     
     C <- S-H
     
