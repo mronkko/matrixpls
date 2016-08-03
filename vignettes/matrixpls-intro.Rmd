@@ -149,12 +149,12 @@ library(stringr)
 
 readParagraphsFromMan <- function(fileName, paragraphs){
   
-  tf <- paste("../../man/",fileName,".Rd",sep="")
+  tf <- paste("../man/",fileName,".Rd",sep="")
   #    tempfile()
   
   #  system(paste(shQuote(file.path(R.home("bin"), "R")), 
   #               "CMD", "Rdconv","-o",tf, "-t","latex", 
-  #               paste("../../man/",fileName,".Rd",sep=""))) 
+  #               paste("../man/",fileName,".Rd",sep=""))) 
   
   text <- readChar(tf, file.info(tf)$size)
   text <- strsplit(text,paste("\n\n|",
@@ -185,7 +185,7 @@ library(matrixpls)
 library(plspm)
 library(semPLS)
 
-source("../../demo/benchmark.R")
+source("../demo/benchmark.R")
 
 R <- 100
 Rboot <- 1000
@@ -308,7 +308,7 @@ calculated as:
 \end{eqnarray}
 
 where $\bm{S}$ is the $(k \times k)$ indicator covariance matrix, and $\bm{W}$ is the $(l \times k)$ 
-weight matrix, and $k$ is the number of indicators and $l$ is the number of observed variables.
+weight matrix, and $k$ is the number of observed variables and $l$ is the number of composites.
 
 In the outer estimation step, new indicator weights are calculated in one 
 of two ways. In Mode A estimation, the observed variables are regressed on the composites, whereas
@@ -418,7 +418,7 @@ example from the \pkg{plspm} package:
 ```{r, echo=FALSE, warnings = FALSE, include=FALSE}
 library(knitr)
 library(matrixpls)
-read_chunk('../../example/matrixpls-example.R', labels = "e1")
+read_chunk('../example/matrixpls-example.R', labels = "e1")
 ```
 
 ```{r e1}
@@ -457,7 +457,7 @@ print.matrix <- function(x,...){
   else print.default(x,...)
 }
 
-read_chunk('../../example/matrixpls-example2.R', labels = "e2")
+read_chunk('../example/matrixpls-example2.R', labels = "e2")
 ```
 
 ```{r e2}
@@ -690,7 +690,7 @@ by the \pkg{ASGSCA} package [@asgsca] available throuh Bioconductor.
 library(knitr)
 library(matrixpls)
 library(ASGSCA)
-read_chunk('../../example/gsca-example.R', labels = "e3")
+read_chunk('../example/gsca-example.R', labels = "e3")
 ```
 
 ```{r e3}
@@ -759,7 +759,7 @@ The following code example demonstrates the use of disattenuation.
 ```{r, echo=FALSE, warnings = FALSE, include=FALSE}
 library(knitr)
 library(matrixpls)
-read_chunk('../../example/matrixpls.plsc-example.R', labels = "e4")
+read_chunk('../example/matrixpls.plsc-example.R', labels = "e4")
 ```
 
 ```{r e4}
@@ -805,7 +805,7 @@ statistics.
 ```{r, echo=FALSE, warnings = FALSE, include=FALSE, cache = FALSE}
 library(knitr)
 library(matrixpls)
-read_chunk('../../example/matrixpls.prediction-example3.R', labels = "e5")
+read_chunk('../example/matrixpls.prediction-example3.R', labels = "e5")
 ```
 
 ```{r e5}
@@ -829,6 +829,30 @@ Two versions of the SRMR index are provided for both types of residuals,
 the traditional SRMR that includes all residual
 covariances, and the version proposed by Henseler et al. [-@henseler_common_2014] where 
 the within-block residual covariances are ignored.
+
+The residuals can be
+either observed residuals from the regressions of indicators on composites and composites 
+on composites
+(i.e. the \code{reflective} and \code{inner} models) as presented by Lohmöller [-@lohmoller_latent_1989, ch 2.4] or 
+model implied residuals calculated by subtracting model implied covariance matrix from the 
+sample covariance matrix as done by Henseler et al. [-@henseler_common_2014]. 
+
+The root mean squared residual indices [@lohmoller_latent_1989, eq. 2.118] are calculated from the
+off diagonal elements of the residual covariance matrix. The
+standardized root mean squared residual (SRMR) is calculated based on the standardized residuals
+of the \code{reflective} model matrix. 
+
+Following Hu and Bentler [-@hu_cutoff_1999, Table 1, the SRMR index is calculated by dividing with 
+$p(p+1)/2$, where $p$ is the number of indicator variables. In typical SEM applications,
+the diagonal of residual covariance matrix consistes of all zeros because error term variances
+are freely estimated. To make the SRMR more comparable with the index produced by 
+SEM software, the SRMR is calculated by summing only the squares of off-diagonal elements,
+which is equivalent to including a diagonal of all zeros. 
+
+Two versions of the 
+SRMR index are rovided, the traditional SRMR that includes all residual covariances, and the 
+version proposed by Henseler et al. [-@henseler_common_2014] where the within-block residual covariances are 
+ignored. 
 
 ### Example: Calculating observed and implied residuals
 
@@ -1216,7 +1240,7 @@ indicator weighting techniques: PLS Mode A, PLS Mode B, and unit weights.
 \begin{small}
 
 ```{r, echo=FALSE, warnings = FALSE, include=FALSE, cache = FALSE}
-read_chunk('../../example/matrixpls.sim-example3.R', labels = "re2013")
+read_chunk('../example/matrixpls.sim-example3.R', labels = "re2013")
 ```
 
 ```{r re2013, cache = FALSE, results="hide", cache = TRUE}
@@ -1291,7 +1315,7 @@ Matrix or&Matrix&Description\\
 attribute&order&\\
 ```{r kable, results = "asis", echo = FALSE}
 library(xtable)
-attributeFile <- read.csv2("../../man-roxygen/attributes.csv",stringsAsFactors = FALSE)
+attributeFile <- read.csv2("../man-roxygen/attributes.csv",stringsAsFactors = FALSE)
 attributeFile$attribute <- paste("\\code{",attributeFile$attribute,"}", sep="")
 
 print(xtable(attributeFile),
