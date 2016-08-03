@@ -20,7 +20,7 @@ covariance matrix by combining  \code{inner}, \code{reflective}, and \code{forma
 simultaneous equations system. The error terms are constrained to be uncorrelated and 
 covariances between exogenous variables are fixed at their sample values. Defining a
 composite as dependent variable in both inner and formative creates an impossible model
-and results in an errors
+and results in an error.
 }
 \seealso{
 Other post-estimation functions: \code{\link{ave}},
