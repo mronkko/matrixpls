@@ -13,7 +13,13 @@
 ^[^/]+.R$
 ^man-roxygen
 .*\.tar\.gz
-^inst/doc/matrixpls-intro_cache
-^inst/doc
+^vignettes/matrixpls-intro_cache
+^vignettes/matrixpls-intro_files
+^vignettes/*.R
+^vignettes/*.bst
+^vignettes/*.cls
+^vignettes/*.jpg
+^vignettes/*.bib
+^vignettes/*.Rmd
 ^man/commonArguments.Rd
 ^R/documentation.R
