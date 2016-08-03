@@ -177,7 +177,22 @@ residuals.matrixpls <- function(object, ..., observed = TRUE) {
     # matrixpls uses C for the composite correlation matrix, but from here on
     # until the end of the function, C is used for the residual covariance matrix
     
-    C <- S-H
+    # Lohmoller does not define C in covariance form, so we need to do it ourselfs.
+    # 
+    # Start with the observed residuals:
+    #
+    # e = X-XW'P'
+    # 
+    # because residuals have a mean of zero cov(e) can be defined as
+    # 
+    # cov(e) = (X-XW'P')’(X-XW'P')
+    # cov(e) = (X’-(XW'P')')(X-XW'P')
+    # cov(e) = (X’-PWX')(X-XW'P')
+    # cov(e) = X’X-X’XW'P'-PWX'X+PWX'XW'P'
+    # cov(e) = S-SW'P'-PWS+PWSXW'P'
+    # cov(e) = S-SW'P'-(SW'P')’+PRP'
+
+    C <- S - S%*%t(W)%*%t(P) - t(S-S%*%t(W)%*%t(P)) + P%*%R%*%t(P)
     
     Q <- (W %*% S %*% t(W))[endog,endog] - R_star
     
@@ -649,7 +664,7 @@ print.matrixplsave <- function(x, ...){
 htmt <- function(object, ...){
   
   #HTMT is calculated from correlation matrix
-  S <- cov2cor(attr(object,"S"))
+  S <- stats::cov2cor(attr(object,"S"))
   
   reflective <- attr(object,"reflective")!=0
   
