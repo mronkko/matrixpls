@@ -30,18 +30,40 @@ covariance matrix and various fit indices.
 }
 \details{
 The residuals can be
-either observed empirical residuals as presented by Lohmöller (1989, ch 2.4) or 
-model implied residuals as used by Henseler et al. (2014). Two versions of the SRMR index are
-provided, the traditional SRMR that includes all residual covariances, and the version
-proposed by Henseler et al. (2014) where the within-block residual covariances are ignored.
+either observed residuals from the regressions of indicators on composites and composites 
+on composites
+(i.e. the \code{reflective} and \code{inner} models) as presented by Lohmöller (1989, ch 2.4) or 
+model implied residuals calculated by subtracting model implied covariance matrix from the 
+sample covariance matrix as done by Henseler et al. (2014). 
+
+The root mean squared residual indices (Lohmöller, 1989, eq 2.118) are calculated from the
+off diagonal elements of the residual covariance matrix. The
+standardized root mean squared residual (SRMR) is calculated based on the standardized residuals
+of the \code{reflective} model matrix. 
+
+Following Hu and Bentler (1999, Table 1), the SRMR index is calculated by dividing with 
+\eqn{p(p+1)/2}, where \eqn{p} is the number of indicator variables. In typical SEM applications,
+the diagonal of residual covariance matrix consistes of all zeros because error term variances
+are freely estimated. To make the SRMR more comparable with the index produced by 
+SEM software, the SRMR is calculated by summing only the squares of off-diagonal elements,
+which is equivalent to including a diagonal of all zeros. 
+
+Two versions of the 
+SRMR index are rovided, the traditional SRMR that includes all residual covariances, and the 
+version proposed by Henseler et al. (2014) where the within-block residual covariances are 
+ignored.
 }
 \references{
-Lohmöller J.-B. (1989) \emph{Latent variable path modeling with partial
-least squares.} Heidelberg: Physica-Verlag.
-
 Henseler, J., Dijkstra, T. K., Sarstedt, M., Ringle, C. M., Diamantopoulos, A., Straub, D. W., …
 Calantone, R. J. (2014). Common Beliefs and Reality About PLS Comments on Rönkkö and Evermann 
-(2013). Organizational Research Methods, 17(2), 182–209. doi:10.1177/1094428114526928
+(2013). \emph{Organizational Research Methods}, 17(2), 182–209. doi:10.1177/1094428114526928
+
+Hu, L., & Bentler, P. M. (1999). Cutoff criteria for fit indexes in covariance structure 
+analysis: Conventional criteria versus new alternatives. \emph{Structural Equation Modeling: 
+A Multidisciplinary Journal}, 6(1), 1–55.
+
+Lohmöller J.-B. (1989) \emph{Latent variable path modeling with partial
+least squares.} Heidelberg: Physica-Verlag.
 }
 \seealso{
 Other post-estimation functions: \code{\link{ave}},
