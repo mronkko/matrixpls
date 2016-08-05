@@ -336,11 +336,20 @@ print.matrixpls <- function(x, ...){
   estimates <- as.matrix(toPrint)
   colnames(estimates)[1] <- "Est."
   
+  
+  
+  se <- attr(x,"se")
   boot.out <- attr(x,"boot.out")
+
   if(! is.null(boot.out)){
     estimates <- cbind(estimates, apply(boot.out$t[,indices],2,stats::sd))
     colnames(estimates)[2] <- "SE"
   }
+  else if(! is.null(se)){
+    estimates <- cbind(estimates,se)
+    colnames(estimates)[2] <- "SE"
+  }
+  
   
   print(estimates, ...)
   

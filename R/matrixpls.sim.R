@@ -101,7 +101,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
   
   if(!"W.mod" %in% names(matrixplsArgs)) matrixplsArgs$W.mod<- defaultWeightModelWithModel(model)
   
-  matrixplsArgs <- c(list(R= boot.R, model = nativeModel),matrixplsArgs)
+  matrixplsArgs <- c(list(R= boot.R, model = nativeModel, n = n),matrixplsArgs)
   
   #
   # The LV scores returned by SimSem for endogenous LVs are not the LVs, but their error terms.
@@ -228,9 +228,16 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
                          extra = boot.out))
       
     }
+    
+    # Else use the closed form SEs if available
+    
     else{
-      # simsem requires some se estimates, so return a matrix of NAs
-      ses <- rep(NA, length(parameterIndices))
+      
+      ses <- attr(matrixpls.res,"se")
+
+      # simsem requires some se estimates, so return a matrix of NAs even if ses are not available
+      if(is.null(ses)) ses <- rep(NA, length(parameterIndices))
+      
       names(ses) <- names(ret[["coef"]])
       ret <- c(ret, list(se = ses,
                          extra = matrixpls.res))

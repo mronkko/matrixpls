@@ -49,11 +49,11 @@ NULL
 #'@export
 #'
 parameterEstim.separate <- function(S, model, W, ...,
-                              parametersInner = estimator.ols,
-                              parametersReflective = estimator.ols,
-                              parametersFormative = estimator.ols,
-                              disattenuate = FALSE,
-                              reliabilities = reliabilityEstim.weightLoadingProduct){
+                                    parametersInner = estimator.ols,
+                                    parametersReflective = estimator.ols,
+                                    parametersFormative = estimator.ols,
+                                    disattenuate = FALSE,
+                                    reliabilities = reliabilityEstim.weightLoadingProduct){
   
   nativeModel <- parseModelToNativeFormat(model)
   
@@ -66,6 +66,15 @@ parameterEstim.separate <- function(S, model, W, ...,
   IC <- W %*% S
   
   reflectiveEstimates <- parametersReflective(S, nativeModel$reflective, W, ..., C = C, IC = t(IC))  
+  
+  if(is.list(reflectiveEstimates)){
+    reflectiveSEs <- reflectiveEstimates$se
+    reflectiveEstimates <- reflectiveEstimates$est
+  }
+  else{
+    reflectiveSEs <- reflectiveEstimates
+    reflectiveSEs[] <- NA
+  }
   
   if(disattenuate){
     
@@ -86,11 +95,35 @@ parameterEstim.separate <- function(S, model, W, ...,
   C[lower.tri(C)]=t(C)[lower.tri(C)]
   
   formativeEstimates <- parametersFormative(S, nativeModel$formative, W, ..., IC = IC)  
+  
+  if(is.list(formativeEstimates)){
+    formativeSEs <- formativeEstimates$se
+    formativeEstimates <- formativeEstimates$est
+  }
+  else{
+    formativeSEs <- formativeEstimates
+    formativeSEs[] <- NA
+  }
+  
   innerEstimates <- parametersInner(S, nativeModel$inner, W, ..., C = C)  
+  
+  if(is.list(innerEstimates)){
+    innerSEs <- innerEstimates$se
+    innerEstimates <- innerEstimates$est
+  }
+  else{
+    innerSEs <- innerEstimates
+    innerSEs[] <- NA
+  }
+  
   
   results <- c(estimatesMatrixToVector(innerEstimates, nativeModel$inner, "~"),
                estimatesMatrixToVector(reflectiveEstimates, nativeModel$reflective, "=~", reverse = TRUE),
                estimatesMatrixToVector(formativeEstimates, nativeModel$formative, "<~"))
+  
+  se <- c(estimatesMatrixToVector(innerSEs, nativeModel$inner, "~"),
+          estimatesMatrixToVector(reflectiveSEs, nativeModel$reflective, "=~", reverse = TRUE),
+          estimatesMatrixToVector(formativeSEs, nativeModel$formative, "<~"))
   
   # Copy all non-standard attributes from the estimates objects
   
@@ -108,9 +141,13 @@ parameterEstim.separate <- function(S, model, W, ...,
   attr(results,"reflective") <- reflectiveEstimates
   attr(results,"formative") <- formativeEstimates
   
+  if(any(! is.na(se))){
+    attr(results,"se") <- se
+  }
+  
   if(disattenuate){
     attr(results,"Q") <- Q
   }
-  
+
   return(results)
 }

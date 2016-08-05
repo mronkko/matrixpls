@@ -10,7 +10,7 @@
 \alias{estimator.tsls}
 \title{Parameter estimation of a model matrix}
 \usage{
-estimator.ols(S, modelMatrix, W, ..., C = NULL, IC = NULL)
+estimator.ols(S, modelMatrix, W, ..., C = NULL, IC = NULL, n = NULL)
 
 estimator.tsls(S, modelMatrix, W, ..., C)
 
@@ -38,9 +38,12 @@ or \code{formative} matrix.}
 \item{IC}{Correlation matrix of the composites and indicators.}
 
 \item{fm}{factoring method for estimating the factor loadings. Passed through to \code{\link[psych]{fa}}.}
+
+\item{N}{sample size, used for calculating standard errors.}
 }
 \value{
-A matrix with estimated parameters.
+A matrix with estimated parameters or a list of two matrices containing estimates and
+standard errors.
 }
 \description{
 Estimates the parameters of a model matrix (\code{inner},
@@ -53,8 +56,8 @@ Parameter estimation functions estimate the parameters of a model matrix (\code{
 \code{\link{parameterEstim.separate}}.
 
 When two-stage least squares regression is applied with \code{estimator.tsls}, all
-exogenous variables are used as instrumental varuables. There is currently no check of whether sufficient
-number of instrumental variables are available.
+exogenous variables are used as instrumental varaables. There is currently no check of whether the
+number of instrumental variables is sufficient for estimation.
 
 \code{estimator.plscLoadings} estimates the loadings by scaling the weights \code{W} with the
 correction factor \code{c} presented by Dijkstra (2011). This produces a MINRES estimator,

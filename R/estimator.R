@@ -37,9 +37,12 @@
 #'non-zero elements indicating relationships. Can be either \code{inner}, \code{reflective},
 #'or \code{formative} matrix.
 #'
+#'@param n sample size, used for calculating standard errors.
+#'
 #'@param ... All other arguments are either ignored or passed through to third party estimation functions.
 #'
-#'@return A matrix with estimated parameters.
+#'@return A matrix with estimated parameters or a list of two matrices containing estimates and
+#'standard errors.
 #'
 #'@name estimator
 #'
@@ -49,7 +52,10 @@ NULL
 #'or \code{formative} matrix.
 #'@export
 
-estimator.ols <- function(S, modelMatrix, W, ..., C = NULL, IC = NULL){
+estimator.ols <- function(S, modelMatrix, W, ..., C = NULL, IC = NULL, n = NULL){
+  
+  # Create a matrix to store SEs.
+  SEs <- modelMatrix
   
   covIV <- covDV <- NULL
   
@@ -81,17 +87,32 @@ estimator.ols <- function(S, modelMatrix, W, ..., C = NULL, IC = NULL){
     
     independents <- which(modelMatrix[row,]!=0, useNames = FALSE)
     
-    if(length(independents)==1){
-      # Simple regresion is the covariance divided by the variance of the predictor
-      modelMatrix[row,independents] <- covDV[row,independents]/covIV[independents,independents]
-    }
-    if(length(independents)>1){
-      coefs <- solve(covIV[independents,independents],covDV[row,independents])
+    if(length(independents)!=0){
+      if(length(independents)==1){
+        # Simple regresion is the covariance divided by the variance of the predictor
+        coefs <- covDV[row,independents]/covIV[independents,independents]
+      }
+      if(length(independents)>1){
+        coefs <- solve(covIV[independents,independents],covDV[row,independents])
+      }
+      
       modelMatrix[row,independents] <- coefs
+      
+      # Calculate SEs if we calculated estimates and if the sample size is provided
+      
+      if(!is.null(n)){
+        
+        SEs[row,independents] <- sqrt(diag(solve(covIV[independents,independents]*(n-1))) * 
+          # Variance of the error terms, rescaled to get an unbiased sigma2
+          (S[row,row] - coefs %*% S[independents, independents] %*% coefs)*(n-1) /
+          (n-length(independents)-1))
+        
+      }
     }
   }
   
-  return(modelMatrix)
+  if(is.null(n)) return(modelMatrix)
+  else return(list(est = modelMatrix, se = SEs))
 }
 
 #'@describeIn estimator parameter estimation with two-stage least squares regression. For \code{inner} matrix only.
@@ -193,7 +214,7 @@ estimator.plscLoadings <- function(S, modelMatrix, W,  ...){
   
   # Determination of the correction factors, based on (11) of Dijkstra, April 7, 2011.
   c2 <- rep(NA,ab)
-
+  
   for (i in 1:ab) {
     idx <- p_refl[[i]][[1]]
     if (length(idx) > 1) { # only for latent factors, no need to correct for the single indicator for the phantom LV
