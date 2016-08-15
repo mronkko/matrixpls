@@ -174,7 +174,7 @@ residuals.matrixpls <- function(object, ..., observed = TRUE) {
     # Model implied indicator correlations
     H <- Pstd %*% R %*% t(Pstd) # eq 2.96
     
-    I <- diag(Scor)
+    I <- diag(ncol(Scor))
     H2 <- (I * H)  %*% solve(I * Scor) # eq 2.97
     
     F <- Pstd %*% B %*% R %*% t(B) %*% t(Pstd) # eq 2.104
