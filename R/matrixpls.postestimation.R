@@ -133,7 +133,7 @@ residuals.matrixpls <- function(object, ..., observed = TRUE) {
   # Because S is a covariance matrix, we need to calculate the 
   # corresponding correlation matrix as well.
   
-  Scor <- cov2cor(S)
+  Scor <- stats::cov2cor(S)
   
   nativeModel <- attr(object,"model")
   
