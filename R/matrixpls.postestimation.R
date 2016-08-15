@@ -128,6 +128,13 @@ residuals.matrixpls <- function(object, ..., observed = TRUE) {
   RMS <- function(num) sqrt(sum(num^2)/length(num))
   
   S <- attr(object,"S")
+  
+  # Lohmöller defines quite a few statistics based on correlations.
+  # Because S is a covariance matrix, we need to calculate the 
+  # corresponding correlation matrix as well.
+  
+  Scor <- cov2cor(S)
+  
   nativeModel <- attr(object,"model")
   
   # Equation numbers in parenthesis refer to equation number in Lohmoller 1989
@@ -163,12 +170,12 @@ residuals.matrixpls <- function(object, ..., observed = TRUE) {
     # Model implied indicator covariances
     H <- P %*% R %*% t(P) # eq 2.96
     
-    I <- diag(S)
-    H2 <- (I * H)  %*% MASS::ginv(I * S) # eq 2.9	
+    I <- diag(Scor)
+    H2 <- (I * H)  %*% solve(I * Scor) # eq 2.97
     
     F <- P %*% B %*% R %*% t(B) %*% t(P) # eq 2.104
     
-    F2 <- (I * F) %*% MASS::ginv(I * S) # eq 2.105
+    F2 <- (I * F) %*% solve(I * Scor) # eq 2.105
     
     r2 <- r2(object)
     
