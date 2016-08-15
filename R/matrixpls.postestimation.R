@@ -158,6 +158,10 @@ residuals.matrixpls <- function(object, ..., observed = TRUE) {
     
     P[P==1] <- object[grepl("=~", names(object), fixed=TRUE)]
     
+    # Standardized loadings
+    Pstd <- sweep(P,MARGIN=1,sqrt(diag(S)),`/`)
+    
+    # This is always standardized, so no need to rescale 
     B <- attr(object,"inner")
     
     # Lohmoller is not clear whether R should be based on the estimated betas or calculated scores
@@ -167,13 +171,13 @@ residuals.matrixpls <- function(object, ..., observed = TRUE) {
     R_star <- (B %*% R %*% t(B))[endog,endog] # e. 2.99
     
     
-    # Model implied indicator covariances
-    H <- P %*% R %*% t(P) # eq 2.96
+    # Model implied indicator correlations
+    H <- Pstd %*% R %*% t(Pstd) # eq 2.96
     
     I <- diag(Scor)
     H2 <- (I * H)  %*% solve(I * Scor) # eq 2.97
     
-    F <- P %*% B %*% R %*% t(B) %*% t(P) # eq 2.104
+    F <- Pstd %*% B %*% R %*% t(B) %*% t(Pstd) # eq 2.104
     
     F2 <- (I * F) %*% solve(I * Scor) # eq 2.105
     
