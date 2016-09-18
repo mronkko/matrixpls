@@ -120,11 +120,11 @@ matrixpls.plspm <-
     
     if(scaled){
       dataToUse <- scale(dataToUse)
-      S <- stats::cor(dataToUse)
+      S <- stats::cor(dataToUse, use = "complete.obs")
       S_std <- S
     }
     else{
-      S <- stats::cov(dataToUse)
+      S <- stats::cov(dataToUse, use = "complete.obs")
       S_std <- stats::cov2cor(S)
     } 
     
