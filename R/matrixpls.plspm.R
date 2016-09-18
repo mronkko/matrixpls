@@ -205,8 +205,9 @@ matrixpls.plspm <-
     
     outer.mod <- sapply(lvNames, function(lvName){
       row <- which(lvNames == lvName)
-      weights <- W[row,params$outer[[row]]] *sdv
-      std.loads <- IC_std[row,params$outer[[row]]]
+      colnames <-colnames(Data)[params$outer[[row]]]
+      weights <- W[row,colnames] *sdv
+      std.loads <- IC_std[row,colnames]
       communal <- std.loads^2
       redundan <- communal * R2[row]
       
