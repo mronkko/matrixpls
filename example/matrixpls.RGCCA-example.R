@@ -21,12 +21,12 @@ if(require(RGCCA) & require(Matrix)) {
   W.mod <- (W.rgcca != 0) *1
   
   S <- cov(do.call(cbind,A))
-  W.matrixpls <- weight.pls(S, list(inner = C,
+  W.matrixpls <- weightFun.pls(S, list(inner = C,
                                     reflective = t(W.mod),
                                     formative = matrix(0,nrow(W.mod), ncol(W.mod))),
                             W.mod = W.mod,
                             innerEstimator = inner.factor,
-                            outerEstimators = outer.RGCCA, tau = tau)
+                            outerEstim = outerEstim.RGCCA, tau = tau)
   
   print(W.rgcca)
   print(W.matrixpls)
@@ -36,12 +36,12 @@ if(require(RGCCA) & require(Matrix)) {
   tau2 <- .5
   result.rgcca2 <- rgcca(A, C, tau =rep(tau2,3), scheme = "factorial", scale = TRUE)
   
-  W.matrixpls2 <- weight.pls(S, list(inner = C,
+  W.matrixpls2 <- weightFun.pls(S, list(inner = C,
                                     reflective = t(W.mod),
                                     formative = matrix(0,nrow(W.mod), ncol(W.mod))),
                             W.mod = W.mod,
                             innerEstimator = inner.factor,
-                            outerEstimators = outer.RGCCA, tau = tau2)
+                            outerEstim = outerEstim.RGCCA, tau = tau2)
   
   # Do we get perfect correlations for the composites
   cor(cbind(do.call(cbind,result.rgcca$Y), 

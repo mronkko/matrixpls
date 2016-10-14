@@ -72,8 +72,8 @@ library(simsem)
   # Compare with maximally predictive composites
   
   pls.res2 <- matrixpls(cor(dataSets[[1]]), MODEL,
-                        weightFunction = weight.optim,
-                        optimCriterion = optim.maximizePrediction)
+                        weightFun = weightFun.optim,
+                        optimCrit = optim.maximizePrediction)
    
 
   predictions2 <- predict(pls.res2, dataSets[[2]])

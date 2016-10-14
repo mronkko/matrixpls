@@ -27,16 +27,16 @@ model <- list(inner = inner,
               reflective = reflective,
               formative = formative)
 
-modeA <- matrixpls(S,model, outerEstimators = outer.modeA)
+modeA <- matrixpls(S,model, outerEstim = outerEstim.modeA)
 
-modeB <- matrixpls(S,model, outerEstimators = outer.modeB)
+modeB <- matrixpls(S,model, outerEstim = outerEstim.modeB)
 
-fixed <- matrixpls(S,model, weightFunction = weight.fixed)
+fixed <- matrixpls(S,model, weightFun = weightFun.fixed)
 
-optimR2 <- matrixpls(S,model, weightFunction = weight.optim)
+optimR2 <- matrixpls(S,model, weightFun = weightFun.optim)
 
-optimGoF <- matrixpls(S,model, weightFunction = weight.optim,
-                      optimCriterion = function(matrixpls.res){
+optimGoF <- matrixpls(S,model, weightFun = weightFun.optim,
+                      optimCrit = function(matrixpls.res){
                         - gof(matrixpls.res)
                       })
 

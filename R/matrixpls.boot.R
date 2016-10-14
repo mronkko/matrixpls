@@ -103,8 +103,8 @@ matrixpls.boot <- function(data, model, ..., R = 500,
     Worig <- attr(matrixpls(stats::cov(data),...), "W")
     
     # Get the original weight function
-    weightFun <- arguments[["weightFunction"]]
-    if(is.null(weightFun)) weightFunction <- weightFun.pls
+    weightFun <- arguments[["weightFun"]]
+    if(is.null(weightFun)) weightFun <- weightFun.pls
     
     # Wrap inside sign change correction
     arguments[["weightFun"]] <- function(S, ...){
