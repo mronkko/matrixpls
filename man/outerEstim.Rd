@@ -2,6 +2,7 @@
 % Please edit documentation in R/outerEstim.R
 \name{outerEstim}
 \alias{outerEstim}
+\alias{outerEstim.fixed}
 \alias{outerEstim.gsca}
 \alias{outerEstim.modeA}
 \alias{outerEstim.modeB}
@@ -12,6 +13,8 @@ outerEstim.modeA(S, W, E, W.model, ...)
 outerEstim.modeB(S, W, E, W.model, ...)
 
 outerEstim.gsca(S, W, E, W.model, model, ...)
+
+outerEstim.fixed(S, W, E, W.model, ...)
 }
 \arguments{
 \item{S}{Covariance matrix of the data.}
@@ -47,6 +50,8 @@ For information about GSCA weights, see \link{GSCA}.
 \item \code{outerEstim.modeB}: Mode B outerestimation.
 
 \item \code{outerEstim.gsca}: outer estimation with generalized structured component analysis.
+
+\item \code{outerEstim.fixed}: Fixed weights. Returns the starting weights specified in \code{W.model}
 }}
 \references{
 Lohmöller J.-B. (1989) \emph{Latent variable path modeling with partial least squares.} Heidelberg: Physica-Verlag.

@@ -37,9 +37,9 @@ or \code{formative} matrix.}
 
 \item{IC}{Correlation matrix of the composites and indicators.}
 
-\item{fm}{factoring method for estimating the factor loadings. Passed through to \code{\link[psych]{fa}}.}
+\item{n}{sample size, used for calculating standard errors.}
 
-\item{N}{sample size, used for calculating standard errors.}
+\item{fm}{factoring method for estimating the factor loadings. Passed through to \code{\link[psych]{fa}}.}
 }
 \value{
 A matrix with estimated parameters or a list of two matrices containing estimates and

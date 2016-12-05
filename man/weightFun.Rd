@@ -208,8 +208,8 @@ model <- list(inner = inner,
 S <- cov(satisfaction[,1:27])
 
 matrixpls.ModeA <- matrixpls(S, model)
-matrixpls.ModeB <- matrixpls(S, model, outerEstimators = outer.modeB)
-matrixpls.MaxR2 <- matrixpls(S, model, weightFunction = weight.optim)
+matrixpls.ModeB <- matrixpls(S, model, outerEstim = outerEstim.modeB)
+matrixpls.MaxR2 <- matrixpls(S, model, weightFun = weightFun.optim)
 
 # Compare the R2s from the different estimations
 
@@ -225,8 +225,8 @@ maximizeSumOfCorrelations <- function(matrixpls.res){
   - sum(C[model$inner != 0])
 }
 
-matrixpls.MaxCor <- matrixpls(S, model, weightFunction = weight.optim,
-                             optimCriterion = maximizeSumOfCorrelations)
+matrixpls.MaxCor <- matrixpls(S, model, weightFun = weightFun.optim,
+                             optimCrit = maximizeSumOfCorrelations)
 
 # Compare the Mode B and optimized solutions
 
