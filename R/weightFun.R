@@ -96,14 +96,14 @@ weightFun.pls <- function(S, model, W.model,
     if(!variant %in% c("lohmoller","wold")){
       stop("Variant must be \"lohmoller\" or \"wold\"")
     }
-    
+
     # outerEstim must be a list of same length as number of rows in inner.mod or
     # a function
     if(! is.null(outerEstim)){
       if(is.list(outerEstim)){
         assertive::assert_is_identical_to_true(length(outerEstim) == nrow(W.model))
-        for(outerEstim in outerEstim){
-          assertive::assert_is_function(outerEstim)
+        for(oneOuterEstim in outerEstim){
+          assertive::assert_is_function(oneOuterEstim)
         }
       }
       else{
