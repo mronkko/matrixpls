@@ -135,3 +135,11 @@ outerEstim.gsca <- function(S, W, E, W.model, model, ...){
   
   return(W)
 }
+
+#'@describeIn outerEstim Fixed weights. Returns the starting weights specified in \code{W.model}
+#'@export
+
+
+outerEstim.fixed <- function(S, W, E, W.model, ...){
+  return(W.model)
+}
