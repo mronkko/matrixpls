@@ -83,6 +83,16 @@ estimator.ols <- function(S, modelMatrix, W, ..., C = NULL, IC = NULL, n = NULL)
     }
   }
   
+  # Variances of DVs
+  
+  for(m in list(S, C)){
+    if(all(rownames(modelMatrix) %in% rownames(m))){
+      varDV <- diag(m[rownames(modelMatrix),rownames(modelMatrix)])
+      break()
+    }
+  }
+  
+  
   for(row in 1:nrow(modelMatrix)){
     
     independents <- which(modelMatrix[row,]!=0, useNames = FALSE)
@@ -103,9 +113,10 @@ estimator.ols <- function(S, modelMatrix, W, ..., C = NULL, IC = NULL, n = NULL)
       if(!is.null(n)){
         
         SEs[row,independents] <- sqrt(diag(solve(covIV[independents,independents]*(n-1))) * 
-          # Variance of the error terms, rescaled to get an unbiased sigma2
-          (S[row,row] - coefs %*% S[independents, independents] %*% coefs)*(n-1) /
-          (n-length(independents)-1))
+                                        # Variance of the error term, rescaled to get an unbiased sigma2
+                                        (varDV[row] - as.vector(coefs %*% covIV[independents, independents] %*% coefs))*(n-1) /
+                                        (n-length(independents)-1))
+        if(any(is.nan(SEs))) browser()
         
       }
     }
