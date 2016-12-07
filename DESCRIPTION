@@ -2,8 +2,8 @@ Encoding: UTF-8
 Package: matrixpls
 Type: Package
 Title: Matrix-Based Partial Least Squares Estimation
-Version: 1.0.2
-Date: 2016-6-18
+Version: 1.0.3
+Date: 2016-12-6
 Authors@R: c(person("Mikko", "Rönkkö", role=c("aut", "cre"),
     email = "mikko.ronkko@aalto.fi"))
 Maintainer: Mikko Rönkkö <mikko.ronkko@aalto.fi>
