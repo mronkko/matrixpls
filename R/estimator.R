@@ -116,8 +116,7 @@ estimator.ols <- function(S, modelMatrix, W, ..., C = NULL, IC = NULL, n = NULL)
                                         # Variance of the error term, rescaled to get an unbiased sigma2
                                         (varDV[row] - as.vector(coefs %*% covIV[independents, independents] %*% coefs))*(n-1) /
                                         (n-length(independents)-1))
-        if(any(is.nan(SEs))) browser()
-        
+
       }
     }
   }
