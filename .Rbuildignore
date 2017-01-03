@@ -17,7 +17,7 @@
 ^vignettes/matrixpls-intro_files
 ^vignettes/*.R
 ^vignettes/*.bst
-^vignettes/*.cls
+^vignettes/jss.cls
 ^vignettes/*.jpg
 ^vignettes/*.bib
 ^vignettes/*.Rmd
