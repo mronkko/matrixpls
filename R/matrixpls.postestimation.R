@@ -679,10 +679,13 @@ htmt <- function(object, ...){
   
   reflective <- attr(object,"reflective")!=0
   
-  # Mean within- and between-block correlations
+  # Mean within- and between-block correlations. Calculated as a sum of 
+  # all correlations within block divided by the number of elements 
   
-  meanBlockCor <- (t(reflective) %*% (S*lower.tri(S)) %*% reflective) / 
-    (t(reflective) %*% lower.tri(S) %*% reflective)
+  excludeDiag <- 1-diag(nrow(S))
+    
+  meanBlockCor <- (t(reflective) %*% (S*excludeDiag) %*% reflective) /
+    (t(reflective) %*% excludeDiag %*% reflective) 
   
   # Choose the blocks that have at least two reflective indicators
   i <- which(colSums(reflective) > 1)
