@@ -696,6 +696,8 @@ htmt <- function(object, ...){
   htmt
 }
 
+#'@S3method print matrixplshtmt
+
 print.matrixplshtmt <- function(x, ...){
   cat("\n Heterotrait-monotrait matrix\n")
   print.table(x, ...)
