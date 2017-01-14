@@ -236,6 +236,9 @@ matrixpls <- function(S, model, W.model = NULL, weightFun = weightFun.pls,
   nativeModel <- parseModelToNativeFormat(model)
   
   lvNames <- colnames(nativeModel$inner)
+  if(any(duplicated(lvNames)))
+    stop(paste("Each composite must have a unique name. The names contain duplicates:",
+               lvNames))
   
   if(lvNames != rownames(nativeModel$inner) ||
        lvNames != colnames(nativeModel$reflective) ||
