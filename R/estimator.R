@@ -116,7 +116,7 @@ estimator.ols <- function(S, modelMatrix, W, ..., C = NULL, IC = NULL, n = NULL)
                                         # Variance of the error term, rescaled to get an unbiased sigma2
                                         (varDV[row] - as.vector(coefs %*% covIV[independents, independents] %*% coefs))*(n-1) /
                                         (n-length(independents)-1))
-
+        
       }
     }
   }
@@ -258,12 +258,29 @@ estimator.plscLoadings <- function(S, modelMatrix, W,  ...){
 }
 
 #'@describeIn estimator parameter estimation with one indicator block at at time with exploratory
-#'factor analysis using the \code{\link[psych]{fa}} function from the \code{psych} package. For \code{reflective} matrix only.
+#'factor analysis. Minres estimation is implemented natively and all other
+#'estimation techniques use the \code{\link[psych]{fa}} function from the \code{psych} package. For \code{reflective} matrix only.
 #'@param fm factoring method for estimating the factor loadings. Passed through to \code{\link[psych]{fa}}.
 #'@export
 
 
 estimator.efaLoadings <- function(S, modelMatrix, W,  ... , fm = "minres"){
+  
+  # Functions for minres estimation
+  
+  minresCriterion <- function(loadings,S){
+    d <- S-loadings%o%loadings
+    sum(d[lower.tri(d)]^2)
+  }
+  
+  minresDerivatives <- function(loadings,S){
+    d <- S-loadings%o%loadings
+    
+    sapply(seq_along(loadings), function(i){
+      sum(-2*loadings[-i]*d[-i,i])
+    })
+    
+  }
   
   L <- modelMatrix
   
@@ -287,7 +304,26 @@ estimator.efaLoadings <- function(S, modelMatrix, W,  ... , fm = "minres"){
       L[idx,i] <- sqrt(S[idx,idx][2])
     }
     else if(length(idx) >= 3){ # Three or more indicators
-      L[idx,i] <- psych::fa(S[idx,idx], fm = fm)$loadings
+      
+      if(fm == "minres"){
+        Sblock <- S[idx,idx]
+        
+        # Starting values
+        sqrtSblock <- sqrt(Sblock)
+        diag(sqrtSblock) <- NA
+        start <- colMeans(sqrtSblock, na.rm = TRUE)
+        
+        L[idx,i] <- optim(start, 
+                          minresCriterion,
+                          gr=minresDerivatives, 
+                          method = "L-BFGS-B", lower = -1, 
+                          upper = 1, control = c(list(fnscale = 1, parscale = rep(0.01, 
+                                                                                  length(start)))),
+                          S=Sblock)$par
+      }
+      else{
+        L[idx,i] <- psych::fa(S[idx,idx], fm = fm)$loadings  
+      }      
     }
   }
   return(L)
