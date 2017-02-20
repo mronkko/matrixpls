@@ -41,7 +41,7 @@
 #'
 #'@param signChange Sign change correction function.
 #'
-#'@param extraFun A function that takes a \code{matrixpls} object and returns a numeric vector. The
+#'@param extraFun A function that takes a \code{matrixpls} object and a boostrap sample and returns a numeric vector. The
 #'vector is appended to bootstrap replication. Can be used for boostrapping additional
 #'statistics calculated based on the estimation results.
 #'
@@ -139,7 +139,7 @@ matrixpls.boot <- function(data, model, ..., R = 500,
                            
                            if(!is.null(extraFun)){
                              a <- attributes(boot.rep)
-                             boot.rep <-c(boot.rep,extraFun(boot.rep))
+                             boot.rep <-c(boot.rep,extraFun(boot.rep, data[indices,]))
                              a$names <- names(boot.rep)
                              attributes(boot.rep) <- a
                            }
