@@ -2,8 +2,8 @@
 % Please edit documentation in R/reliabilityEstim.R
 \name{reliabilityEstim}
 \alias{reliabilityEstim}
-\alias{reliabilityEstim.alpha}
 \alias{reliabilityEstim.weightLoadingProduct}
+\alias{reliabilityEstim.alpha}
 \title{Reliabilities as products of weights and loadings}
 \usage{
 reliabilityEstim.weightLoadingProduct(S, loadings, W, ...)

@@ -3,10 +3,10 @@
 \name{innerEstim}
 \alias{innerEstim}
 \alias{innerEstim.centroid}
-\alias{innerEstim.factor}
-\alias{innerEstim.gsca}
-\alias{innerEstim.identity}
 \alias{innerEstim.path}
+\alias{innerEstim.factor}
+\alias{innerEstim.identity}
+\alias{innerEstim.gsca}
 \title{PLS inner estimation}
 \usage{
 innerEstim.centroid(S, W, inner.mod, ignoreInnerModel = FALSE, ...)
@@ -66,7 +66,7 @@ For information about GSCA weights, see \link{GSCA}.
 
 \item \code{innerEstim.gsca}: inner estimation with generalized structured component analysis.
 }}
+
 \references{
 Lohmöller J.-B. (1989) \emph{Latent variable path modeling with partial least squares.} Heidelberg: Physica-Verlag.
 }
-

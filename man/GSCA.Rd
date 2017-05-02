@@ -113,13 +113,12 @@ optimCrit.gsca(matrixpls.res2)
 
 }
 }
-\author{
-Mikko Rönkkö, Hela Romdhani, Stepan Grinek, Heungsun Hwang, Aurelie Labbe.
-}
 \references{
 Hwang, H., & Takane, Y. (2004). Generalized structured component analysis. Psychometrika, 69(1), 81–99. doi:10.1007/BF02295841
 
 Hela Romdhani, Stepan Grinek, Heungsun Hwang and Aurelie Labbe. (2014). ASGSCA: Association Studies for multiple SNPs and multiple traits using
 Generalized Structured Equation Models. R package version 1.4.0.
 }
-
+\author{
+Mikko Rönkkö, Hela Romdhani, Stepan Grinek, Heungsun Hwang, Aurelie Labbe.
+}

@@ -2,10 +2,10 @@
 % Please edit documentation in R/weightFun.R
 \name{weightFun}
 \alias{weightFun}
-\alias{weightFun.factor}
-\alias{weightFun.fixed}
-\alias{weightFun.optim}
 \alias{weightFun.pls}
+\alias{weightFun.optim}
+\alias{weightFun.fixed}
+\alias{weightFun.factor}
 \alias{weightFun.principal}
 \title{Indicator weigth algoritms}
 \usage{
@@ -167,6 +167,7 @@ criterion converges.
 
 \item \code{weightFun.principal}: blockwise principal component weights.
 }}
+
 \examples{
 library(plspm)
 
@@ -240,4 +241,3 @@ print(sum(C[inner != 0]))
 \references{
 Rosseel, Y. (2012). lavaan: An R Package for Structural Equation Modeling. \emph{Journal of Statistical Software}, 48(2), 1–36. Retrieved from http://www.jstatsoft.org/v48/i02
 }
-

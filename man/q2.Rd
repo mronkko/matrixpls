@@ -34,4 +34,3 @@ data contain the \code{groups} attribute, which indicates the groups used in bli
 or cross-validation, the means are calculated separately for each group excluding the 
 predicted group from the calculation.
 }
-

@@ -313,7 +313,7 @@ estimator.efaLoadings <- function(S, modelMatrix, W,  ... , fm = "minres"){
         diag(sqrtSblock) <- NA
         start <- colMeans(sqrtSblock, na.rm = TRUE)
         
-        L[idx,i] <- optim(start, 
+        L[idx,i] <- stats::optim(start, 
                           minresCriterion,
                           gr=minresDerivatives, 
                           method = "L-BFGS-B", lower = -1, 

@@ -48,4 +48,3 @@ Returns a vector of reliability estimates. The default is
 \description{
 The following describes all estimation function types used in \pkg{matrixpls} package.
 }
-

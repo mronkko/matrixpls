@@ -2,10 +2,10 @@
 % Please edit documentation in R/matrixpls.optim.R
 \name{optimCrit}
 \alias{optimCrit}
-\alias{optimCrit.gsca}
-\alias{optimCrit.maximizeFullR2}
-\alias{optimCrit.maximizeIndicatorR2}
 \alias{optimCrit.maximizeInnerR2}
+\alias{optimCrit.maximizeIndicatorR2}
+\alias{optimCrit.maximizeFullR2}
+\alias{optimCrit.gsca}
 \title{Optimization criteria functions}
 \usage{
 optimCrit.maximizeInnerR2(matrixpls.res)
@@ -37,7 +37,7 @@ from \code{matrixpls} objects.
 
 \item \code{optimCrit.gsca}: minimies the generalized structured component analysis criterion. See \link{GSCA}
 }}
+
 \seealso{
 \code{\link{weightFun.optim}}
 }
-

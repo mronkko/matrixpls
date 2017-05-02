@@ -2,8 +2,8 @@
 % Please edit documentation in R/matrixpls.R
 \docType{package}
 \name{matrixpls-package}
-\alias{_PACKAGE}
 \alias{matrixpls-package}
+\alias{_PACKAGE}
 \title{Matrix-based Partial Least Squares estimation}
 \description{
 \pkg{matrixpls} calculates composite variable models using partial least squares (PLS)
@@ -125,4 +125,15 @@ Rönkkö, M., McIntosh, C. N., & Antonakis, J. (2015). On the adoption of partia
 
 Wold, H. (1982). Soft modeling - The Basic Design And Some Extensions. In K. G. Jöreskog & S. Wold (Eds.),\emph{Systems under indirect observation: causality, structure, prediction} (pp. 1–54). Amsterdam: North-Holland.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/mronkko/matrixpls}
+  \item Report bugs at \url{https://github.com/mronkko/matrixpls/issues}
+}
 
+}
+\author{
+\strong{Maintainer}: Mikko Rönkkö \email{mikko.ronkko@aalto.fi}
+
+}

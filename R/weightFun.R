@@ -412,7 +412,7 @@ weightFun.principal <- function(S, model, W.model = NULL, ...,
 }
 
 
-#'@S3method print matrixplsweights
+#'@export
 
 print.matrixplsweights <- function(x, ...){
 

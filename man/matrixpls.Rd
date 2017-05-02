@@ -123,4 +123,3 @@ Weight sign corrections:\code{\link{weightSign.Wold1985}}; \code{\link{weightSig
 
 Parameter estimators: \code{\link{parameterEstim.separate}}
 }
-

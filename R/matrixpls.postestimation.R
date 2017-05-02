@@ -24,7 +24,7 @@
 #'
 #'@method effects matrixpls
 #'
-#'@S3method effects matrixpls
+#'@export
 
 effects.matrixpls <- function(object,  ...) {
   
@@ -41,7 +41,7 @@ effects.matrixpls <- function(object,  ...) {
   result
 }
 
-#'@S3method print matrixplseffects
+#'@export
 
 print.matrixplseffects <- function(x, ...){
   cat("\n Total Effects (column on row)\n")
@@ -121,7 +121,7 @@ print.matrixplseffects <- function(x, ...){
 #'
 #'@method residuals matrixpls
 #'
-#'@S3method residuals matrixpls
+#'@export
 
 residuals.matrixpls <- function(object, ..., observed = TRUE) {
   
@@ -244,7 +244,7 @@ residuals.matrixpls <- function(object, ..., observed = TRUE) {
   result
 }
 
-#'@S3method print matrixplsresiduals
+#'@export
 
 print.matrixplsresiduals <- function(x, ...){
 
@@ -284,7 +284,7 @@ print.matrixplsresiduals <- function(x, ...){
 #'
 #'@method fitted matrixpls
 #'
-#'@S3method fitted matrixpls
+#'@export
 
 fitted.matrixpls <- function(object, ...) {
   
@@ -428,7 +428,7 @@ r2 <- function(object, ...){
   UseMethod("r2")
 }
 
-#'@S3method r2 matrixpls
+#'@export
 
 r2.matrixpls <- function(object, ...){
   
@@ -438,7 +438,7 @@ r2.matrixpls <- function(object, ...){
   r2
 }
 
-#'@S3method print matrixplsr2
+#'@export
 
 print.matrixplsr2 <- function(x, ...){
   cat("\n Inner model squared multiple correlations (R2)\n")
@@ -467,7 +467,7 @@ gof <- function(object, ...){
   UseMethod("gof")
 }
 
-#'@S3method gof matrixpls
+#'@export
 
 gof.matrixpls <- function(object, ...) {
   
@@ -490,7 +490,7 @@ gof.matrixpls <- function(object, ...) {
   result
 }
 
-#'@S3method print matrixplsgof
+#'@export
 
 print.matrixplsgof <- function(x, digits=getOption("digits"), ...){
   cat("\n Absolute goodness of fit:", round(x, digits = digits))
@@ -517,7 +517,7 @@ loadings <- function(object, ...){
 }
 
 #
-#'@S3method loadings matrixpls
+#'@export
 
 loadings.matrixpls <- function(object, ...) {
   nativeModel <- attr(object,"model")
@@ -556,7 +556,7 @@ cr <- function(object, ...){
   UseMethod("cr")
 }
 
-#'@S3method cr matrixpls
+#'@export
 
 cr.matrixpls <- function(object, ...) {
   
@@ -576,7 +576,7 @@ cr.matrixpls <- function(object, ...) {
   result
 }
 
-#'@S3method print matrixplscr
+#'@export
 
 print.matrixplscr <- function(x, ...){
   cat("\n Composite Reliability indices\n")
@@ -610,7 +610,7 @@ ave <- function(object, ...){
 }
 
 
-#'@S3method ave matrixpls
+#'@export
 
 ave.matrixpls <- function(object, ...) {
   
@@ -643,7 +643,7 @@ ave.matrixpls <- function(object, ...) {
   result
 }
 
-#'@S3method print matrixplsave
+#'@export
 
 print.matrixplsave <- function(x, ...){
   cat("\n Average Variance Extracted indices\n")
@@ -699,7 +699,7 @@ htmt <- function(object, ...){
   htmt
 }
 
-#'@S3method print matrixplshtmt
+#'@export
 
 print.matrixplshtmt <- function(x, ...){
   cat("\n Heterotrait-monotrait matrix\n")
@@ -742,7 +742,7 @@ fitSummary <- function(object){
   ret
 }
 
-#'@S3method print matrixplfitsummary
+#'@export
 
 print.matrixplfitsummary <- function(x, ...){
   cat("\n Summary indices of model fit\n")

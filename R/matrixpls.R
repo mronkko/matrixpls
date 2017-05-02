@@ -327,7 +327,7 @@ matrixpls <- function(S, model, W.model = NULL, weightFun = weightFun.pls,
   return(ret)
 }
 
-#'@S3method print matrixpls
+#'@export
 
 print.matrixpls <- function(x, ...){
   
@@ -370,7 +370,7 @@ print.matrixpls <- function(x, ...){
   
 }
 
-#'@S3method summary matrixpls
+#'@export
 
 summary.matrixpls <- function(object, ...){
   
@@ -388,7 +388,7 @@ summary.matrixpls <- function(object, ...){
   return(ret)
 }
 
-#'@S3method print matrixplssummary
+#'@export
 
 print.matrixplssummary <- function(x, ...){
   for(element in x){

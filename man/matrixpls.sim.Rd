@@ -141,4 +141,3 @@ summary(Output)
 \seealso{
 \code{\link{matrixpls}}, \code{\link{matrixpls.boot}}, \code{\link[simsem]{sim}}, \code{\link[simsem]{SimResult-class}}
 }
-

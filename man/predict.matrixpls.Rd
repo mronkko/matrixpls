@@ -42,4 +42,3 @@ Other post-estimation functions: \code{\link{ave}},
   \code{\link{loadings}}, \code{\link{r2}},
   \code{\link{residuals.matrixpls}}
 }
-

@@ -2,12 +2,12 @@
 % Please edit documentation in R/estimator.R
 \name{estimator}
 \alias{estimator}
-\alias{estimator.cfaLoadings}
-\alias{estimator.efaLoadings}
 \alias{estimator.ols}
-\alias{estimator.plscLoadings}
-\alias{estimator.plsreg}
 \alias{estimator.tsls}
+\alias{estimator.plscLoadings}
+\alias{estimator.efaLoadings}
+\alias{estimator.cfaLoadings}
+\alias{estimator.plsreg}
 \title{Parameter estimation of a model matrix}
 \usage{
 estimator.ols(S, modelMatrix, W, ..., C = NULL, IC = NULL, n = NULL)
@@ -87,12 +87,14 @@ or \code{formative} matrix.
 \item \code{estimator.plscLoadings}: parameter estimation with Dijkstra's (2011) PLSc correction for loadings.  For \code{reflective} matrix only.
 
 \item \code{estimator.efaLoadings}: parameter estimation with one indicator block at at time with exploratory
-factor analysis using the \code{\link[psych]{fa}} function from the \code{psych} package. For \code{reflective} matrix only.
+factor analysis. Minres estimation is implemented natively and all other
+estimation techniques use the \code{\link[psych]{fa}} function from the \code{psych} package. For \code{reflective} matrix only.
 
 \item \code{estimator.cfaLoadings}: Estimates a maximum likelihood confirmatory factor analysis with \code{\link[lavaan]{lavaan}}.  For \code{reflective} matrix only.
 
 \item \code{estimator.plsreg}: parameter estimation with PLS regression. For \code{inner} matrix only.
 }}
+
 \examples{
 # Run the education example from the book
 
@@ -178,11 +180,6 @@ cbind(PLSc = education.out, PLSc_2sls = education.out2,
 cbind(PLSc = attr(education.out,"Q"), PLSc_2sls = attr(education.out2,"Q"), 
       DR = attr(education.out3,"Q"), GSCAc = attr(education.out4,"Q"))
 }
-\author{
-Mikko Rönkkö, Wenjing Huang, Theo Dijkstra
-
-Mikko Rönkkö, Gaston Sanchez, Laura Trinchera, Giorgio Russolillo
-}
 \references{
 Huang, W. (2013). PLSe: Efficient Estimators and Tests for Partial Least Squares (Doctoral dissertation). University of California, Los Angeles.
 
@@ -190,4 +187,8 @@ Dijkstra, T. K. (2011). Consistent Partial Least Squares estimators for linear a
 
 Sanchez, G. (2013). \emph{PLS Path Modeling with R.} Retrieved from http://www.gastonsanchez.com/PLS Path Modeling with R.pdf
 }
+\author{
+Mikko Rönkkö, Wenjing Huang, Theo Dijkstra
 
+Mikko Rönkkö, Gaston Sanchez, Laura Trinchera, Giorgio Russolillo
+}

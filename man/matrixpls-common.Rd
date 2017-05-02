@@ -24,4 +24,3 @@ in the model.}
 \description{
 The following describes commonly used arguments in the \pkg{matrixpls} package.
 }
-

@@ -46,4 +46,11 @@ diagonally. After this, imputation is applied to missing data and the prediction
 is calibrated with the dataset containing also the imputations. The imputed values are then 
 predicted with the model.
 }
+\references{
+Chin, W. W. (2010). How to write up and report PLS analyses. In V. Esposito Vinzi, W. W. Chin, J.
+Henseler, & H. Wang (Eds.), Handbook of partial least squares (pp. 655–690). Berlin Heidelberg: Springer.
 
+Chin, W. W. (1998). The partial least squares approach to structural equation modeling. 
+In G. A. Marcoulides (Ed.), Modern methods for business research (pp. 295–336). 
+Mahwah, NJ: Lawrence Erlbaum Associates Publishers.
+}

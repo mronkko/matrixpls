@@ -2,8 +2,8 @@
 % Please edit documentation in R/signChange.R
 \name{signChange}
 \alias{signChange}
-\alias{signChange.construct}
 \alias{signChange.individual}
+\alias{signChange.construct}
 \title{Sign change corrections for bootstrap}
 \usage{
 signChange.individual(Worig, W)
@@ -49,6 +49,7 @@ individual analyses
 
 \item \code{signChange.construct}: individual sign change correction
 }}
+
 \references{
 Tenenhaus, M., Esposito Vinzi, V., Chatelin, Y.-M., & Lauro, C. (2005). PLS Path Modeling.
 \emph{Computational Statistics & Data Analysis}, 48(1), 159–205. doi:10.1016/j.csda.2004.03.005
@@ -60,4 +61,3 @@ psychological research: Caveat emptor. \emph{Personality and Individual Differen
 \seealso{
 \code{\link{matrixpls.boot}}
 }
-

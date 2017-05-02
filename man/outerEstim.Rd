@@ -2,10 +2,10 @@
 % Please edit documentation in R/outerEstim.R
 \name{outerEstim}
 \alias{outerEstim}
-\alias{outerEstim.fixed}
-\alias{outerEstim.gsca}
 \alias{outerEstim.modeA}
 \alias{outerEstim.modeB}
+\alias{outerEstim.gsca}
+\alias{outerEstim.fixed}
 \title{PLS outer estimation}
 \usage{
 outerEstim.modeA(S, W, E, W.model, ...)
@@ -53,7 +53,7 @@ For information about GSCA weights, see \link{GSCA}.
 
 \item \code{outerEstim.fixed}: Fixed weights. Returns the starting weights specified in \code{W.model}
 }}
+
 \references{
 Lohmöller J.-B. (1989) \emph{Latent variable path modeling with partial least squares.} Heidelberg: Physica-Verlag.
 }
-

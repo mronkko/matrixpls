@@ -3,10 +3,10 @@ Package: matrixpls
 Type: Package
 Title: Matrix-Based Partial Least Squares Estimation
 Version: 1.0.5
-Date: 2016-2-22
+Date: 2017-5-2
 Authors@R: c(person("Mikko", "Rönkkö", role=c("aut", "cre"),
-    email = "mikko.ronkko@aalto.fi"))
-Maintainer: Mikko Rönkkö <mikko.ronkko@aalto.fi>
+    email = "mikko.ronkko@jyu.fi"))
+Maintainer: Mikko Rönkkö <mikko.ronkko@jyu.fi>
 Description: Partial Least Squares Path Modeling
     algorithm and related algorithms. The algorithm implementations aim for
     computational efficiency using matrix algebra and covariance data. The
@@ -35,7 +35,7 @@ Suggests:
     R.rsp
 License: GPL-3
 LazyLoad: yes
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 Collate:
     'convCheck.R'
     'estimator.R'

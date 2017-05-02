@@ -130,4 +130,3 @@ Sanchez, G. (2013). \emph{PLS Path Modeling with R.} Retrieved from http://www.g
 \seealso{
 \code{\link[plspm]{plspm}}
 }
-

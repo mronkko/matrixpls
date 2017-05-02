@@ -35,7 +35,8 @@
 #'
 #'@export
 #'
-#'@reference
+#'@references
+#'
 #'Chin, W. W. (2010). How to write up and report PLS analyses. In V. Esposito Vinzi, W. W. Chin, J.
 #'Henseler, & H. Wang (Eds.), Handbook of partial least squares (pp. 655–690). Berlin Heidelberg: Springer.
 #'
@@ -192,7 +193,7 @@ q2 <- function(originalData, predictedData, model = NULL){
   q2
 }
 
-#'@S3method print matrixplsq2
+#'@export
 
 print.matrixplsq2 <- function(x, ...){
   cat("\n Q2 predictive relevance statistics\n")

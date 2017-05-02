@@ -2,9 +2,9 @@
 % Please edit documentation in R/convCheck.R
 \name{convCheck}
 \alias{convCheck}
-\alias{convCheck.absolute}
 \alias{convCheck.relative}
 \alias{convCheck.square}
+\alias{convCheck.absolute}
 \title{Convergence checks}
 \usage{
 convCheck.relative(Wnew, Wold)

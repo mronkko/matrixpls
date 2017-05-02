@@ -66,7 +66,7 @@
 #'
 #'@example example/matrixpls.boot-example.R 
 #'
-#'@reference
+#'@references
 #'
 #'Hair, J. F., Hult, G. T. M., Ringle, C. M., & Sarstedt, M. (2014). \emph{A primer on partial least squares structural equations modeling (PLS-SEM)}. Los Angeles: SAGE.
 #'
@@ -76,6 +76,7 @@
 #'
 #'Rönkkö, M., McIntosh, C. N., & Antonakis, J. (2015). On the adoption of partial least squares in psychological research: Caveat emptor. \emph{Personality and Individual Differences}, (87), 76–84. http://doi.org/10.1016/j.paid.2015.07.019
 #'
+#'@name matrixplsboot
 #'
 matrixpls.boot <- function(data, model, ..., R = 500,
                            signChange = NULL,
@@ -186,9 +187,7 @@ matrixpls.boot <- function(data, model, ..., R = 500,
   boot.out
 }
 
-# These are not in use 
-
-#'@S3method print matrixplsboot
+#'@export
 
 print.matrixplsboot <- function(x, ...){
   matrixpls.out <- x$t0
@@ -196,10 +195,13 @@ print.matrixplsboot <- function(x, ...){
   print(matrixpls.out, ...)
 }
 
+
 # 
+#'@param object object of class \code{matrixplsboot}
 #'@param ci.type A vector of character strings representing the type of intervals required. Passed on to \code{\link[boot]{boot.ci}}. If \code{"none"}, 
 #'no confidence intervals are calculated.
-#'@S3method summary matrixplsboot
+#'@export
+#'@rdname matrixplsboot
 
 summary.matrixplsboot <- function(object, ..., ci.type ="all"){
   
@@ -297,7 +299,7 @@ summary.matrixplsboot <- function(object, ..., ci.type ="all"){
   out
 }
 
-#'@S3method print matrixplsbootsummary
+#'@export
 
 print.matrixplsbootsummary <- function(x, ...){
   p <- x$p

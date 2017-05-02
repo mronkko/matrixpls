@@ -39,6 +39,7 @@ correlated with the composite as proposed by Wold (1985).
 \item \code{weightSign.dominantIndicator}: Adjust the signs of W so that the first indicator of each composite has positive
 weight.
 }}
+
 \references{
 Wold, H. (1985). Partial Least Squares. In S. Kotz & N. L. Johnson (Eds.), Encyclopedia  of 
 statistical sciences (Vol. 6, pp. 581–591). New York: Wiley.
@@ -46,4 +47,3 @@ statistical sciences (Vol. 6, pp. 581–591). New York: Wiley.
 \seealso{
 \code{\link{matrixpls}};
 }
-

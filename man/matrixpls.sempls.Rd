@@ -153,4 +153,3 @@ Monecke, A., & Leisch, F. (2012). semPLS: Structural Equation Modeling Using Par
 \seealso{
 \code{\link[semPLS]{sempls}}
 }
-

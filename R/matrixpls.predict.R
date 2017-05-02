@@ -29,7 +29,7 @@
 #'
 #'@method predict matrixpls
 #'
-#'@S3method predict matrixpls
+#'@export
 
 
 predict.matrixpls <- function(object, newData, 
