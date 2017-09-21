@@ -690,6 +690,11 @@ htmt <- function(object, ...){
   # Choose the blocks that have at least two reflective indicators
   i <- which(colSums(reflective) > 1)
   meanBlockCor <- meanBlockCor[i,i]
+
+  if(length(i)<2){
+    warning("HTMT can only be calculated if there are at least two composites with reflective parameters to at least two indicators.")
+    return(NULL)
+  }
   
   # Calculate the indices
   htmt <- meanBlockCor*lower.tri(meanBlockCor) /
