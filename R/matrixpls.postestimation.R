@@ -295,7 +295,7 @@ fitted.matrixpls <- function(object, ...) {
   # Check that the matrices form a valid model
   
   if(any(rowSums(nativeModel$inner) > 0 & rowSums(nativeModel$formative) > 0))
-    stop("Cannot calculate model implied covariance matrix. A composite is a dependent variable in both formative and inner matrices resulting in an impossible model. See http://urn.fi/URN:NBN:fi:aalto-201605031907, p. 823 for an explanation.")
+    stop("Cannot calculate model implied covariance matrix. A composite is a dependent variable in both formative and inner matrices resulting in an impossible model. See http://urn.fi/URN:NBN:fi:aalto-201605031907, p. 823 for an explanation and pp. 70-76 for further technical details.")
   
   ### Matrices -------------------------------------------------------------------------------------
   ## S      := (K x K) Empirical indicator VCV matrix: Cov(x)
