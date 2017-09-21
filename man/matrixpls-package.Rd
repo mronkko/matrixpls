@@ -134,6 +134,6 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Mikko Rönkkö \email{mikko.ronkko@aalto.fi}
+\strong{Maintainer}: Mikko Rönkkö \email{mikko.ronkko@jyu.fi}
 
 }
