@@ -227,13 +227,12 @@ weightFun.pls <- function(S, model, W.model,
       # Wold
       
       else{
-        
-        if(is.list(outerEstim)) outerEstim <- outerEstim[[k]]
-        else outerEstim <- outerEstim
+        if(is.list(outerEstim)) outerEstimForThisComposite <- outerEstim[[k]]
+        else outerEstimForThisComposite <- outerEstim
         
         W.modelForThisEstimator <- W.model
         W.modelForThisEstimator[-k,] <- 0
-        W[W.modelForThisEstimator != 0] <- outerEstim(S, W_old, E, W.modelForThisEstimator,...)[W.modelForThisEstimator != 0]        
+        W[W.modelForThisEstimator != 0] <- outerEstimForThisComposite(S, W_old, E, W.modelForThisEstimator,...)[W.modelForThisEstimator != 0]        
       }
       W <- scaleWeights(S, W)
     }
