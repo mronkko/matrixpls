@@ -216,7 +216,17 @@ summary.matrixplsboot <- function(object, ..., ci.type ="all"){
   parameterIndices <- 1:(length(matrixpls.res) -
                            sum(attr(matrixpls.res,"W")!=0))
 
-  
+  # Check which variables vary
+  constant <- apply(object$t[,parameterIndices],2,function(x){isTRUE(all.equal( max(x) ,min(x)))})
+  if(any(constant)){
+    i <- which(constant)
+    warning(paste(switch(min(3,length(i)),
+      paste("Parameter",names(matrixpls.res)[i],"has"),
+      paste("Parameters",paste(names(matrixpls.res)[i], collapse=" and "),"have"),
+      paste("Parameters ",paste(names(matrixpls.res)[i][-length(i)], collapse=", "),
+            ", and ",names(matrixpls.res)[i][length(i)]," have", sep="")),
+      "the same value in each bootstrap sample. Standard errors and confidence intervals cannot be calculated and will be NA in the output. This is normal for composites that consist of just one variable."))
+  }
   # P-values
   
   # There is some disagreement on the degrees of freedom of the t-statistic in the PLS literature
@@ -227,7 +237,7 @@ summary.matrixplsboot <- function(object, ..., ci.type ="all"){
   dfHa <- nrow(object$data) - 1
   
   # Henseler et al. (2009, p. 305) "the degrees of freedom for the test is  n + m – 2, where m is
-  # always 1 and n is the number of bootstrap samples. 
+  # always 1 and n is the number of bootstrap samples." 
   
   dfHe <- object$R + 1 - 2
   
@@ -240,7 +250,10 @@ summary.matrixplsboot <- function(object, ..., ci.type ="all"){
   }))
   
   ps <- lapply(parameterIndices, function(i){
-    est <- object$t0[i]
+
+    if(constant[i]) return(c(matrixpls.res[i],rep(NA,6)))
+
+    est <- matrixpls.res[i]
     se <- stats::sd(object$t[,i])
     t <- est/se
     
@@ -264,7 +277,10 @@ summary.matrixplsboot <- function(object, ..., ci.type ="all"){
     
     cis <- lapply(parameterIndices, function(i){
       
+      if(constant[i]) return(c(matrixpls.res[i],rep(NA,8)))
+      
       cis <- c(matrixpls.res[i], rep(NA,8))
+      
       ci <- boot::boot.ci(object,...,index = i, type = c("norm","basic", "perc"))
       
       # CIs cannot always be calculated
@@ -273,7 +289,7 @@ summary.matrixplsboot <- function(object, ..., ci.type ="all"){
       if(! is.null(ci$basic[4:5])) cis[4:5] <- ci$basic[4:5]
       if(! is.null(ci$percent[4:5])) cis[6:7] <- ci$percent[4:5]
       
-      # BCa intervals some times produce errors
+      # BCa intervals sometimes produce errors
       
       tryCatch({
         bcacis <- boot::boot.ci(object,...,index = i, type = "bca")$bca[,4:5]
@@ -282,7 +298,6 @@ summary.matrixplsboot <- function(object, ..., ci.type ="all"){
       error = function(e){
         warning(e)
       })
-      
       cis
     })
     
