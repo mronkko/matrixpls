@@ -253,7 +253,9 @@ matrixpls <- function(S, model, W.model = NULL, weightFun = weightFun.pls,
   }
   
   if(! identical(colnames(S), rownames(S))) stop("S must have identical row and column names.")
-  
+  if(! matrixcalc::is.symmetric.matrix(S)) stop("S must be symmetric to be a valid covariance matrix.")
+  if(! matrixcalc::is.positive.semi.definite(S)) stop("S must be positive semi-definite to be a valid covariance matrix.")
+
   if(! identical(colnames(S), colnames(nativeModel$formative))){
     # Do all variables of the model exists in S
     d <- setdiff(colnames(nativeModel$formative), colnames(S))
@@ -263,11 +265,14 @@ matrixpls <- function(S, model, W.model = NULL, weightFun = weightFun.pls,
     S <- S[colnames(nativeModel$formative), colnames(nativeModel$formative)]
   }
   
-  # If the weight patter is not defined, calculate it based on the model.
+  # If the weight pattern is not defined, calculate it based on the model.
   if(is.null(W.model)) W.model <- defaultWeightModelWithModel(nativeModel)
   if(! identical(colnames(W.model), colnames(S))) stop("Column names of W.model do not match the variable names")
   if(! identical(rownames(W.model), lvNames)) stop("Row names of W.model do not match the latent variable names")
   
+  
+
+
   ##################################################################################################
   #
   # Start of the estimation process
