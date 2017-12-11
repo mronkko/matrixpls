@@ -586,7 +586,7 @@ cr.matrixpls <- function(object, ...) {
   
   object <- standardize(object)
   
-  loadings <- loadings(object)
+  IC <- attr(object,"IC")
   reflectiveModel <- attr(object, "model")$reflective
   
   result <- unlist(lapply(1:ncol(loadings), function(col){	
