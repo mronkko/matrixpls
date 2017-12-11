@@ -551,16 +551,9 @@ loadings <- function(object, ...){
 #'@export
 
 loadings.matrixpls <- function(object, ...) {
-  nativeModel <- attr(object,"model")
-  IC <- attr(object,"IC")
-  
-  #Standardize
-  S <- attr(object,"S")
-  IC_std <- IC %*% (diag(1/sqrt(diag(S))))
-  
-  res <- nativeModel$reflective
-  res[res==1] <- t(IC_std)[res==1]
-  res
+
+  object$reflective
+
 }
 
 #'@title Composite Reliability indices for matrixpls results
@@ -590,6 +583,8 @@ cr <- function(object, ...){
 #'@export
 
 cr.matrixpls <- function(object, ...) {
+  
+  object <- standardize(object)
   
   loadings <- loadings(object)
   reflectiveModel <- attr(object, "model")$reflective
@@ -645,7 +640,9 @@ ave <- function(object, ...){
 
 ave.matrixpls <- function(object, ...) {
   
-  loadings <- loadings(object, standardized = TRUE)
+  object <- standardize(object)
+
+  loadings <- loadings(object)
   reflectiveModel <- attr(object, "model")$reflective
   
   aves <- unlist(lapply(1:ncol(loadings), function(col){

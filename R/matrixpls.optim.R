@@ -27,6 +27,7 @@ optimCrit.maximizeInnerR2 <- function(matrixpls.res){
 #'@export
 
 optimCrit.maximizeIndicatorR2 <- function(matrixpls.res){
+  matrixpls.res  <- standardize(matrixpls.res)
   lambda <- loadings(matrixpls.res)
   IC <- attr(matrixpls.res,"IC")
   -sum(diag(lambda %*% IC))

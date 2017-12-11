@@ -193,6 +193,30 @@ convergenceStatus <- function(matrixpls.res){
 }
 
 #
+# Standardizes the object attributes so that diag of S is all 1s and the other
+# parts of the result object are adjusted accordingly.
+#
+
+standardize <- function(object){
+  
+  S <- attr(object,"S")
+  d <- diag(S)
+  
+  # Only standardized if not already standardized
+  
+  if(any(d != 1)){
+    scaleRows <- 1/sqrt(d)
+    scaleCols <- rep(scaleRows, each = length(scaleRows))
+    attr(object,"W")  <- attr(object,"W") / scaleRows
+    attr(object,"IC") <- attr(object,"IC") * scaleRows
+    attr(object,"reflective") <- attr(object,"reflective") * scaleCols
+    attr(object,"formative") <- attr(object,"formative") / scaleRows
+    attr(object,"S") <- attr(object,"S") * scaleRows * scaleCols
+  } 
+  
+  return (object)
+}
+#
 # Functions adapted from simsem
 #
 
