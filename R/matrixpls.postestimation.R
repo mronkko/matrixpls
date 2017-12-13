@@ -586,11 +586,11 @@ cr.matrixpls <- function(object, ...) {
   
   object <- standardize(object)
   
-  IC <- t(attr(object,"IC"))
+  loadings <- loadings(object)
   reflectiveModel <- attr(object, "model")$reflective
   
-  result <- unlist(lapply(1:ncol(IC), function(col){
-    useLoadings <- abs(IC[,col][reflectiveModel[,col]==1])
+  result <- unlist(lapply(1:ncol(loadings), function(col){
+    useLoadings <- abs(loadings[,col][reflectiveModel[,col]==1])
     
     crvalue <- sum(useLoadings)^2/
       (sum(useLoadings)^2 + sum(1-useLoadings^2))
@@ -598,7 +598,7 @@ cr.matrixpls <- function(object, ...) {
   }))
   
   class(result) <- "matrixplscr"
-  names(result) <- colnames(IC)
+  names(result) <- colnames(loadings)
   result
 }
 
