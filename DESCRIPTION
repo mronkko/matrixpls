@@ -2,8 +2,8 @@ Encoding: UTF-8
 Package: matrixpls
 Type: Package
 Title: Matrix-Based Partial Least Squares Estimation
-Version: 1.0.5
-Date: 2017-5-2
+Version: 1.0.6
+Date: 2019-2-18
 Authors@R: c(person("Mikko", "Rönkkö", role=c("aut", "cre"),
     email = "mikko.ronkko@jyu.fi"))
 Maintainer: Mikko Rönkkö <mikko.ronkko@jyu.fi>
@@ -35,7 +35,7 @@ Suggests:
     R.rsp
 License: GPL-3
 LazyLoad: yes
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
 Collate:
     'convCheck.R'
     'estimator.R'
