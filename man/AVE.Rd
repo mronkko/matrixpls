@@ -30,3 +30,4 @@ Other post-estimation functions: \code{\link{cr}},
   \code{\link{loadings}}, \code{\link{predict.matrixpls}},
   \code{\link{r2}}, \code{\link{residuals.matrixpls}}
 }
+\concept{post-estimation functions}

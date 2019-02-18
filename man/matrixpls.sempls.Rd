@@ -6,8 +6,8 @@
 \usage{
 matrixpls.sempls(model, data, maxit = 20, tol = 1e-07, scaled = TRUE,
   sum1 = FALSE, wscheme = "centroid", pairwise = FALSE,
-  method = c("pearson", "kendall", "spearman"), convCrit = c("relative",
-  "square"), verbose = TRUE, ...)
+  method = c("pearson", "kendall", "spearman"),
+  convCrit = c("relative", "square"), verbose = TRUE, ...)
 }
 \arguments{
 \item{model}{An object inheriting from class \code{plsm} as returned from \code{\link[semPLS]{plsm}}

@@ -28,3 +28,4 @@ Other post-estimation functions: \code{\link{ave}},
   \code{\link{predict.matrixpls}}, \code{\link{r2}},
   \code{\link{residuals.matrixpls}}
 }
+\concept{post-estimation functions}

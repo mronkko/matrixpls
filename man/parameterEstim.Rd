@@ -5,9 +5,10 @@
 \alias{parameterEstim.separate}
 \title{Parameter estimation of full model}
 \usage{
-parameterEstim.separate(S, model, W, ..., parametersInner = estimator.ols,
-  parametersReflective = estimator.ols, parametersFormative = estimator.ols,
-  disattenuate = FALSE,
+parameterEstim.separate(S, model, W, ...,
+  parametersInner = estimator.ols,
+  parametersReflective = estimator.ols,
+  parametersFormative = estimator.ols, disattenuate = FALSE,
   reliabilities = reliabilityEstim.weightLoadingProduct)
 }
 \arguments{

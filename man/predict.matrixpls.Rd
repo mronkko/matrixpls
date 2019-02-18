@@ -4,8 +4,8 @@
 \alias{predict.matrixpls}
 \title{Predict method for matrixpls results}
 \usage{
-\method{predict}{matrixpls}(object, newData, predictionType = "exogenous",
-  means = NULL, ...)
+\method{predict}{matrixpls}(object, newData,
+  predictionType = "exogenous", means = NULL, ...)
 }
 \arguments{
 \item{object}{matrixpls estimation result object produced by the \code{\link{matrixpls}} function.}
@@ -42,3 +42,4 @@ Other post-estimation functions: \code{\link{ave}},
   \code{\link{loadings}}, \code{\link{r2}},
   \code{\link{residuals.matrixpls}}
 }
+\concept{post-estimation functions}
