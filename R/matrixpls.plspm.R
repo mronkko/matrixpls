@@ -170,7 +170,7 @@ matrixpls.plspm <-
                                  tol = params$tol, iter = params$maxiter, convCheck = convCheck,
                                  validateInput = FALSE, standardize = FALSE)
     }
-    
+
     #
     # Compile a result object in the plspm format
     #
@@ -189,7 +189,7 @@ matrixpls.plspm <-
     
     # PLSPM does LV score scaling differently, so we need a correction
     sdv = sqrt(nrow(dataToUse)/(nrow(dataToUse)-1))   
-    
+
     # Composite values, fittes values, and intercepts
     
     lvScores <- dataToUse %*% t(W) * sdv
@@ -201,18 +201,19 @@ matrixpls.plspm <-
     
     Modes <- ifelse(params$modes == "A", "Reflective","Formative")
     
-    exogenousLVs <- rowSums(nativeModel$inner) == 0
+    exogenousLVs <- rowSums(inner) == 0
+    endogenousLVs <- rowSums(inner) != 0
     
     outer.mod <- sapply(lvNames, function(lvName){
       row <- which(lvNames == lvName)
       colnames <-colnames(Data)[params$outer[[row]]]
-      weights <- W[row,colnames] *sdv
+      weights <- W[row,colnames] * sdv
       std.loads <- IC_std[row,colnames]
       communal <- std.loads^2
       redundan <- communal * R2[row]
       
       ret <- cbind(weights, std.loads, communal, redundan)
-      rownames(ret) <- gsub(paste(lvName,"=+",sep=""),"",colnames(W)[params$outer[[row]]], fixed=TRUE)
+      rownames(ret) <- colnames(Data)[params$outer[[row]]]
       return(ret)
     }, simplify= FALSE)
 
@@ -260,10 +261,23 @@ matrixpls.plspm <-
       return(ret)
     }, simplify= FALSE)
     
-    pathIndices <- lower.tri(nativeModel$inner)
+    # Indices of existing paths from the square model matrix
+    pathIndices <- which(inner!=0)
     
-    pathLabels <- paste(colnames(nativeModel$inner)[col(nativeModel$inner)[pathIndices]]," -> ",
-                        rownames(nativeModel$inner)[row(nativeModel$inner)[pathIndices]], sep="")
+
+    pathLabels <- paste(colnames(inner)[col(inner)[pathIndices]]," -> ",
+                        rownames(inner)[row(inner)[pathIndices]], sep="")
+
+    effectLabels <- paste(colnames(inner)[col(inner)[lower.tri(inner)]]," -> ",
+                        rownames(inner)[row(inner)[lower.tri(inner)]], sep="")
+    
+    # A function for converting effects
+    
+    getEffects <- function(x){
+      e <- inner
+      e[endogenousLVs,] <- x
+      e[lower.tri(e)]
+    }
     
     if(params$boot.val){
       
@@ -274,7 +288,7 @@ matrixpls.plspm <-
       bootWeightIndices <- bootLoadingIndices + weightCount
       
       bootIndices <- boot::boot.array(boot.res, indices = TRUE)
-      
+
       boot <- list(weights = get_bootDataFrame(boot.res$t0[bootWeightIndices]*sdv, boot.res$t[,bootWeightIndices]*sdv, rownames(S)),
                    loadings = get_bootDataFrame(IC_std[W.model == 1], 
                                                 t(parallel::mcmapply(function(x){
@@ -285,7 +299,7 @@ matrixpls.plspm <-
                                                 },1:params$br)),
                                                 rownames(S)),
                    paths = get_bootDataFrame(boot.res$t0[bootPathIndices], boot.res$t[,bootPathIndices], 
-                                             pathLabels[nativeModel$inner[lower.tri(nativeModel$inner)]==1]),
+                                             pathLabels),
                    
                    # Use parallel processing because of the large number of elements
                    
@@ -313,22 +327,22 @@ matrixpls.plspm <-
                    
                    # Again, parellel processing
                    
-                   total.efs = get_bootDataFrame(effects(matrixpls.res)$Total[pathIndices[-1,]],
+                   total.efs = get_bootDataFrame(getEffects(effects(matrixpls.res)$Total),
                                                  t(parallel::mcmapply(function(x){
                                                    
                                                    inner <- matrix(0,nrow(nativeModel$inner),ncol(nativeModel$inner))
                                                    inner[nativeModel$inner == 1] <- boot.res$t[x,bootPathIndices]
 
-                                                   # Create a face matrixpls object to calculate total effects
+                                                   # Create a fake matrixpls object to calculate total effects
                                                    
                                                    obj <- numeric()
                                                    class(obj) <- "matrixpls"
                                                    attr(obj,"inner") <- inner
                                                    attr(obj,"model") <- nativeModel
-                                                   effects.matrixpls(obj)$Total[pathIndices[-1,]]
+                                                   getEffects(effects.matrixpls(obj)$Total)
                                                    
                                                  },1:params$br)),
-                                                 pathLabels))
+                                                 effectLabels))
     }
     else{
       boot = FALSE
@@ -373,13 +387,15 @@ matrixpls.plspm <-
     out.weights <- W[Windices] * sdv
     names(out.weights) <- colnames(W)[col(W)[Windices]]
     
+    Wlist <- apply(Windices, 1, which)
+
     # Weight and loading pattern is always identical in plspm
     loadings <- IC_std[Windices]
     names(loadings) <- names(out.weights)
     
     outer.cor <- sapply(lvNames, function(lvName){
       row <- which(lvNames == lvName)
-      vars <- params$outer[[row]]	
+      vars <- Wlist[[row]]
       return(t(IC_std[,vars]))
     }, simplify= FALSE)
     
@@ -394,32 +410,21 @@ matrixpls.plspm <-
     
     effs <- effects(matrixpls.res)
     
-    # Fill in missing rows
-    
-    effs <- lapply(effs,function(eff){
-      ns <- setdiff(rownames(nativeModel$inner),rownames(eff))
-      for(n in ns){
-        eff <- rbind(0,eff)
-        rownames(eff)[1] <- n
-      }
-      eff[rownames(nativeModel$inner),colnames(nativeModel$inner)]
-    })
-    
-    effects <- data.frame(relationships = pathLabels,
-                          direct = effs$Direct[pathIndices],
-                          indirect = effs$Indirect[pathIndices], 
-                          total = effs$Total[pathIndices])
+    effects <- data.frame(relationships = effectLabels,
+                          direct = getEffects(effs$Direct),
+                          indirect = getEffects(effs$Indirect), 
+                          total = getEffects(effs$Total))
 
     unidim <- data.frame(Mode = params$modes,
                          MVs = blocks,
                          C.alpha = ifelse(params$modes == "A",
-                                          sapply(params$outer,function(indices){
+                                          sapply(Wlist,function(indices){
                                             if(length(indices) == 1) return(1)
                                             psych::alpha(S[indices,indices])$total[[2]]
                                           }, simplify = TRUE),
                                           0),
                          DG.rho = ifelse(params$modes == "A",
-                                         sapply(params$outer,function(indices){
+                                         sapply(Wlist,function(indices){
                                            if(length(indices) == 1) return(1)
                                            pc <- psych::principal(S[indices,indices])
                                            std.loads <- pc$loadings
@@ -429,11 +434,11 @@ matrixpls.plspm <-
                                          }, simplify = TRUE),
                                          0),
                          
-                         eig.1st = sapply(params$outer,function(indices){
+                         eig.1st = sapply(Wlist,function(indices){
                            if(length(indices) == 1) return(1)
                            eigen(S_std[indices,indices])$values[1]
                          }, simplify = TRUE),   
-                         eig.2nd = sapply(params$outer,function(indices){
+                         eig.2nd = sapply(Wlist,function(indices){
                            if(length(indices) == 1) return(0)
                            eigen(S_std[indices,indices])$values[2]
                          }, simplify = TRUE))
@@ -592,7 +597,6 @@ get_params <-
   }
 
 get_bootDataFrame <- function(t0, t, rownames){
-  
   ret <- data.frame(Original = t0, 
                     Mean.Boot = apply(t, 2, mean), 
                     Std.Error = apply(t, 2, stats::sd), 
