@@ -5,28 +5,90 @@
 \title{Predict method for matrixpls results}
 \usage{
 \method{predict}{matrixpls}(object, newData,
-  predictionType = "exogenous", means = NULL, ...)
+  predictionType = c("exogenous", "redundancy", "communality",
+  "composites"), means = NULL, ...)
 }
 \arguments{
 \item{object}{matrixpls estimation result object produced by the \code{\link{matrixpls}} function.}
 
 \item{newData}{A data frame or a matrix containing data used for prediction.}
 
-\item{predictionType}{"exogenous" (default) predicts indicators from exogenous composites. "redundancy"
-and "communality" are alternative strategies described by Chin (2010).}
+\item{predictionType}{"exogenous" (default) predicts indicators from exogenous 
+composites. "redundancy" and "communality" are alternative strategies 
+described by Chin (2010). "composites" returns the composites calculated 
+by multiplying the data with the weight matrix.}
 
-\item{means}{A vector of means of the original data used to calculate intercepts for the
-linear prediciton equations. If not provided, calculated from the new data or assumed zero.}
+\item{means}{A vector of means of the original data used to calculate 
+intercepts for the linear prediciton equations. If not provided, calculated
+from the new data or assumed zero.}
 
 \item{...}{All other arguments are ignored.}
 }
 \value{
-a matrix of predicted values for reflective indicators of endogenous latent variables.
+a matrix of predicted values for reflective indicators of endogenous
+latent variables or weighted composites of the indicators.
 }
 \description{
 The \code{matrixpls} method for the generic function \code{predict} predict.
 Predicts the reflective indicators of endogenous latent variables using
 estimated model and data for the indicators of exogenous latent variables
+}
+\examples{
+library(plspm)
+
+# Run the customer satisfaction example form plspm
+
+# load dataset satisfaction
+data(satisfaction)
+# inner model matrix
+IMAG = c(0,0,0,0,0,0)
+EXPE = c(1,0,0,0,0,0)
+QUAL = c(0,1,0,0,0,0)
+VAL = c(0,1,1,0,0,0)
+SAT = c(1,1,1,1,0,0)
+LOY = c(1,0,0,0,1,0)
+inner = rbind(IMAG, EXPE, QUAL, VAL, SAT, LOY)
+colnames(inner) <- rownames(inner)
+
+# Reflective model
+
+reflective<- matrix(
+  c(1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1),
+  27,6, dimnames = list(colnames(satisfaction)[1:27],colnames(inner)))
+
+# empty formative model
+
+formative <- matrix(0, 6, 27, dimnames = list(colnames(inner),
+                                              colnames(satisfaction)[1:27]))
+
+satisfaction.model <- list(inner = inner,
+                           reflective = reflective,
+                           formative = formative)
+
+# Estimation using covariance matrix
+
+
+satisfaction.out <- matrixpls(cov(satisfaction[,1:27]),
+                           model = satisfaction.model)
+
+print(satisfaction.out)
+
+
+
+# Predict indicators using means form the data
+predict(satisfaction.out, 
+        newData = satisfaction,
+        means= sapply(satisfaction, mean))
+
+# Calculate composite scores
+predict(satisfaction.out, 
+        newData = satisfaction,
+        predictionType = "composites")
 }
 \references{
 Wold, H. (1974). Causal flows with latent variables: Partings of the ways in the light of NIPALS modelling. \emph{European Economic Review}, 5(1), 67–86. doi:10.1016/0014-2921(74)90008-7
