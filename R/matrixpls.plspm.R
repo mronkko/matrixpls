@@ -420,7 +420,12 @@ matrixpls.plspm <-
                          C.alpha = ifelse(params$modes == "A",
                                           sapply(Wlist,function(indices){
                                             if(length(indices) == 1) return(1)
-                                            psych::alpha(S[indices,indices])$total[[2]]
+                                            Ssub <- cov2cor(S[indices,indices])
+                                            # https://en.wikipedia.org/wiki/Cronbach%27s_alpha
+                                            K <- nrow(Ssub)
+                                            vbar <- mean(diag(Ssub))
+                                            cbar <- mean(Ssub[lower.tri(Ssub)])
+                                            K*cbar/(vbar+(K-1)*cbar)
                                           }, simplify = TRUE),
                                           0),
                          DG.rho = ifelse(params$modes == "A",
