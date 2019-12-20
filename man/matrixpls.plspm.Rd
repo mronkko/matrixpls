@@ -4,9 +4,19 @@
 \alias{matrixpls.plspm}
 \title{A plspm compatibility wrapper for matrixpls}
 \usage{
-matrixpls.plspm(Data, path_matrix, blocks, modes = NULL,
-  scheme = "centroid", scaled = TRUE, tol = 1e-06, maxiter = 100,
-  boot.val = FALSE, br = NULL, dataset = TRUE)
+matrixpls.plspm(
+  Data,
+  path_matrix,
+  blocks,
+  modes = NULL,
+  scheme = "centroid",
+  scaled = TRUE,
+  tol = 1e-06,
+  maxiter = 100,
+  boot.val = FALSE,
+  br = NULL,
+  dataset = TRUE
+)
 }
 \arguments{
 \item{Data}{matrix or data frame containing the manifest

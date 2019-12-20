@@ -4,8 +4,15 @@
 \alias{matrixpls.crossvalidate}
 \title{Cross-validation of predictions from matrixpls results}
 \usage{
-matrixpls.crossvalidate(data, model, ..., predictFun = stats::predict,
-  nGroup = 4, blindfold = FALSE, imputationFun = NULL)
+matrixpls.crossvalidate(
+  data,
+  model,
+  ...,
+  predictFun = stats::predict,
+  nGroup = 4,
+  blindfold = FALSE,
+  imputationFun = NULL
+)
 }
 \arguments{
 \item{data}{Matrix or data frame containing the raw data.}

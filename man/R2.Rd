@@ -19,11 +19,16 @@ The \code{matrixpls} method for the generic function \code{r2} computes the squa
 for composites predicted by other composites in the model.
 }
 \seealso{
-Other post-estimation functions: \code{\link{ave}},
-  \code{\link{cr}}, \code{\link{effects.matrixpls}},
-  \code{\link{fitSummary}}, \code{\link{fitted.matrixpls}},
-  \code{\link{gof}}, \code{\link{htmt}},
-  \code{\link{loadings}}, \code{\link{predict.matrixpls}},
-  \code{\link{residuals.matrixpls}}
+Other post-estimation functions: 
+\code{\link{ave}()},
+\code{\link{cr}()},
+\code{\link{effects.matrixpls}()},
+\code{\link{fitSummary}()},
+\code{\link{fitted.matrixpls}()},
+\code{\link{gof}()},
+\code{\link{htmt}()},
+\code{\link{loadings}()},
+\code{\link{predict.matrixpls}()},
+\code{\link{residuals.matrixpls}()}
 }
 \concept{post-estimation functions}

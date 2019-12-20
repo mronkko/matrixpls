@@ -35,7 +35,7 @@ Suggests:
     R.rsp
 License: GPL-3
 LazyLoad: yes
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.1
 Collate:
     'convCheck.R'
     'estimator.R'

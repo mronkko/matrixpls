@@ -4,9 +4,17 @@
 \alias{matrixpls}
 \title{Partial Least Squares and other composite variable models.}
 \usage{
-matrixpls(S, model, W.model = NULL, weightFun = weightFun.pls,
-  parameterEstim = parameterEstim.separate, weightSign = NULL, ...,
-  validateInput = TRUE, standardize = TRUE)
+matrixpls(
+  S,
+  model,
+  W.model = NULL,
+  weightFun = weightFun.pls,
+  parameterEstim = parameterEstim.separate,
+  weightSign = NULL,
+  ...,
+  validateInput = TRUE,
+  standardize = TRUE
+)
 }
 \arguments{
 \item{S}{Covariance matrix of the data.}

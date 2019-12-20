@@ -4,9 +4,13 @@
 \alias{predict.matrixpls}
 \title{Predict method for matrixpls results}
 \usage{
-\method{predict}{matrixpls}(object, newData,
-  predictionType = c("exogenous", "redundancy", "communality",
-  "composites"), means = NULL, ...)
+\method{predict}{matrixpls}(
+  object,
+  newData,
+  predictionType = c("exogenous", "redundancy", "communality", "composites"),
+  means = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{matrixpls estimation result object produced by the \code{\link{matrixpls}} function.}
@@ -80,7 +84,7 @@ print(satisfaction.out)
 
 
 
-# Predict indicators using means form the data
+# Predict indicators using means from the data
 predict(satisfaction.out, 
         newData = satisfaction,
         means= sapply(satisfaction, mean))
@@ -97,11 +101,16 @@ Chin, W. W. (2010). How to write up and report PLS analyses. In V. Esposito Vinz
 Henseler, & H. Wang (Eds.), Handbook of partial least squares (pp. 655–690). Berlin Heidelberg: Springer.
 }
 \seealso{
-Other post-estimation functions: \code{\link{ave}},
-  \code{\link{cr}}, \code{\link{effects.matrixpls}},
-  \code{\link{fitSummary}}, \code{\link{fitted.matrixpls}},
-  \code{\link{gof}}, \code{\link{htmt}},
-  \code{\link{loadings}}, \code{\link{r2}},
-  \code{\link{residuals.matrixpls}}
+Other post-estimation functions: 
+\code{\link{ave}()},
+\code{\link{cr}()},
+\code{\link{effects.matrixpls}()},
+\code{\link{fitSummary}()},
+\code{\link{fitted.matrixpls}()},
+\code{\link{gof}()},
+\code{\link{htmt}()},
+\code{\link{loadings}()},
+\code{\link{r2}()},
+\code{\link{residuals.matrixpls}()}
 }
 \concept{post-estimation functions}

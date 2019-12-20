@@ -22,11 +22,16 @@ for the model using the formula presented by Henseler et al (2014).
 Henseler, J., Ringle, C. M., & Sarstedt, M. (2015). A new criterion for assessing discriminant validity in variance-based structural equation modeling. \emph{Journal of the Academy of Marketing Science}, 43(1), 115–135.
 }
 \seealso{
-Other post-estimation functions: \code{\link{ave}},
-  \code{\link{cr}}, \code{\link{effects.matrixpls}},
-  \code{\link{fitSummary}}, \code{\link{fitted.matrixpls}},
-  \code{\link{gof}}, \code{\link{loadings}},
-  \code{\link{predict.matrixpls}}, \code{\link{r2}},
-  \code{\link{residuals.matrixpls}}
+Other post-estimation functions: 
+\code{\link{ave}()},
+\code{\link{cr}()},
+\code{\link{effects.matrixpls}()},
+\code{\link{fitSummary}()},
+\code{\link{fitted.matrixpls}()},
+\code{\link{gof}()},
+\code{\link{loadings}()},
+\code{\link{predict.matrixpls}()},
+\code{\link{r2}()},
+\code{\link{residuals.matrixpls}()}
 }
 \concept{post-estimation functions}

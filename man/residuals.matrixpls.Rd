@@ -66,11 +66,16 @@ Lohmöller J.-B. (1989) \emph{Latent variable path modeling with partial
 least squares.} Heidelberg: Physica-Verlag.
 }
 \seealso{
-Other post-estimation functions: \code{\link{ave}},
-  \code{\link{cr}}, \code{\link{effects.matrixpls}},
-  \code{\link{fitSummary}}, \code{\link{fitted.matrixpls}},
-  \code{\link{gof}}, \code{\link{htmt}},
-  \code{\link{loadings}}, \code{\link{predict.matrixpls}},
-  \code{\link{r2}}
+Other post-estimation functions: 
+\code{\link{ave}()},
+\code{\link{cr}()},
+\code{\link{effects.matrixpls}()},
+\code{\link{fitSummary}()},
+\code{\link{fitted.matrixpls}()},
+\code{\link{gof}()},
+\code{\link{htmt}()},
+\code{\link{loadings}()},
+\code{\link{predict.matrixpls}()},
+\code{\link{r2}()}
 }
 \concept{post-estimation functions}

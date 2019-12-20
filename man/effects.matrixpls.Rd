@@ -25,11 +25,16 @@ Fox, J. (1980) Effect analysis in structural equation models: Extensions and sim
 9, 3--28.
 }
 \seealso{
-Other post-estimation functions: \code{\link{ave}},
-  \code{\link{cr}}, \code{\link{fitSummary}},
-  \code{\link{fitted.matrixpls}}, \code{\link{gof}},
-  \code{\link{htmt}}, \code{\link{loadings}},
-  \code{\link{predict.matrixpls}}, \code{\link{r2}},
-  \code{\link{residuals.matrixpls}}
+Other post-estimation functions: 
+\code{\link{ave}()},
+\code{\link{cr}()},
+\code{\link{fitSummary}()},
+\code{\link{fitted.matrixpls}()},
+\code{\link{gof}()},
+\code{\link{htmt}()},
+\code{\link{loadings}()},
+\code{\link{predict.matrixpls}()},
+\code{\link{r2}()},
+\code{\link{residuals.matrixpls}()}
 }
 \concept{post-estimation functions}

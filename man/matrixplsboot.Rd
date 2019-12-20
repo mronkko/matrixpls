@@ -6,10 +6,18 @@
 \alias{summary.matrixplsboot}
 \title{Bootstrapping of matrixpls function}
 \usage{
-matrixpls.boot(data, model, ..., R = 500, signChange = NULL,
+matrixpls.boot(
+  data,
+  model,
+  ...,
+  R = 500,
+  signChange = NULL,
   parallel = c("no", "multicore", "snow"),
-  ncpus = getOption("boot.ncpus", 1L), dropInadmissible = FALSE,
-  stopOnError = FALSE, extraFun = NULL)
+  ncpus = getOption("boot.ncpus", 1L),
+  dropInadmissible = FALSE,
+  stopOnError = FALSE,
+  extraFun = NULL
+)
 
 \method{summary}{matrixplsboot}(object, ..., ci.type = "all")
 }

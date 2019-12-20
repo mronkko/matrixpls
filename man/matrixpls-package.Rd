@@ -29,7 +29,7 @@ available commercial PLS software, which work with
 raw data, \pkg{matrixpls} calculates the indicator weights and model estimates from data covariance 
 matrices. Working with covariance data allows for reanalyzing covariance matrices that are sometimes
 published as appendices of articles, is computationally more efficient, and lends itself more easily
-for formal analysis than implementations based on raw data.
+for formal analysis than implementations based on raw data. 
 
 \pkg{matrixpls} has modular design that is easily expanded and contains more calculation options
 than the two other PLS packages for R. To allow validation of the algorithms by end users

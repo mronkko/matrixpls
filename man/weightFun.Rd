@@ -9,20 +9,42 @@
 \alias{weightFun.principal}
 \title{Indicator weigth algoritms}
 \usage{
-weightFun.pls(S, model, W.model, outerEstim = NULL,
-  innerEstim = innerEstim.path, ..., convCheck = convCheck.absolute,
-  variant = "lohmoller", tol = 1e-05, iter = 100,
-  validateInput = TRUE)
+weightFun.pls(
+  S,
+  model,
+  W.model,
+  outerEstim = NULL,
+  innerEstim = innerEstim.path,
+  ...,
+  convCheck = convCheck.absolute,
+  variant = "lohmoller",
+  tol = 1e-05,
+  iter = 100,
+  validateInput = TRUE
+)
 
-weightFun.optim(S, model, W.model,
+weightFun.optim(
+  S,
+  model,
+  W.model,
   parameterEstim = parameterEstim.separate,
-  optimCrit = optimCrit.maximizeInnerR2, method = "BFGS", ...,
-  validateInput = TRUE, standardize = TRUE)
+  optimCrit = optimCrit.maximizeInnerR2,
+  method = "BFGS",
+  ...,
+  validateInput = TRUE,
+  standardize = TRUE
+)
 
 weightFun.fixed(S, model, W.model = NULL, ..., standardize = TRUE)
 
-weightFun.factor(S, model, W.model = NULL, ..., fm = "minres",
-  standardize = TRUE)
+weightFun.factor(
+  S,
+  model,
+  W.model = NULL,
+  ...,
+  fm = "minres",
+  standardize = TRUE
+)
 
 weightFun.principal(S, model, W.model = NULL, ..., standardize = TRUE)
 }
