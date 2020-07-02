@@ -1,4 +1,3 @@
-library(plspm)
 library(plyr)
 library(RCurl)
 

@@ -5,7 +5,6 @@ install.packages(c("assertive",
 "devtools",
 "psych",
 "lavaan",
-"plspm",
 "simsem",
 "RUnit",
 "semPLS",
@@ -16,5 +15,8 @@ install.packages(c("assertive",
 "xtable",
 "R.rsp"))
 
-source("https://bioconductor.org/biocLite.R")
-biocLite("ASGSCA")
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+BiocManager::install(version = "3.11")
+
+BiocManager::install("ASGSCA")

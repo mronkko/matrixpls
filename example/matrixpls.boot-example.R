@@ -1,5 +1,3 @@
-library(plspm)
-
 # Run the customer satisfaction example form plspm
 
 # load dataset satisfaction

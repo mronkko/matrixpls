@@ -18,24 +18,10 @@ sat_outer = list(1:5, 6:10, 11:15, 16:19, 20:23, 24:27)
 # vector of modes (reflective indicators)
 sat_mod = rep("A", 6)
 
-# apply plspm
-plspm.res <- plspm(satisfaction, sat_inner, sat_outer, sat_mod,
-                   scaled=FALSE, boot.val=FALSE)
-
 # apply matrixpls
 matrixpls.res <- matrixpls.plspm(satisfaction, sat_inner, sat_outer, sat_mod,
                                  scaled=FALSE, boot.val=FALSE)
 
-# If RUnit is installed check that the results are identical
-
-if(is.element("RUnit", installed.packages()[,1])){
-  library(RUnit)
-  checkEquals(plspm.res, matrixpls.res, tol = 0.001)
-}
-
-# print the resuls
-
-print(summary(plspm.res))
 print(summary(matrixpls.res))
 
 options(mc.cores=cores)

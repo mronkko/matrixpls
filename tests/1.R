@@ -84,7 +84,7 @@ execute.simsem.tests <- function(directory){
 
 test.plspm <- function()
 {
-	
+  DEACTIVATED('plspm package has been orphaned')
 	library(plspm)
 
 	# Run the example from plspm package

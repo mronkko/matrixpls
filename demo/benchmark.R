@@ -1,9 +1,9 @@
 library(matrixpls)
 library(parallel)
 
-if(require(plspm) & require(semPLS)){
+if(require(semPLS)){
 	
-	# Benchmark the performance of plspm, semPLS, and matrixpls with R bootstrap samples
+	# Benchmark the performance of semPLS and matrixpls with R bootstrap samples
   # using the customer satisfaction example from plspm
 	
 	# load dataset satisfaction
@@ -76,9 +76,6 @@ if(require(plspm) & require(semPLS)){
 	options(boot.parallel = "no")
 	options(mc.cores = 1)
 	
-	plspm_boot <- system.time(plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val = TRUE, br=Rboot))
-	plspm_no_boot <- system.time(replicate(R,plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE)))
-	
 	matrixpls.plspm_boot <- system.time(matrixpls.plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE, boot.val = TRUE, br=Rboot))
 	matrixpls.plspm_no_boot <- system.time(replicate(R,matrixpls.plspm(satisfaction, sat_inner, sat_outer, sat_mod, scaled=FALSE)))
 
@@ -128,11 +125,11 @@ if(require(plspm) & require(semPLS)){
 	
 	# Print the times
 	
-	print(rbind(plspm_no_boot,matrixpls.plspm_no_boot, sempls_no_boot, matrixpls.sempls_no_boot, matrixpls_no_boot))
+	print(rbind(matrixpls.plspm_no_boot, sempls_no_boot, matrixpls.sempls_no_boot, matrixpls_no_boot))
 	
-	print(rbind(plspm_boot,matrixpls.plspm_boot, matrixpls_boot, sempls_boot,
+	print(rbind(matrixpls.plspm_boot, matrixpls_boot, sempls_boot,
         matrixpls.plspm_boot_multicore, matrixpls_boot_multicore))
 	
 } else{
-	print("This example requires the plspm and semPLS packages")
+	print("This example requires the semPLS package")
 }

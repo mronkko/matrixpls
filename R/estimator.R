@@ -390,7 +390,7 @@ estimator.cfaLoadings <- function(S, modelMatrix, W, ...){
 #'Mikko Rönkkö, Gaston Sanchez, Laura Trinchera, Giorgio Russolillo
 #'
 #'@details
-#'A part of the code for \code{\link{estimator.plsreg}} is adopted from the \pkg{plspm} package, licenced
+#'A part of the code for \code{\link{estimator.plsreg}} is adopted from the plspm package, licenced
 #'under GPL3.
 
 #'@references

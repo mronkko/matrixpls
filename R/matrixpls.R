@@ -17,7 +17,7 @@
 #'such as regression with
 #'unit weighted composites or factor scores. The package provides a unified
 #'framework that enables the comparison and analysis of these algorithms. In contrast to previous R
-#'packages for PLS, such as \pkg{plspm} and \pkg{semPLS} and all currently
+#'packages for PLS, such as plspm and \pkg{semPLS} and all currently
 #'available commercial PLS software, which work with
 #'raw data, \pkg{matrixpls} calculates the indicator weights and model estimates from data covariance 
 #'matrices. Working with covariance data allows for reanalyzing covariance matrices that are sometimes
@@ -27,7 +27,7 @@
 #'\pkg{matrixpls} has modular design that is easily expanded and contains more calculation options
 #'than the two other PLS packages for R. To allow validation of the algorithms by end users
 #'and to help porting existing analysis files from the two other R packages to 
-#'\pkg{matrixpls}, the package contains compatibility functions for both \pkg{plspm} and \pkg{semPLS}.
+#'\pkg{matrixpls}, the package contains compatibility functions for both plspm and \pkg{semPLS}.
 #'
 #'The desing principles and functionality of the package is best explained by first explaining the main
 #'function \code{matrixpls}. The function performs two tasks. It first calculates a set of indicator 

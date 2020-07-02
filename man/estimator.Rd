@@ -74,7 +74,7 @@ Providing \code{C} or \code{IC} allows for using disattenuated or otherwise
 adjusted correlation matrices. If not provided, these matrices are calculated using \code{S} and
 \code{W}.
 
-A part of the code for \code{\link{estimator.plsreg}} is adopted from the \pkg{plspm} package, licenced
+A part of the code for \code{\link{estimator.plsreg}} is adopted from the plspm package, licenced
 under GPL3.
 }
 \section{Functions}{

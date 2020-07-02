@@ -99,8 +99,6 @@ can be motivated by asymptotic normality of the PLS estimates in certain conditi
 }
 
 \examples{
-library(plspm)
-
 # Run the customer satisfaction example form plspm
 
 # load dataset satisfaction

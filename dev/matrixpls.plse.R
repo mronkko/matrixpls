@@ -11,7 +11,7 @@
 #'
 #'@param model Lavaan script or lavaan parameter table defining the model.
 #'
-#'@inheritParams params.regression
+#'@inheritParams params.separate
 #'@inheritParams matrixpls
 #'
 #'@references

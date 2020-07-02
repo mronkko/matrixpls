@@ -3,13 +3,13 @@
 #'@title A plspm compatibility wrapper for matrixpls
 #'
 #'@description
-#'\code{matrixpls.plspm} mimics \code{\link[plspm]{plspm}} function of the \code{plspm} package.
-#'The arguments and their default values and the output of the function are identical with \code{\link[plspm]{plspm}} function,
+#'\code{matrixpls.plspm} mimics \code{plspm} function of the \code{plspm} package.
+#'The arguments and their default values and the output of the function are identical with \code{plspm} function,
 #'but internally the function uses matrixpls estimation.
 #'
 #'@details
 #'The function \code{matrixpls.plspm} calculates indicator weights and estimates a model
-#'identically to the  \code{\link[plspm]{plspm}} function. In contrast to the \code{\link{matrixpls}} function
+#'identically to the  \code{plspm} function. In contrast to the \code{\link{matrixpls}} function
 #'that provides only weights and parameter estimates, this function also reports multiple post-estimation
 #'statistics. Because of this \code{matrixpls.plspm} is substantially less efficient than the \code{\link{matrixpls}}
 #'function.
@@ -19,19 +19,63 @@
 #'triangular matrix. \code{path_matrix} will contain a 1 when column \code{j}
 #'affects row \code{i}, 0 otherwise. \cr
 #'
-#'@inheritParams plspm::plspm
-#'
-#'@return An object of class \code{\link[plspm]{plspm}}. 
+#' @param Data matrix or data frame containing the manifest variables.
+#' @param path_matrix A square (lower triangular) boolean matrix representing 
+#' the inner model (i.e. the path relationships between latent variables).
+#' @param blocks list of vectors with column indices or column names
+#' from \code{Data} indicating the sets of manifest variables forming 
+#' each block (i.e. which manifest variables correspond to each block).
+#' @param modes character vector indicating the type of measurement for each
+#' block. Possible values are: \code{"A", "B"}. 
+#' The length of \code{modes} must be equal to the length of \code{blocks}.
+#' @param scheme string indicating the type of inner weighting
+#' scheme. Possible values are \code{"centroid"}, \code{"factorial"}, or
+#' \code{"path"}.
+#' @param scaled whether manifest variables should be standardized. 
+#' When (\code{TRUE}, data is 
+#' scaled to standardized values (mean=0 and variance=1). 
+#' The variance is calculated dividing by \code{N} instead of \code{N-1}).
+#' @param tol decimal value indicating the tolerance criterion for the
+#' iterations (\code{tol=0.000001}). Can be specified between 0 and 0.001.
+#' @param maxiter integer indicating the maximum number of iterations
+#' (\code{maxiter=100} by default). The minimum value of \code{maxiter} is 100.
+#' @param boot.val whether bootstrap validation should be performed. 
+#' (\code{FALSE} by default). 
+#' @param br number bootstrap resamples. Used only
+#' when \code{boot.val=TRUE}. When \code{boot.val=TRUE}, the default number of 
+#' re-samples is 100.
+#' @param dataset whether the data matrix used in the computations should be
+#' retrieved (\code{TRUE} by default).
+#' @return An object of class \code{"plspm"}. 
+#' @return \item{outer_model}{Results of the outer model. Includes:
+#' outer weights, standardized loadings, communalities, and redundancies}
+#' @return \item{inner_model}{Results of the inner (structural) model. 
+#' Includes: path coeffs and R-squared for each endogenous latent variable}
+#' @return \item{scores}{Matrix of latent variables used to estimate the inner
+#' model. If \code{scaled=FALSE} then \code{scores} are latent variables
+#' calculated with the original data (non-stardardized).}
+#' @return \item{path_coefs}{Matrix of path coefficients 
+#' (this matrix has a similar form as \code{path_matrix})}
+#' @return \item{crossloadings}{Correlations between the latent variables 
+#' and the manifest variables (also called crossloadings)}
+#' @return \item{inner_summary}{Summarized results of the inner model. 
+#' Includes: type of LV, type of measurement, number of indicators, R-squared,
+#' average communality, average redundancy, and average variance
+#' extracted}
+#' @return \item{effects}{Path effects of the structural relationships. 
+#' Includes: direct, indirect, and total effects}
+#' @return \item{unidim}{Results for checking the unidimensionality of blocks
+#' (These results are only meaningful for reflective blocks)}
+#' @return \item{gof}{Goodness-of-Fit index}
+#' @return \item{data}{Data matrix containing the manifest variables used in the
+#' model. Only available when \code{dataset=TRUE}}
+#' @return \item{boot}{List of bootstrapping results; only available 
+#' when argument \code{boot.val=TRUE}}
 #'
 #'@references Sanchez, G. (2013). \emph{PLS Path Modeling with R.} Retrieved from http://www.gastonsanchez.com/PLS Path Modeling with R.pdf
-#'
-#'@seealso
-#'\code{\link[plspm]{plspm}}
-#'
+#'#'
 #'@export
-#'@example example/fragment-requirePlspm.R
 #'@example example/matrixpls.plspm-example.R
-#'@example example/fragment-endBlock.R
 #'
 
 
@@ -219,8 +263,9 @@ matrixpls.plspm <-
 
     outer.mod.dataframe <- do.call(rbind,sapply(lvNames,function(lvName){
       temp <- outer.mod[[lvName]]
-      data.frame(name = rownames(temp),
-                 block = lvName,
+      # as.factor is required to maintain compatibility with the orphaned plspm package
+      data.frame(name = as.factor(rownames(temp)),
+                 block = as.factor(lvName),
                  weight = temp[,1],
                  loading = temp[,2],
                  communality = temp[,3],
@@ -420,12 +465,8 @@ matrixpls.plspm <-
                          C.alpha = ifelse(params$modes == "A",
                                           sapply(Wlist,function(indices){
                                             if(length(indices) == 1) return(1)
-                                            Ssub <- cov2cor(S[indices,indices])
-                                            # https://en.wikipedia.org/wiki/Cronbach%27s_alpha
-                                            K <- nrow(Ssub)
-                                            vbar <- mean(diag(Ssub))
-                                            cbar <- mean(Ssub[lower.tri(Ssub)])
-                                            K*cbar/(vbar+(K-1)*cbar)
+                                            Ssub <- stats::cov2cor(S[indices,indices])
+                                            alpha(Ssub)
                                           }, simplify = TRUE),
                                           0),
                          DG.rho = ifelse(params$modes == "A",

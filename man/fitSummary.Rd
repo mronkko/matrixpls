@@ -4,7 +4,7 @@
 \alias{fitSummary}
 \title{Summary of model fit of PLS model}
 \usage{
-fitSummary(object)
+fitSummary(object, ...)
 }
 \arguments{
 \item{object}{matrixpls estimation result object produced by the \code{\link{matrixpls}} function.}

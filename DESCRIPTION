@@ -2,8 +2,8 @@ Encoding: UTF-8
 Package: matrixpls
 Type: Package
 Title: Matrix-Based Partial Least Squares Estimation
-Version: 1.0.9
-Date: 2019-12-20
+Version: 1.0.10
+Date: 2020-07-02
 Authors@R: c(person("Mikko", "Rönkkö", role=c("aut", "cre"),
     email = "mikko.ronkko@jyu.fi"))
 Maintainer: Mikko Rönkkö <mikko.ronkko@jyu.fi>
@@ -19,11 +19,10 @@ Imports:
     assertive,
     matrixcalc,
     lavaan,
-    psych,
     MASS,
-    methods
+    methods,
+    psych
 Suggests:
-    plspm,
     simsem,
     RUnit,
     parallel,
@@ -35,7 +34,8 @@ Suggests:
     R.rsp
 License: GPL-3
 LazyLoad: yes
-RoxygenNote: 7.0.1
+LazyData: true
+RoxygenNote: 7.1.1
 Collate:
     'convCheck.R'
     'estimator.R'
@@ -57,3 +57,5 @@ Collate:
     'weightFun.R'
     'weightSign.R'
 VignetteBuilder: R.rsp
+Depends: 
+    R (>= 2.10)

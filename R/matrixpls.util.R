@@ -17,6 +17,17 @@ estimatesMatrixToVector <- function(est, m, sep, reverse = FALSE){
   ret
 }
 
+#
+# Alpha reliability coefficient based on correlation matrix
+#
+
+alpha <- function(S){
+  # https://en.wikipedia.org/wiki/Cronbach%27s_alpha
+  K <- nrow(S)
+  vbar <- mean(diag(S))
+  cbar <- mean(S[lower.tri(S)])
+  K*cbar/(vbar+(K-1)*cbar)
+}
 
 #
 # Scales the weight matrix so that the resulting composites have unit variance

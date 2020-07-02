@@ -1,5 +1,3 @@
-library(plspm)
-
 # Do a single run the performance of plspm and matrixpls with 1000 bootstrap samples using the customer satisfaction example
 
 # load dataset satisfaction

@@ -182,7 +182,6 @@ Extending the package with more functions is explained in more detail in the end
 
 ```{r, include = FALSE, echo=FALSE, warning=FALSE, cache=TRUE}
 library(matrixpls)
-library(plspm)
 library(semPLS)
 
 source("../demo/benchmark.R")

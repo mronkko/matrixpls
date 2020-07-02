@@ -43,7 +43,8 @@ reliabilityEstim.alpha <- function(S, loadings, W, ...){
   Q <- apply(W,1,function(w){
     i <- which(w!=0)
     if(length(i) == 1) return(1)
-    psych::alpha(S[i, i])$total[[1]]
+    # Call the matrixpls alpha function
+    alpha(S[i, i])
   })
   Q
 }

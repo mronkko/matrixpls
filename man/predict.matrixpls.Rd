@@ -38,8 +38,6 @@ Predicts the reflective indicators of endogenous latent variables using
 estimated model and data for the indicators of exogenous latent variables
 }
 \examples{
-library(plspm)
-
 # Run the customer satisfaction example form plspm
 
 # load dataset satisfaction

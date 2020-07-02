@@ -754,7 +754,7 @@ print.matrixplshtmt <- function(x, ...){
 #'@export
 #'
 
-fitSummary <- function(object){
+fitSummary <- function(object, ...){
   
   # Returns the minumum or NA if all are NA
   
@@ -782,6 +782,6 @@ print.matrixplfitsummary <- function(x, ...){
   
   x <- as.matrix(x)
   colnames(x) <- "Value"
-  print(x)
+  print(x, ...)
 
 }
