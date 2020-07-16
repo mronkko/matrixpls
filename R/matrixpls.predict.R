@@ -66,7 +66,6 @@ predict.matrixpls <- function(object, newData,
   # Prediction of the composite scores
   
   if(predictionType == "composites"){
-    browser()
     pred <- data %*% t(W)
   }
   
