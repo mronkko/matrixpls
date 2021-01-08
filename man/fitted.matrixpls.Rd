@@ -25,6 +25,7 @@ and results in an error.
 \seealso{
 Other post-estimation functions: 
 \code{\link{ave}()},
+\code{\link{cei}()},
 \code{\link{cr}()},
 \code{\link{effects.matrixpls}()},
 \code{\link{fitSummary}()},

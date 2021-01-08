@@ -24,6 +24,7 @@ Fornell, C., & Larcker, D. F. (1981). Evaluating structural equation models with
 }
 \seealso{
 Other post-estimation functions: 
+\code{\link{cei}()},
 \code{\link{cr}()},
 \code{\link{effects.matrixpls}()},
 \code{\link{fitSummary}()},

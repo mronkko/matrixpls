@@ -21,6 +21,7 @@ that are commonly used to access the overall fit of the PLS model.
 \seealso{
 Other post-estimation functions: 
 \code{\link{ave}()},
+\code{\link{cei}()},
 \code{\link{cr}()},
 \code{\link{effects.matrixpls}()},
 \code{\link{fitted.matrixpls}()},

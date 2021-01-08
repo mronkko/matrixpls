@@ -385,7 +385,8 @@ summary.matrixpls <- function(object, ...){
               gof = gof(object),
               cr = cr(object),
               ave = ave(object),
-              htmt = htmt(object))
+              htmt = htmt(object),
+              cei = cei(object))
   
   class(ret) <-("matrixplssummary")
   

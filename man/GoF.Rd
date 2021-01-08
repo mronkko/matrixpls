@@ -23,6 +23,7 @@ Henseler, J., & Sarstedt, M. (2013). Goodness-of-fit indices for partial least s
 \seealso{
 Other post-estimation functions: 
 \code{\link{ave}()},
+\code{\link{cei}()},
 \code{\link{cr}()},
 \code{\link{effects.matrixpls}()},
 \code{\link{fitSummary}()},

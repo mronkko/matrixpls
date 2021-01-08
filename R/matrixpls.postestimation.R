@@ -739,6 +739,63 @@ print.matrixplshtmt <- function(x, ...){
   print.table(x, ...)
 }
 
+#'@title Composite Equivalence Indices 
+#'
+#'@description 
+#'
+#'The \code{matrixpls} method for the generic function \code{cei} computes 
+#'composite equivalence indices (CEI) for the \code{matrixpls} object. By
+#'default, the composites are compared against unit-weighted composites.
+#'
+#'@details
+#'
+#'Composite equivalence indices quantify if two sets of composites calculated
+#'from the same data using different weight algorithms differ. Composites are 
+#'matched by name and correlations for each pair are reported.
+#'
+#'@param object2 Another \code{matrixpls} object that \code{matrixpls} is
+#'compared against.
+#'
+#'@template postestimationFunctions
+#'
+#'@return Composite equivalence indices as a vector
+#'
+#'@example example/matrixpls.cei-example.R
+#'
+#'@export
+#'
+
+cei <- function(object, object2 = NULL, ...){
+  
+  
+  S <- attr(object,"S")
+  W <- attr(object,"W")
+  model <- attr(object,"model")
+  
+  if(is.null(object2)){
+    object2 <- matrixpls(S, model, weightFun = weightFun.fixed)  
+  }
+  # Validate a user-provided object
+  else{
+    if(! identical(S, attr(object2,"S"))) stop("Both objects must use the same data covariance matrix S")
+  }
+  
+  W2 <- attr(object2,"W")[rownames(W), colnames(W)]
+  cei <- diag(W %*% S %*% t(W2))
+  class(cei) <- "matrixplscei"
+  cei
+}
+
+#'@export
+
+print.matrixplscei <- function(x, digits=getOption("digits"), ...){
+  cat("\n Composite equilevance indices\n\n CEI individual\n")
+  print.table(x, digits = digits, ...)
+  cat("\n CEI total:", round(min(x), digits = digits))
+  cat("\n")
+  
+}
+
 
 #'@title Summary of model fit of PLS model
 #'
@@ -768,7 +825,8 @@ fitSummary <- function(object, ...){
               "Min AVE" = m(ave(object)$ave),
               "Min AVE - sq. cor" = m(ave(object)$ave_correlation),
               "Goodness of Fit" = gof(object),
-              stats::residuals(object)$indices[6:7]
+              stats::residuals(object)$indices[6:7],
+              "CEI total" = cei(object)
            )
   
   class(ret) <- "matrixplfitsummary"

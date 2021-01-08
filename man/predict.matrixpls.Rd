@@ -101,6 +101,7 @@ Henseler, & H. Wang (Eds.), Handbook of partial least squares (pp. 655–690). B
 \seealso{
 Other post-estimation functions: 
 \code{\link{ave}()},
+\code{\link{cei}()},
 \code{\link{cr}()},
 \code{\link{effects.matrixpls}()},
 \code{\link{fitSummary}()},

@@ -24,6 +24,7 @@ Henseler, J., Ringle, C. M., & Sarstedt, M. (2015). A new criterion for assessin
 \seealso{
 Other post-estimation functions: 
 \code{\link{ave}()},
+\code{\link{cei}()},
 \code{\link{cr}()},
 \code{\link{effects.matrixpls}()},
 \code{\link{fitSummary}()},

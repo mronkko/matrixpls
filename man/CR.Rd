@@ -26,6 +26,7 @@ Aguirre-Urreta, M. I., Marakas, G. M., & Ellis, M. E. (2013). Measurement of com
 \seealso{
 Other post-estimation functions: 
 \code{\link{ave}()},
+\code{\link{cei}()},
 \code{\link{effects.matrixpls}()},
 \code{\link{fitSummary}()},
 \code{\link{fitted.matrixpls}()},

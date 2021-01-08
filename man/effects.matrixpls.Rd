@@ -27,6 +27,7 @@ Fox, J. (1980) Effect analysis in structural equation models: Extensions and sim
 \seealso{
 Other post-estimation functions: 
 \code{\link{ave}()},
+\code{\link{cei}()},
 \code{\link{cr}()},
 \code{\link{fitSummary}()},
 \code{\link{fitted.matrixpls}()},
