@@ -17,6 +17,16 @@ install.packages(c("assertive",
 
 if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
-BiocManager::install(version = "3.11")
 
-BiocManager::install("ASGSCA")
+# BioConductor does not always work with R-devel. Try using BioConductor and
+# fall back to git install if this fails.
+
+tryCatch(
+  {
+    BiocManager::install("ASGSCA")
+  },
+  error=function(cond) {
+    message(cond)
+    install_bioc("ASGSCA")
+  }
+) 
