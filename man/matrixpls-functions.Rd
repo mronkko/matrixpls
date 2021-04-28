@@ -6,7 +6,7 @@
 \arguments{
 \item{weightFun}{A function for calculating indicator weights using the data covariance matrix
 \code{S}, a model specification \code{model}, and a weight pattern \code{W.model}. Returns
-a weigth matrix \code{W}. The default is \code{\link{weightFun.pls}}}
+a weight matrix \code{W}. The default is \code{\link{weightFun.pls}}}
 
 \item{parameterEstim}{A function for estimating the model parameters using
 the data covariance matrix \code{S}, model specification \code{model}, 
@@ -19,19 +19,19 @@ the data covariance matrix \code{S}, a model matrix \code{modelMatrix}, and a we
 covariance matrix \code{IC} are optional. Returns matrix of parameter estimates.
 The default is \code{\link{estimator.ols}}}
 
-\item{weightSign}{A function for resolving weight sign ambiquity based on the data covariance matrix
+\item{weightSign}{A function for resolving weight sign ambiguity based on the data covariance matrix
 \code{S} and a weight matrix \code{W}.  Returns
-a weigth matrix \code{W}. See \code{\link{weightSign}}
+a weight matrix \code{W}. See \code{\link{weightSign}}
 for details.}
 
 \item{outerEstim}{A function for calculating outer weights using the data covariance matrix
 \code{S}, a weight matrix \code{W}, an inner weight matrix \code{E},
 and a weight pattern \code{W.model}. Returns
-a weigth matrix \code{W}. See \code{\link{outerEstim}}.}
+a weight matrix \code{W}. See \code{\link{outerEstim}}.}
 
 \item{innerEstim}{A function for calculating inner weights using  the data covariance matrix
 \code{S}, a weight matrix \code{W}, and an inner model matrix \code{inner.mod}. Returns
-an inner weigth matrix \code{E}. The default is \code{\link{innerEstim.path}}.}
+an inner weight matrix \code{E}. The default is \code{\link{innerEstim.path}}.}
 
 \item{convCheck}{A function that takes the old \code{Wold} and new weight \code{Wold} matrices and
 returns a scalar that is compared against \code{tol} to check for convergence. The default

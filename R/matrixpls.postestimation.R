@@ -80,7 +80,7 @@ print.matrixplseffects <- function(x, ...){
 #'
 #'Following Hu and Bentler (1999, Table 1), the SRMR index is calculated by dividing with 
 #'\eqn{p(p+1)/2}, where \eqn{p} is the number of indicator variables. In typical SEM applications,
-#'the diagonal of residual covariance matrix consistes of all zeros because error term variances
+#'the diagonal of residual covariance matrix consists of all zeros because error term variances
 #'are freely estimated. To make the SRMR more comparable with the index produced by 
 #'SEM software, the SRMR is calculated by summing only the squares of off-diagonal elements,
 #'which is equivalent to including a diagonal of all zeros. 
@@ -108,7 +108,7 @@ print.matrixplseffects <- function(x, ...){
 #'
 #'Henseler, J., Dijkstra, T. K., Sarstedt, M., Ringle, C. M., Diamantopoulos, A., Straub, D. W., …
 #'Calantone, R. J. (2014). Common Beliefs and Reality About PLS Comments on Rönkkö and Evermann 
-#'(2013). \emph{Organizational Research Methods}, 17(2), 182–209. doi:10.1177/1094428114526928
+#'(2013). \emph{Organizational Research Methods}, 17(2), 182–209. \doi{10.1177/1094428114526928}
 #'
 #'Hu, L., & Bentler, P. M. (1999). Cutoff criteria for fit indexes in covariance structure 
 #'analysis: Conventional criteria versus new alternatives. \emph{Structural Equation Modeling: 
@@ -364,7 +364,8 @@ fitted.matrixpls <- function(object, ...) {
   #
   # Derive the implied covariance matrix using the Bentler-Weeks model
   #
-  # Bentler, P. M., & Weeks, D. G. (1980). Linear structural equations with latent variables. Psychometrika, 45(3), 289–308. doi:10.1007/BetaF02293905
+  # Bentler, P. M., & Weeks, D. G. (1980). Linear structural equations with 
+  # latent variables. Psychometrika, 45(3), 289–308. doi:10.1007/BetaF02293905
   #
   
   # beta (regression paths between dependent variables)
@@ -450,7 +451,7 @@ fitted.matrixpls <- function(object, ...) {
 #'
 #'@template postestimationFunctions
 #'
-#'@return A named numberic vector containing the R2 values.
+#'@return A named numeric vector containing the R2 values.
 #'
 #'@export
 #'
@@ -488,7 +489,9 @@ print.matrixplsr2 <- function(x, ...){
 #'
 #'@references
 #'
-#'Henseler, J., & Sarstedt, M. (2013). Goodness-of-fit indices for partial least squares path modeling. \emph{Computational Statistics}, 28(2), 565–580. doi:10.1007/s00180-012-0317-1
+#'Henseler, J., & Sarstedt, M. (2013). Goodness-of-fit indices for partial least
+#'squares path modeling. \emph{Computational Statistics}, 28(2), 565–580. 
+#'\doi{10.1007/s00180-012-0317-1}
 #'
 #'
 #'@export
@@ -571,7 +574,11 @@ loadings.matrixpls <- function(object, ...) {
 #'
 #'Fornell, C., & Larcker, D. F. (1981). Evaluating structural equation models with unobservable variables and measurement error. \emph{Journal of marketing research}, 18(1), 39–50.
 #'
-#'Aguirre-Urreta, M. I., Marakas, G. M., & Ellis, M. E. (2013). Measurement of composite reliability in research using partial least squares: Some issues and an alternative approach. \emph{The DATA BASE for Advances in Information Systems}, 44(4), 11–43. \href{http://doi.org/10.1145/2544415.2544417}{DOI:10.1145/2544415.2544417}
+#'Aguirre-Urreta, M. I., Marakas, G. M., & Ellis, M. E. (2013). Measurement of 
+#'composite reliability in research using partial least squares: Some issues and
+#'an alternative approach. 
+#' \emph{The DATA BASE for Advances in Information Systems}, 44(4), 11–43. 
+#' \doi{10.1145/2544415.2544417}{DOI:10.1145/2544415.2544417}
 #'
 #'@export
 #'

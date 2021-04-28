@@ -29,7 +29,7 @@
 #'and to help porting existing analysis files from the two other R packages to 
 #'\pkg{matrixpls}, the package contains compatibility functions for both plspm and \pkg{semPLS}.
 #'
-#'The desing principles and functionality of the package is best explained by first explaining the main
+#'The design principles and functionality of the package is best explained by first explaining the main
 #'function \code{matrixpls}. The function performs two tasks. It first calculates a set of indicator 
 #'weights to form composites based on data covariance matrix and then estimates a statistical model
 #'with the indicators and composites using the weights. The main function takes the following arguments:
@@ -90,9 +90,14 @@
 #'
 #'Lohmöller J.-B. (1989) \emph{Latent variable path modeling with partial least squares.} Heidelberg: Physica-Verlag.
 #'
-#'Rönkkö, M., McIntosh, C. N., & Antonakis, J. (2015). On the adoption of partial least squares in psychological research: Caveat emptor. \emph{Personality and Individual Differences}, (87), 76–84. \href{http://doi.org/10.1016/j.paid.2015.07.019}{DOI:10.1016/j.paid.2015.07.019}
+#'Rönkkö, M., McIntosh, C. N., & Antonakis, J. (2015). On the adoption of partial
+#' least squares in psychological research: Caveat emptor. 
+#' \emph{Personality and Individual Differences}, (87), 76–84. 
+#' \doi{10.1016/j.paid.2015.07.019}{DOI:10.1016/j.paid.2015.07.019}
 #'
-#'Wold, H. (1982). Soft modeling - The Basic Design And Some Extensions. In K. G. Jöreskog & S. Wold (Eds.),\emph{Systems under indirect observation: causality, structure, prediction} (pp. 1–54). Amsterdam: North-Holland.
+#'Wold, H. (1982). Soft modeling - The Basic Design And Some Extensions. 
+#'In K. G. Jöreskog & S. Wold (Eds.),\emph{Systems under indirect observation:
+#'causality, structure, prediction} (pp. 1–54). Amsterdam: North-Holland.
 #'
 #'
 #'@aliases matrixpls-package
@@ -131,7 +136,7 @@ NULL
 #'
 #'@param weightFun A function for calculating indicator weights using the data covariance matrix
 #' \code{S}, a model specification \code{model}, and a weight pattern \code{W.model}. Returns
-#' a weigth matrix \code{W}. The default is \code{\link{weightFun.pls}}
+#' a weight matrix \code{W}. The default is \code{\link{weightFun.pls}}
 #'
 #'@param parameterEstim A function for estimating the model parameters using
 #'the data covariance matrix \code{S}, model specification \code{model}, 
@@ -144,19 +149,19 @@ NULL
 #'covariance matrix \code{IC} are optional. Returns matrix of parameter estimates.
 #'The default is \code{\link{estimator.ols}}
 #'
-#'@param weightSign A function for resolving weight sign ambiquity based on the data covariance matrix
+#'@param weightSign A function for resolving weight sign ambiguity based on the data covariance matrix
 #' \code{S} and a weight matrix \code{W}.  Returns
-#' a weigth matrix \code{W}. See \code{\link{weightSign}}
+#' a weight matrix \code{W}. See \code{\link{weightSign}}
 #' for details. 
 #' 
 #'@param outerEstim A function for calculating outer weights using the data covariance matrix
 #' \code{S}, a weight matrix \code{W}, an inner weight matrix \code{E},
 #'and a weight pattern \code{W.model}. Returns
-#'a weigth matrix \code{W}. See \code{\link{outerEstim}}.
+#'a weight matrix \code{W}. See \code{\link{outerEstim}}.
 #'
 #'@param innerEstim A function for calculating inner weights using  the data covariance matrix
 #'\code{S}, a weight matrix \code{W}, and an inner model matrix \code{inner.mod}. Returns
-#'an inner weigth matrix \code{E}. The default is \code{\link{innerEstim.path}}.
+#'an inner weight matrix \code{E}. The default is \code{\link{innerEstim.path}}.
 
 #'@param convCheck A function that takes the old \code{Wold} and new weight \code{Wold} matrices and
 #'returns a scalar that is compared against \code{tol} to check for convergence. The default

@@ -57,7 +57,7 @@ A named vector of parameter estimates.
 \item{inner}{the \code{inner} model matrix with estimated parameters.}
 \item{reflective}{the \code{reflective} model matrix with estimated parameters.}
 \item{formative}{the \code{formative} model matrix with estimated parameters.}
-\item{Q}{the reliability estimates used in dissattenuation.}
+\item{Q}{the reliability estimates used in disattenuation.}
 
 Additionally, all attributes returned by functions called by parameterEstim.separate are returned.
 This can include:
@@ -95,7 +95,7 @@ binary matrices and that the diagonal of \code{inner} must be zeros.
 Model estimation proceeds as follows. The weights \code{W} and the
 data covariance matrix \code{S} are used to calculate the composite covariance matrix \code{C}
 and the indicator-composite covariance matrix \code{IC}. These are matrices are used to
-separately estimate each of teh three model matrices \code{inner}, \code{reflective}, and
+separately estimate each of the three model matrices \code{inner}, \code{reflective}, and
 \code{formative}. This approach of estimating the parameter matrices separately is the
 standard way of estimation in the PLS literature.
  

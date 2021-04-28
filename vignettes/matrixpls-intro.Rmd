@@ -383,14 +383,14 @@ outerEstim.gsca& GSCA outer weights. Described later in the paper.\\
 \toprule
 innerEstim.path& Path weighting scheme. Returns inner weights based on regressions and correlations of adjacent composites. (default)\\
 innerEstim.centroid& Centroid weighting scheme. Returns signs of correlations of adjacent composites as weights\\
-innerEstim.factor&Factor weighting scheme. Returns correlations of adjacent compositesas weights\\
+innerEstim.factor&Factor weighting scheme. Returns correlations of adjacent composites as weights\\
 innerEstim.identity& Returns identity matrix as inner weights. Each composite is used as its own inner approximation\\
 innerEstim.gsca&  GSCA inner weights. Described later in the paper.\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\code{outerEstim} can be either a single function or a list of functions with lenght equal to
+\code{outerEstim} can be either a single function or a list of functions with length equal to
 the number of composites. If just one function is provided, the same function will be used for all
 composites. The default is to use Mode A and Mode B based on the \code{reflective} and 
 \code{formative} parts of \code{model} following the tradition in the PLS literature. If at least
@@ -551,16 +551,16 @@ functions shown in Table \ref{optimweights}.
 \begin{tabular}{ll}
 \toprule
 optimCrit.maximizeInnerR2&Returns the negative of mean of $R^2$ of all regressions in\\
-&the \code{inner} matrix. Leads to maximising the mean $R^2$\\
+&the \code{inner} matrix. Leads to maximizing the mean $R^2$\\
 &of these regressions. (default)\\\\
 
 optimCrit.maximizeIndicatorR2&Returns the negative of mean of $R^2$ of all regressions in\\
-&the \code{reflective} matrix. Leads to maximising the mean\\
+&the \code{reflective} matrix. Leads to maximizing the mean\\
 &$R^2$ of these regressions.\\\\
 
 optimCrit.maximizeFullR2&Returns the negative of mean of $R^2$ of all regressions in\\
 &the \code{inner} matrix and the \code{reflective} matrix. Leads\\
-&to maximising the mean of $R^2$ of these regressions.\\\\
+&to maximizing the mean of $R^2$ of these regressions.\\\\
 optimCrit.gsca& GSCA optimization criterion. \\
 &Described later in the paper.\\
 \bottomrule
@@ -622,15 +622,16 @@ the PLS weights.
 
 ## GSCA estimation
 
-Generalized structured component analysis differes from PLS by defining an explicit optimization
-criterion and an algorithm for weight calculation [@hwang_generalized_2004]. However, the initially
-presented algorith contained a scaling error that was corrected only after six years in 2010
+Generalized structured component analysis differes from PLS by defining an 
+explicit optimization criterion and an algorithm for weight calculation 
+[@hwang_generalized_2004]. However, the initially
+presented algorithm contained a scaling error that was corrected only after six years in 2010
 [@hwang_comparative_2010;@henseler_comparative_2010;@hwang_web_2010;@henseler_why_2012].
 \pkg{matrixpls} addresses the scaling issue by always standardizing composites and unless the
 \code{standardize} option is set to false also the indicators.
 
 The optimization criterion for the corrected GSCA is to minimize the sum of squares of all 
-regressions specified in \code{inner} and \code{reflective}, which is equivalent to maximixing the
+regressions specified in \code{inner} and \code{reflective}, which is equivalent to maximizing the
 sum of $R^2$ of these regressions. In the original GSCA specification, the
 formative model, if included, always overlap completely with the indicators forming the composite
 and therefore the $R^2$ of regressions in the \code{formative} part of the model is always 1 and
@@ -641,9 +642,9 @@ by minimizing the sum of squared residuals keeping the weights fixed. In the sec
 of squared residuals of the same regressions are minimized for weights keeping the regression 
 coefficients fixed.
 
-\pkg{matrixpls} implementes GSCA using the functions \code{innerEstim.gsca} and \code{outerEstim.gsca} that are
+\pkg{matrixpls} implements GSCA using the functions \code{innerEstim.gsca} and \code{outerEstim.gsca} that are
 used with the \code{weightFun.pls} weight function. 
-The algorithm starts by generating initial composites using the starting weights. The intial
+The algorithm starts by generating initial composites using the starting weights. The initial
 composites are first used to estimate the inner weight matrix $\bm{E}$ consisting of the regression
 coefficients between the composites using the function \code{innerEstim.gsca}. Because some
 of the composites are exogenous to other composites, the $\bm{E}$ matrix from GSCA inner estimation
@@ -680,7 +681,7 @@ must be calculated numerically. This makes the weight optimization technique muc
 alternating least squares technique.
 
 The example below demonstrates this and compares the results against GSCA implementation provided
-by the \pkg{ASGSCA} package [@asgsca] available throuh Bioconductor.
+by the \pkg{ASGSCA} package [@asgsca] available through Bioconductor.
 
 ### Example: GSCA estimation with alternating least squares and direct numerical optimization
 
@@ -723,7 +724,7 @@ estimator.regression&Estimates loadings as regressions of indicators on composit
 &(default)\\\\
 estimator.plscLoadings&Dijkstra's technique. Estimates loadings one block at a time\\
 &using MINRES estimator and constraining the loadings to\\
-&be proportinal to the weights.\\\\
+&be proportional to the weights.\\\\
 estimator.efaLoadings&Estimates loadings one block at a time with using the \code{fa}\\
 &function of the \pkg{psych} package. Defaults to MINRES estimator,\\
 &but this can be changed with the \code{fm} parameter.\\\\
@@ -752,7 +753,7 @@ reliability function is a special case. The estimated reliabilities are availabl
 
 The following code example demonstrates the use of disattenuation.
 
-### Example: PLSc and other dissattenuation techniques
+### Example: PLSc and other disattenuation techniques
 
 \begin{small}
 ```{r, echo=FALSE, warnings = FALSE, include=FALSE}
@@ -843,13 +844,13 @@ of the \code{reflective} model matrix.
 
 Following Hu and Bentler [-@hu_cutoff_1999, Table 1, the SRMR index is calculated by dividing with 
 $p(p+1)/2$, where $p$ is the number of indicator variables. In typical SEM applications,
-the diagonal of residual covariance matrix consistes of all zeros because error term variances
+the diagonal of residual covariance matrix consists of all zeros because error term variances
 are freely estimated. To make the SRMR more comparable with the index produced by 
 SEM software, the SRMR is calculated by summing only the squares of off-diagonal elements,
 which is equivalent to including a diagonal of all zeros. 
 
 Two versions of the 
-SRMR index are rovided, the traditional SRMR that includes all residual covariances, and the 
+SRMR index are provided, the traditional SRMR that includes all residual covariances, and the 
 version proposed by Henseler et al. [-@henseler_common_2014] where the within-block residual covariances are 
 ignored. 
 
@@ -869,7 +870,7 @@ residuals(political.out, observed = FALSE)
 
 \pkg{matrixpls} implements a number of model quality indices. Each index or set of indices is 
 implemented as a separate function. The \code{summary} method of
-\code{matrixpls} object prints out a collection of these indicess. 
+\code{matrixpls} object prints out a collection of these indices. 
 
 ### Example: Calculating model quality indices
 
@@ -975,7 +976,7 @@ the \pkg{boot} package.
 
 ### Example: Boostrap-based model testing
 
-The following example demonstrates how bootstrapping can be used to generate an empical reference
+The following example demonstrates how bootstrapping can be used to generate an empirical reference
 distribution for a model test statistic for the education analysis presented earlier in the paper.
 The approach is based on the idea presented by Yuan and
 Hayashi [-@yuan_bootstrap_2003] and its adaptation to PLS by Dijkstra and Henseler
@@ -1063,7 +1064,7 @@ In this example, the bootstrap-based model test conclusively rejects the model.
 
 # Monte Carlo simulations
 
-\pkg{matrixpls} integratates with \pkg{simsem} [@pornprasertmanit_simsem_2016] Monte Carlo 
+\pkg{matrixpls} integrates with \pkg{simsem} [@pornprasertmanit_simsem_2016] Monte Carlo 
 simulation framework. Monte Carlo simulation involves drawing multiple independent samples of 
 random variables from a population model chosen by the researcher, using each of these samples to 
 estimate a model, and collecting the results [@boomsma_reporting_2013]. After a sufficient number
@@ -1252,7 +1253,7 @@ read_chunk('../example/matrixpls.sim-example3.R', labels = "re2013")
 As explained in Section 1.1, \pkg{matrixpls} works by applying a series of functions on matrices
 containing covariances, weights, and model specifications. The matrices are listed in Table \ref{matrices} and functions in Table \ref{functions}. The package can be extended by using
 user written functions in place of any of the built-in functions. Reference manual provides
-nore details on the built-in function implementations.
+more details on the built-in function implementations.
 
 \begin{table}[!htbp]
 \centering
@@ -1264,7 +1265,7 @@ Function&Description\\
 \midrule
 \code{weightFun}&A function for calculating indicator weights using the data covariance matrix
  \code{S}, a model specification \code{model}, and a weight pattern \code{W.model}. Returns
- a weigth matrix \code{W}.\\
+ a weight matrix \code{W}.\\
 
 \code{parameterEstim}& A function for estimating the model parameters using
 the data covariance matrix \code{S}, model specification \code{model}, 
@@ -1280,16 +1281,16 @@ the same dimensions as \code{modelMatrix}.\\
 
 \code{weightSign}&  A function for resolving weight sign ambiquity based on the data covariance matrix
  \code{S} and a weight matrix \code{W}.  Returns
- a weigth matrix \code{W}.\\
+ a weight matrix \code{W}.\\
 
 \code{outerEstim}&  A function for calculating outer weights using the data covariance matrix
  \code{S}, a weight matrix \code{W}, an inner weight matrix \code{E},
 and a weight pattern \code{W.model}. Returns
-a weigth matrix \code{W}.\\
+a weight matrix \code{W}.\\
 
 \code{innerEstim}&  A function for calculating inner weights using  the data covariance matrix
 \code{S}, a weight matrix \code{W}, and an inner model matrix \code{inner.mod}. Returns
-an inner weigth matrix \code{E}.\\ 
+an inner weight matrix \code{E}.\\ 
 
 \code{convCheck}&  A function that takes the old \code{Wold} and new weight \code{Wold} matrices and
 returns a scalar that is compared against \code{tol} to check for convergence.\\

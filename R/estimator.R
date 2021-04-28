@@ -13,7 +13,7 @@
 #'\code{\link{parameterEstim.separate}}.
 #'
 #'When two-stage least squares regression is applied with \code{estimator.tsls}, all
-#'exogenous variables are used as instrumental varaables. There is currently no check of whether the
+#'exogenous variables are used as instrumental variables. There is currently no check of whether the
 #'number of instrumental variables is sufficient for estimation.
 #'
 #'\code{estimator.plscLoadings} estimates the loadings by scaling the weights \code{W} with the
@@ -390,7 +390,7 @@ estimator.cfaLoadings <- function(S, modelMatrix, W, ...){
 #'Mikko Rönkkö, Gaston Sanchez, Laura Trinchera, Giorgio Russolillo
 #'
 #'@details
-#'A part of the code for \code{\link{estimator.plsreg}} is adopted from the plspm package, licenced
+#'A part of the code for \code{\link{estimator.plsreg}} is adopted from the plspm package, licensed
 #'under GPL3.
 
 #'@references

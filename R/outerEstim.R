@@ -16,7 +16,7 @@
 #'
 #'@param ... All other arguments are ignored.
 #'
-#'@return A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.model}.
+#'@return A matrix of unscaled outer weights \code{W} with the same dimensions as \code{W.model}.
 #'
 #'@name outerEstim
 #'

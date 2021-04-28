@@ -18,7 +18,9 @@ The Goodness of Fit index.
 The \code{matrixpls} method for the generic function \code{gof} computes the Goodness of Fit index for matrixpls results.
 }
 \references{
-Henseler, J., & Sarstedt, M. (2013). Goodness-of-fit indices for partial least squares path modeling. \emph{Computational Statistics}, 28(2), 565–580. doi:10.1007/s00180-012-0317-1
+Henseler, J., & Sarstedt, M. (2013). Goodness-of-fit indices for partial least
+squares path modeling. \emph{Computational Statistics}, 28(2), 565–580. 
+\doi{10.1007/s00180-012-0317-1}
 }
 \seealso{
 Other post-estimation functions: 

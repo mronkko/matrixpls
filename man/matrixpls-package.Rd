@@ -36,7 +36,7 @@ than the two other PLS packages for R. To allow validation of the algorithms by 
 and to help porting existing analysis files from the two other R packages to 
 \pkg{matrixpls}, the package contains compatibility functions for both plspm and \pkg{semPLS}.
 
-The desing principles and functionality of the package is best explained by first explaining the main
+The design principles and functionality of the package is best explained by first explaining the main
 function \code{matrixpls}. The function performs two tasks. It first calculates a set of indicator 
 weights to form composites based on data covariance matrix and then estimates a statistical model
 with the indicators and composites using the weights. The main function takes the following arguments:
@@ -121,9 +121,14 @@ Rosseel, Y. (2012). lavaan: An R Package for Structural Equation Modeling. \emph
 
 Lohmöller J.-B. (1989) \emph{Latent variable path modeling with partial least squares.} Heidelberg: Physica-Verlag.
 
-Rönkkö, M., McIntosh, C. N., & Antonakis, J. (2015). On the adoption of partial least squares in psychological research: Caveat emptor. \emph{Personality and Individual Differences}, (87), 76–84. \href{http://doi.org/10.1016/j.paid.2015.07.019}{DOI:10.1016/j.paid.2015.07.019}
+Rönkkö, M., McIntosh, C. N., & Antonakis, J. (2015). On the adoption of partial
+least squares in psychological research: Caveat emptor. 
+\emph{Personality and Individual Differences}, (87), 76–84. 
+\doi{10.1016/j.paid.2015.07.019}{DOI:10.1016/j.paid.2015.07.019}
 
-Wold, H. (1982). Soft modeling - The Basic Design And Some Extensions. In K. G. Jöreskog & S. Wold (Eds.),\emph{Systems under indirect observation: causality, structure, prediction} (pp. 1–54). Amsterdam: North-Holland.
+Wold, H. (1982). Soft modeling - The Basic Design And Some Extensions. 
+In K. G. Jöreskog & S. Wold (Eds.),\emph{Systems under indirect observation:
+causality, structure, prediction} (pp. 1–54). Amsterdam: North-Holland.
 }
 \seealso{
 Useful links:

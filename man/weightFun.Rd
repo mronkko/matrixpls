@@ -7,7 +7,7 @@
 \alias{weightFun.fixed}
 \alias{weightFun.factor}
 \alias{weightFun.principal}
-\title{Indicator weigth algoritms}
+\title{Indicator weight algoritms}
 \usage{
 weightFun.pls(
   S,
@@ -68,7 +68,7 @@ composites. See \code{\link{outerEstim}}.}
 
 \item{innerEstim}{A function for calculating inner weights using  the data covariance matrix
 \code{S}, a weight matrix \code{W}, and an inner model matrix \code{inner.mod}. Returns
-an inner weigth matrix \code{E}. The default is \code{\link{innerEstim.path}}.}
+an inner weight matrix \code{E}. The default is \code{\link{innerEstim.path}}.}
 
 \item{...}{All other arguments are passed through to other estimation functions.}
 
@@ -173,7 +173,7 @@ maximum number of iterations is reached and provides the results in a matrix.
 
 \code{weightFun.optim} calculates indicator weights by optimizing the indicator
 weights against the criterion function using \code{\link[stats]{optim}}. The
-algoritmh works by first estimating the model with the starting weights. The
+algorithm works by first estimating the model with the starting weights. The
 resulting \code{matrixpls} object is passed to the \code{optimCrit}
 function, which evaluates the optimization criterion for the weights. The
 weights are adjusted and new estimates are calculated until the optimization

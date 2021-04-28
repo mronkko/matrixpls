@@ -21,7 +21,11 @@ indices for the model using the formula presented by Fornell and Larcker (1981).
 \references{
 Fornell, C., & Larcker, D. F. (1981). Evaluating structural equation models with unobservable variables and measurement error. \emph{Journal of marketing research}, 18(1), 39–50.
 
-Aguirre-Urreta, M. I., Marakas, G. M., & Ellis, M. E. (2013). Measurement of composite reliability in research using partial least squares: Some issues and an alternative approach. \emph{The DATA BASE for Advances in Information Systems}, 44(4), 11–43. \href{http://doi.org/10.1145/2544415.2544417}{DOI:10.1145/2544415.2544417}
+Aguirre-Urreta, M. I., Marakas, G. M., & Ellis, M. E. (2013). Measurement of 
+composite reliability in research using partial least squares: Some issues and
+an alternative approach. 
+\emph{The DATA BASE for Advances in Information Systems}, 44(4), 11–43. 
+\doi{10.1145/2544415.2544417}{DOI:10.1145/2544415.2544417}
 }
 \seealso{
 Other post-estimation functions: 

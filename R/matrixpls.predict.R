@@ -16,7 +16,7 @@
 #'by multiplying the data with the weight matrix.
 #'
 #'@param means A vector of means of the original data used to calculate 
-#'intercepts for the linear prediciton equations. If not provided, calculated
+#'intercepts for the linear prediction equations. If not provided, calculated
 #'from the new data or assumed zero.
 #'
 #'@return a matrix of predicted values for reflective indicators of endogenous
@@ -24,7 +24,9 @@
 #'
 #'@references
 #'
-#'Wold, H. (1974). Causal flows with latent variables: Partings of the ways in the light of NIPALS modelling. \emph{European Economic Review}, 5(1), 67–86. doi:10.1016/0014-2921(74)90008-7
+#'Wold, H. (1974). Causal flows with latent variables: Partings of the ways in 
+#'the light of NIPALS modeling. \emph{European Economic Review}, 5(1), 67–86. 
+#'\doi{10.1016/0014-2921(74)90008-7}
 #'
 #'Chin, W. W. (2010). How to write up and report PLS analyses. In V. Esposito Vinzi, W. W. Chin, J.
 #'Henseler, & H. Wang (Eds.), Handbook of partial least squares (pp. 655–690). Berlin Heidelberg: Springer.

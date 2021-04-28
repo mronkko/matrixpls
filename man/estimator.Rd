@@ -56,7 +56,7 @@ Parameter estimation functions estimate the parameters of a model matrix (\code{
 \code{\link{parameterEstim.separate}}.
 
 When two-stage least squares regression is applied with \code{estimator.tsls}, all
-exogenous variables are used as instrumental varaables. There is currently no check of whether the
+exogenous variables are used as instrumental variables. There is currently no check of whether the
 number of instrumental variables is sufficient for estimation.
 
 \code{estimator.plscLoadings} estimates the loadings by scaling the weights \code{W} with the
@@ -74,7 +74,7 @@ Providing \code{C} or \code{IC} allows for using disattenuated or otherwise
 adjusted correlation matrices. If not provided, these matrices are calculated using \code{S} and
 \code{W}.
 
-A part of the code for \code{\link{estimator.plsreg}} is adopted from the plspm package, licenced
+A part of the code for \code{\link{estimator.plsreg}} is adopted from the plspm package, licensed
 under GPL3.
 }
 \section{Functions}{
@@ -108,7 +108,7 @@ Support <- c(0, 0, 0, 0, 0, 0)
 Advising <- c(0, 0, 0, 0, 0, 0)
 Tutoring <- c(0, 0, 0, 0, 0, 0)
 Value <- c(1, 1, 1, 0, 0, 0)
-# Omit two paths (compared to teh model in the book) to achieve 
+# Omit two paths (compared to the model in the book) to achieve 
 # identification of the 2SLS analysis
 Satisfaction <- c(0, 0, 1, 1, 0, 0)
 Loyalty <- c(0, 0, 0, 0, 1, 0)

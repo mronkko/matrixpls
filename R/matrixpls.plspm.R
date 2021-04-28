@@ -53,7 +53,7 @@
 #' Includes: path coeffs and R-squared for each endogenous latent variable}
 #' @return \item{scores}{Matrix of latent variables used to estimate the inner
 #' model. If \code{scaled=FALSE} then \code{scores} are latent variables
-#' calculated with the original data (non-stardardized).}
+#' calculated with the original data (non-standardized).}
 #' @return \item{path_coefs}{Matrix of path coefficients 
 #' (this matrix has a similar form as \code{path_matrix})}
 #' @return \item{crossloadings}{Correlations between the latent variables 

@@ -33,7 +33,7 @@ table, or 2. a list containing three matrices
 in the model.}
 }
 \value{
-A matrix of unscaled outer weights \code{W} with the same dimesions as \code{W.model}.
+A matrix of unscaled outer weights \code{W} with the same dimensions as \code{W.model}.
 }
 \description{
 Calculates a set of unstandardized outer weights.

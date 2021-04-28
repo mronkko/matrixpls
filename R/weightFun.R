@@ -1,6 +1,6 @@
 # =========== Indicator weighting algorithms  ===========
 
-#'@title Indicator weigth algoritms
+#'@title Indicator weight algoritms
 #'
 #'@description
 #'Estimates a weight matrix using Partial Least Squares or a related algorithm.
@@ -266,7 +266,7 @@ weightFun.pls <- function(S, model, W.model,
 #'
 #'\code{weightFun.optim} calculates indicator weights by optimizing the indicator
 #'weights against the criterion function using \code{\link[stats]{optim}}. The
-#'algoritmh works by first estimating the model with the starting weights. The
+#'algorithm works by first estimating the model with the starting weights. The
 #'resulting \code{matrixpls} object is passed to the \code{optimCrit}
 #'function, which evaluates the optimization criterion for the weights. The
 #'weights are adjusted and new estimates are calculated until the optimization

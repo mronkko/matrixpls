@@ -31,7 +31,7 @@ innerEstim.gsca(S, W, inner.mod, ...)
 \item{...}{Other arguments are ignored.}
 }
 \value{
-A matrix of unscaled inner weights \code{E} with the same dimesions as \code{inner.mod}.
+A matrix of unscaled inner weights \code{E} with the same dimensions as \code{inner.mod}.
 }
 \description{
 Calculates a set of inner weights.
@@ -49,7 +49,7 @@ composites that are connected in the model specified in \code{inner.mod} and zer
 
 In the identity scheme identity matrix is used as the inner weight matrix \code{E}.
 
-Centroid, innner, and path schemes fall back to to identity scheme for composites 
+Centroid, inner, and path schemes fall back to to identity scheme for composites 
 that are not connected to any other composites.
 
 For information about GSCA weights, see \link{GSCA}.

@@ -35,7 +35,7 @@ from \code{matrixpls} objects.
 
 \item \code{optimCrit.maximizeFullR2}: maximizes the sum of R2 statistics of the \code{inner} and \code{reflective} matrices.
 
-\item \code{optimCrit.gsca}: minimies the generalized structured component analysis criterion. See \link{GSCA}
+\item \code{optimCrit.gsca}: minimizes the generalized structured component analysis criterion. See \link{GSCA}
 }}
 
 \seealso{

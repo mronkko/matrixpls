@@ -10,7 +10,7 @@
 #'Model estimation proceeds as follows. The weights \code{W} and the
 #'data covariance matrix \code{S} are used to calculate the composite covariance matrix \code{C}
 #'and the indicator-composite covariance matrix \code{IC}. These are matrices are used to
-#'separately estimate each of teh three model matrices \code{inner}, \code{reflective}, and
+#'separately estimate each of the three model matrices \code{inner}, \code{reflective}, and
 #'\code{formative}. This approach of estimating the parameter matrices separately is the
 #'standard way of estimation in the PLS literature.
 #'  

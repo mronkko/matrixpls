@@ -31,7 +31,7 @@ The individual correction changes the signs of \code{W} to match \code{Worig}.
 The construct level correction changes the signs of \code{W} on all rows where the sign of the
 sum of the row differs between \code{Worig} and \code{W}.
 
-The sign chance corrections are described ambiquosly and sometimes implemented inconsistently
+The sign chance corrections are described ambiguosly and sometimes implemented inconsistently
 between software. \pkg{matrixpls} implements the corrections by adjusting the weights before
 calculating parameter estimates in each bootstrap replication. Some software implement the
 correction post-hoc by adjusting the bootstrap estimates directly. Moreover, the 
@@ -52,11 +52,13 @@ individual analyses
 
 \references{
 Tenenhaus, M., Esposito Vinzi, V., Chatelin, Y.-M., & Lauro, C. (2005). PLS Path Modeling.
-\emph{Computational Statistics & Data Analysis}, 48(1), 159–205. doi:10.1016/j.csda.2004.03.005
+\emph{Computational Statistics & Data Analysis}, 48(1), 159–205. 
+\doi{10.1016/j.csda.2004.03.005}
 
-Rönkkö, M., McIntosh, C. N., & Antonakis, J. (2015). On the adoption of partial least squares in 
-psychological research: Caveat emptor. \emph{Personality and Individual Differences}, (87), 76–84.
-\href{http://doi.org/10.1016/j.paid.2015.07.019}{DOI:10.1016/j.paid.2015.07.019}
+Rönkkö, M., McIntosh, C. N., & Antonakis, J. (2015). On the adoption of 
+partial least squares in psychological research: Caveat emptor. 
+\emph{Personality and Individual Differences}, (87), 76–84.
+\doi{10.1016/j.paid.2015.07.019}
 }
 \seealso{
 \code{\link{matrixpls.boot}}

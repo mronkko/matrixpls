@@ -7,7 +7,7 @@
 When used with \code{\link{weightFun.pls}}, \code{\link{innerEstim.gsca}} and 
 \code{\link{outerEstim.gsca}} implement the generalized structured component analysis
 indicator weighting system. Using \code{\link{weightFun.optim}} with the
-\code{\link{optimCrit.gsca}} optimization criterion provides an anternative
+\code{\link{optimCrit.gsca}} optimization criterion provides an alternative
 approach to calculate GSCA weights by direct numerical minimization of the
 GSCA criterion function.
 }
@@ -36,15 +36,15 @@ connected to other composites
 The second step of GSCA is calculating a new set of weights conditional on
 the regression coeffcients \code{A} to minimize the sum of error terms in
 the regressions. This step is implemented in \code{\link{outerEstim.gsca}} after
-updating the regresions between indicators and composites.
+updating the regressions between indicators and composites.
 The implementation of GSCA in \pkg{matrixpls} differs from the Hwang & Takane (2004)
 version in that during the first step, only regressions between composites are
 estimated. The regressions between composites and indicators are estimated by
 the second stage 
-the indicators and compositess. Since these covariances need to be calculated in the second step, it is more
+the indicators and composites. Since these covariances need to be calculated in the second step, it is more
 efficient to not calculate them during the first step.
 
-A part of the code for \code{\link{outerEstim.gsca}} is adopted from the \pkg{ASGCA} package, licenced
+A part of the code for \code{\link{outerEstim.gsca}} is adopted from the \pkg{ASGCA} package, licensed
 under GPL3.
 }
 \examples{
@@ -114,9 +114,11 @@ optimCrit.gsca(matrixpls.res2)
 }
 }
 \references{
-Hwang, H., & Takane, Y. (2004). Generalized structured component analysis. Psychometrika, 69(1), 81–99. doi:10.1007/BF02295841
+Hwang, H., & Takane, Y. (2004). Generalized structured component analysis. 
+Psychometrika, 69(1), 81–99. \doi{10.1007/BF02295841}
 
-Hela Romdhani, Stepan Grinek, Heungsun Hwang and Aurelie Labbe. (2014). ASGSCA: Association Studies for multiple SNPs and multiple traits using
+Hela Romdhani, Stepan Grinek, Heungsun Hwang and Aurelie Labbe. (2014). 
+ASGSCA: Association Studies for multiple SNPs and multiple traits using
 Generalized Structured Equation Models. R package version 1.4.0.
 }
 \author{

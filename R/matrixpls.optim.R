@@ -41,7 +41,7 @@ optimCrit.maximizeFullR2 <- function(matrixpls.res){
   optimCrit.maximizeIndicatorR2(matrixpls.res) + optimCrit.maximizeInnerR2(matrixpls.res)
 }
 
-#'@describeIn optimCrit minimies the generalized structured component analysis criterion. See \link{GSCA}
+#'@describeIn optimCrit minimizes the generalized structured component analysis criterion. See \link{GSCA}
 #'@export
 
 optimCrit.gsca <- function(matrixpls.res){

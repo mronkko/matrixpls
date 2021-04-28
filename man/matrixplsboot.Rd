@@ -85,7 +85,7 @@ distribution. Because the sampling distribution of the parameter estimates calcu
 This concern
 applies particularly when using PLS weights. Because the PLS literature provides conflicting
 advice on which probability distribution to use as a reference, the \code{summary} method of 
-\code{matrixplsboot} produces two-tailed p-values based on four different probalility
+\code{matrixplsboot} produces two-tailed p-values based on four different probability
 distributions. The \emph{regression} p values are based on comparing the t statistic against
 the references distribution used in regression analysis, namely Student's t distribution with 
 \code{n - k - 1} degrees of freedom. The \emph{Hair} p values are based on 
@@ -94,7 +94,7 @@ Hair et al's (2014, p. 134) recommendation to ignore the number of independent v
 on the recommendation by
 Henseler et al (2009, p. 305) that the degrees of freedom should be set as \code{n + m - 2},
 where \code{m}is always 1 and \code{n} is the number of bootstrap samples. The \code{z} p values
-are based on comparing the t statistic against the standard normal distibution. This choice
+are based on comparing the t statistic against the standard normal distribution. This choice
 can be motivated by asymptotic normality of the PLS estimates in certain conditions.
 }
 
@@ -142,13 +142,23 @@ print(matrixpls.boot.out)
 summary(matrixpls.boot.out)
 }
 \references{
-Hair, J. F., Hult, G. T. M., Ringle, C. M., & Sarstedt, M. (2014). \emph{A primer on partial least squares structural equations modeling (PLS-SEM)}. Los Angeles: SAGE.
+Hair, J. F., Hult, G. T. M., Ringle, C. M., & Sarstedt, M. (2014). 
+\emph{A primer on partial least squares structural equations modeling (PLS-SEM)}.
+Los Angeles: SAGE.
 
-Henseler, J., Ringle, C. M., & Sinkovics, R. R. (2009). The use of partial least squares path modeling in international marketing. \emph{Advances in International Marketing}, 20, 277–319.
+Henseler, J., Ringle, C. M., & Sinkovics, R. R. (2009). The use of partial
+least squares path modeling in international marketing.
+\emph{Advances in International Marketing}, 20, 277–319.
 
-Rönkkö, M., & Evermann, J. (2013). A critical examination of common beliefs about partial least squares path modeling. \emph{Organizational Research Methods}, 16(3), 425–448. http://doi.org/10.1177/1094428112474693
+Rönkkö, M., & Evermann, J. (2013). A critical examination of common beliefs
+about partial least squares path modeling. 
+\emph{Organizational Research Methods}, 16(3), 425–448. 
+\doi{10.1177/1094428112474693}
 
-Rönkkö, M., McIntosh, C. N., & Antonakis, J. (2015). On the adoption of partial least squares in psychological research: Caveat emptor. \emph{Personality and Individual Differences}, (87), 76–84. http://doi.org/10.1016/j.paid.2015.07.019
+Rönkkö, M., McIntosh, C. N., & Antonakis, J. (2015). On the adoption of
+partial least squares in psychological research: Caveat emptor.
+\emph{Personality and Individual Differences}, (87), 76–84.
+\doi{10.1016/j.paid.2015.07.019}
 }
 \seealso{
 \code{\link[boot]{boot}}

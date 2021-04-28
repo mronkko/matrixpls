@@ -6,7 +6,7 @@
 #'of the \code{boot} package.
 #
 #'@details
-#' This funtion calls the \code{\link[simsem]{sim}} function from the \code{simsem} package to perform Monte
+#' This function calls the \code{\link[simsem]{sim}} function from the \code{simsem} package to perform Monte
 #' Carlo simulations with matrixpls. The function parses the model parameters and replaces it with
 #' a function call that estimates the model and bootstrapped standard errors and confidence
 #' intervals with \link{matrixpls.boot}.

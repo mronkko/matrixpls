@@ -2,7 +2,7 @@ attribute;order;description
 S;k x k;the sample covariance matrix
 reflective;k x l;the \code{reflective} model matrix with estimated parameters
 c;l;the PLSc loading estimate correction factors
-Q;l;the reliability estimates used in dissattenuation
+Q;l;the reliability estimates used in disattenuation
 R;l;true reliabilities of composites (squared correlation between composites and simulated latent variable values)
 formative;l x k;the \code{formative} model matrix with estimated parameters
 IC;l x k;the indicator-composite covariance matrix (after disattenuation, if requested)

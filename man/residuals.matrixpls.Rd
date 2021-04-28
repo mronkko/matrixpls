@@ -43,7 +43,7 @@ of the \code{reflective} model matrix.
 
 Following Hu and Bentler (1999, Table 1), the SRMR index is calculated by dividing with 
 \eqn{p(p+1)/2}, where \eqn{p} is the number of indicator variables. In typical SEM applications,
-the diagonal of residual covariance matrix consistes of all zeros because error term variances
+the diagonal of residual covariance matrix consists of all zeros because error term variances
 are freely estimated. To make the SRMR more comparable with the index produced by 
 SEM software, the SRMR is calculated by summing only the squares of off-diagonal elements,
 which is equivalent to including a diagonal of all zeros. 
@@ -56,7 +56,7 @@ ignored.
 \references{
 Henseler, J., Dijkstra, T. K., Sarstedt, M., Ringle, C. M., Diamantopoulos, A., Straub, D. W., …
 Calantone, R. J. (2014). Common Beliefs and Reality About PLS Comments on Rönkkö and Evermann 
-(2013). \emph{Organizational Research Methods}, 17(2), 182–209. doi:10.1177/1094428114526928
+(2013). \emph{Organizational Research Methods}, 17(2), 182–209. \doi{10.1177/1094428114526928}
 
 Hu, L., & Bentler, P. M. (1999). Cutoff criteria for fit indexes in covariance structure 
 analysis: Conventional criteria versus new alternatives. \emph{Structural Equation Modeling: 

@@ -31,16 +31,16 @@ elements of \code{model}.}
 
 \item{weightFun}{A function for calculating indicator weights using the data covariance matrix
 \code{S}, a model specification \code{model}, and a weight pattern \code{W.model}. Returns
-a weigth matrix \code{W}. The default is \code{\link{weightFun.pls}}}
+a weight matrix \code{W}. The default is \code{\link{weightFun.pls}}}
 
 \item{parameterEstim}{A function for estimating the model parameters using
 the data covariance matrix \code{S}, model specification \code{model}, 
 and weight matrix \code{W}. Returns a named vector of parameter estimates.
 The default is \code{\link{parameterEstim.separate}}}
 
-\item{weightSign}{A function for resolving weight sign ambiquity based on the data covariance matrix
+\item{weightSign}{A function for resolving weight sign ambiguity based on the data covariance matrix
 \code{S} and a weight matrix \code{W}.  Returns
-a weigth matrix \code{W}. See \code{\link{weightSign}}
+a weight matrix \code{W}. See \code{\link{weightSign}}
 for details.}
 
 \item{...}{All other arguments are passed through to \code{weightFun} and \code{parameterEstim}.}
@@ -70,7 +70,7 @@ This can include:
 \item{inner}{the \code{inner} model matrix with estimated parameters.}
 \item{reflective}{the \code{reflective} model matrix with estimated parameters.}
 \item{formative}{the \code{formative} model matrix with estimated parameters.}
-\item{Q}{the reliability estimates used in dissattenuation.}
+\item{Q}{the reliability estimates used in disattenuation.}
 \item{c}{the PLSc loading estimate correction factors.}
 }
 \description{

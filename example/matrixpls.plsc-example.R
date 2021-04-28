@@ -10,7 +10,7 @@ Support <- c(0, 0, 0, 0, 0, 0)
 Advising <- c(0, 0, 0, 0, 0, 0)
 Tutoring <- c(0, 0, 0, 0, 0, 0)
 Value <- c(1, 1, 1, 0, 0, 0)
-# Omit two paths (compared to teh model in the book) to achieve 
+# Omit two paths (compared to the model in the book) to achieve 
 # identification of the 2SLS analysis
 Satisfaction <- c(0, 0, 1, 1, 0, 0)
 Loyalty <- c(0, 0, 0, 0, 1, 0)

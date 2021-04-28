@@ -4,7 +4,7 @@
 \alias{weightSign}
 \alias{weightSign.Wold1985}
 \alias{weightSign.dominantIndicator}
-\title{Sign ambiquity corrections}
+\title{Sign ambiguity corrections}
 \usage{
 weightSign.Wold1985(W, S)
 
@@ -19,12 +19,12 @@ weightSign.dominantIndicator(W, S)
 \code{W} after sign correction.
 }
 \description{
-Sign ambiquity corrections adjust the signs of the weights to satisfy a criterion.
+Sign ambiguity corrections adjust the signs of the weights to satisfy a criterion.
 }
 \details{
 Instead of fixing a weight to a particular value, composite variables are typically provided a
 scale by standardization. This leads to sign indeterminacy because standardized weights \code{W}
-and \code{-W} both satisfy the scalign constraint. The sing ambiquity corrections add additional
+and \code{-W} both satisfy the scaling constraint. The sing ambiguity corrections add additional
 constraints that make 
 
 The sign indeterminacy
