@@ -23,3 +23,5 @@
 ^vignettes/*.Rmd
 ^man/commonArguments.Rd
 ^R/documentation.R
+^CRAN-RELEASE$
+^cran-comments\.md$
