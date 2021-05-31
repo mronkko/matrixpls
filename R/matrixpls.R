@@ -257,8 +257,8 @@ matrixpls <- function(S, model, W.model = NULL, weightFun = weightFun.pls,
   }
   
   if(! identical(colnames(S), rownames(S))) stop("S must have identical row and column names.")
-  if(! matrixcalc::is.symmetric.matrix(S)) stop("S must be symmetric to be a valid covariance matrix.")
-  if(! matrixcalc::is.positive.semi.definite(S)) stop("S must be positive semi-definite to be a valid covariance matrix.")
+  if(! is.symmetric.matrix(S)) stop("S must be symmetric to be a valid covariance matrix.")
+  if(! is.positive.semi.definite(S)) stop("S must be positive semi-definite to be a valid covariance matrix.")
   
   if(! identical(colnames(S), colnames(nativeModel$formative))){
     # Do all variables of the model exists in S

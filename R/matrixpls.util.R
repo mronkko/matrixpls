@@ -174,7 +174,7 @@ convergenceStatus <- function(matrixpls.res){
     
     C <- attr(matrixpls.res,"C")
     
-    if(max(abs(C[lower.tri(C)]))>1 | !matrixcalc::is.positive.semi.definite(C)){
+    if(max(abs(C[lower.tri(C)]))>1 | !is.positive.semi.definite(C)){
       converged <- 5 
     }
     
@@ -237,4 +237,49 @@ is.partable <- function(object) {
 
 is.lavaancall <- function(object) {
   is.list(object) && ("model" %in% names(object))
+}
+
+#
+# Functions adapted from matrixcalc
+#
+
+is.positive.semi.definite <- function (x, tol = 1e-08) 
+{
+  if (!is.square.matrix(x)) 
+    stop("argument x is not a square matrix")
+  if (!is.symmetric.matrix(x)) 
+    stop("argument x is not a symmetric matrix")
+  if (!is.numeric(x)) 
+    stop("argument x is not a numeric matrix")
+  eigenvalues <- eigen(x, only.values = TRUE)$values
+  n <- nrow(x)
+  for (i in 1:n) {
+    if (abs(eigenvalues[i]) < tol) {
+      eigenvalues[i] <- 0
+    }
+  }
+  if (any(eigenvalues < 0)) {
+    return(FALSE)
+  }
+  return(TRUE)
+}
+
+is.square.matrix <- function (x) 
+{
+  if (!is.matrix(x)) 
+    stop("argument x is not a matrix")
+  return(nrow(x) == ncol(x))
+}
+
+is.symmetric.matrix <- function (x) 
+{
+  if (!is.matrix(x)) {
+    stop("argument x is not a matrix")
+  }
+  if (!is.numeric(x)) {
+    stop("argument x is not a numeric matrix")
+  }
+  if (!is.square.matrix(x)) 
+    stop("argument x is not a square numeric matrix")
+  return(sum(x == t(x)) == (nrow(x)^2))
 }

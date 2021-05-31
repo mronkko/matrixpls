@@ -71,7 +71,7 @@ weightFun.pls <- function(S, model, W.model,
     # S must be symmetric and a valid covariance matrix
     assertive::assert_is_matrix(S)
     assertive::assert_is_symmetric_matrix(S)
-    assertive::assert_is_identical_to_true(matrixcalc::is.positive.semi.definite(S))
+    assertive::assert_is_identical_to_true(is.positive.semi.definite(S))
     
     # W.model must be a real matrix and each indicators must be
     # linked to at least one composite and each composite at least to one indicator
