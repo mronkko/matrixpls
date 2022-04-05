@@ -23,9 +23,7 @@
 #'\code{\link[semPLS]{sempls}}
 #'
 #'@export
-#'@example example/fragment-requireSemPLS.R
 #'@example example/matrixpls.sempls-example.R
-#'@example example/fragment-endBlock.R
 
 
 matrixpls.sempls <-

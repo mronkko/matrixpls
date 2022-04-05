@@ -12,7 +12,8 @@ install.packages(c("assertive",
 "rticles",
 "stringr",
 "xtable",
-"R.rsp"))
+"R.rsp",
+"qpdf"))
 
 if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")

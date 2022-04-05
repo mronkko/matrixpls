@@ -35,7 +35,7 @@ outerEstim.modeA <- function(S, W, E, W.model, ...){
   
   # Set the non-existing weight relations to zero
   W_new[W.model == 0] <- 0
-  
+
   return(W_new)
 }
 

@@ -1,4 +1,3 @@
-library(semPLS)
 data(ECSImobi)
 
 # Construct the model based on the ECSImobi example
@@ -35,13 +34,6 @@ predictions.blindfold <- matrixpls.crossvalidate(mobi,
 # Q2 predictive relevance
 
 q2(mobi, predictions.blindfold, model)
-
-# The results are similar to semPLS q2 values, but not exactly identical due to differences 
-# in how the two packages apply standardization when calculating predictions.
-
-ecsi <- sempls(model=ECSImobi, data=mobi, E="C")
-qSquared(ecsi, d=4, dlines = FALSE)
-
 
 
 

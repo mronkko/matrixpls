@@ -29,7 +29,6 @@ matched by name and correlations for each pair are reported.
 }
 \examples{
 # Load the Tenenhaus et al 2005 model and data from semPLS
-library(semPLS)
 data(ECSImobi)
 data(mobi)
 
