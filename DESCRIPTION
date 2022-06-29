@@ -3,12 +3,13 @@ Package: matrixpls
 Type: Package
 Title: Matrix-Based Partial Least Squares Estimation
 Version: 1.0.15
-Date: 2022-04-05
+Date: 2022-06-29
 Authors@R: c(person("Mikko", "Rönkkö", role=c("aut", "cre"),
     email = "mikko.ronkko@jyu.fi"))
 Maintainer: Mikko Rönkkö <mikko.ronkko@jyu.fi>
 Description: Partial Least Squares Path Modeling
-    algorithm and related algorithms. The algorithm implementations aim for
+    algorithm and related algorithms as described in Dijkstra (1983) 
+    <doi:10.1016/0304-4076(83)90094-5>. The algorithm implementations aim for
     computational efficiency using matrix algebra and covariance data. The
     package is designed toward Monte Carlo simulations and includes functions
     to perform simple Monte Carlo simulations.
