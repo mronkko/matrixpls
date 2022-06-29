@@ -20,8 +20,8 @@ matrixpls.sempls(
 )
 }
 \arguments{
-\item{model}{An object inheriting from class \code{plsm} as returned from \code{\link[semPLS]{plsm}}
-or \code{\link[semPLS]{read.splsm}}.}
+\item{model}{An object inheriting from class \code{plsm} as returned from \code{plsm}
+or \code{read.splsm}.}
 
 \item{data}{
     A \code{data.frame} containing the observed variables
@@ -98,11 +98,11 @@ or \code{\link[semPLS]{read.splsm}}.}
 \item{...}{Other arguments are ignored}
 }
 \value{
-An object of class \code{\link[semPLS]{sempls}}.
+An object of class \code{sempls}.
 }
 \description{
-\code{matrixpls.sempls} mimics \code{\link[semPLS]{sempls}} function of the \code{semPLS} package.
-The arguments and their default values and the output of the function are identical with \code{\link[semPLS]{sempls}} function,
+\code{matrixpls.sempls} mimics \code{sempls} function of the \code{semPLS} package.
+The arguments and their default values and the output of the function are identical with \code{sempls} function,
 but internally the function uses matrixpls estimation.
 }
 \examples{
@@ -119,7 +119,4 @@ ecsi$total_effects
 }
 \references{
 Monecke, A., & Leisch, F. (2012). semPLS: Structural Equation Modeling Using Partial Least Squares. \emph{Journal of Statistical Software}, 48(3), 1–32.
-}
-\seealso{
-\code{\link[semPLS]{sempls}}
 }
