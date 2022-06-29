@@ -44,23 +44,3 @@ matrixpls.MaxR2 <- matrixpls(S, model, weightFun = weightFun.optim)
 R2s <- cbind(r2(matrixpls.ModeA), r2(matrixpls.ModeB), r2(matrixpls.MaxR2))
 print(R2s)
 apply(R2s,2,mean)
-
-# Optimization against custom function
-
-maximizeSumOfCorrelations <- function(matrixpls.res){
-  C <- attr(matrixpls.res,"C")
-  model <- attr(matrixpls.res,"model")
-  - sum(C[model$inner != 0])
-}
-
-matrixpls.MaxCor <- matrixpls(S, model, weightFun = weightFun.optim,
-                             optimCrit = maximizeSumOfCorrelations)
-
-# Compare the Mode B and optimized solutions
-
-C <- attr(matrixpls.ModeB,"C")
-print(C)
-print(sum(C[inner != 0]))
-C <- attr(matrixpls.MaxCor,"C")
-print(C)
-print(sum(C[inner != 0]))
