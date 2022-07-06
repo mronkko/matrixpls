@@ -18,6 +18,7 @@ BugReports: https://github.com/mronkko/matrixpls/issues
 ByteCompile: TRUE
 Imports:
     assertive,
+    boot,
     lavaan,
     MASS,
     methods,
@@ -25,7 +26,6 @@ Imports:
 Suggests:
     simsem,
     parallel,
-    boot,
     Matrix,
     ASGSCA,
     knitr,
