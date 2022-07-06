@@ -3,7 +3,7 @@ Package: matrixpls
 Type: Package
 Title: Matrix-Based Partial Least Squares Estimation
 Version: 1.0.15
-Date: 2022-06-29
+Date: 2022-07-06
 Authors@R: c(person("Mikko", "Rönkkö", role=c("aut", "cre"),
     email = "mikko.ronkko@jyu.fi"))
 Maintainer: Mikko Rönkkö <mikko.ronkko@jyu.fi>
