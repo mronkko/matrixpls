@@ -15,6 +15,10 @@ install.packages(c("assertive",
 "R.rsp",
 "qpdf"))
 
+# Some documentation is inherited from the abandoned semPLS package
+
+devtools::install_url("https://cran.r-project.org/src/contrib/Archive/semPLS/semPLS_1.0-10.tar.gz")
+
 if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 
