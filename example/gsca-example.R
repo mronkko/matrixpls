@@ -5,7 +5,7 @@ W0 <- matrix(c(rep(1,2),rep(0,8),rep(1,2),rep(0,8),rep(1,3),rep(0,7),rep(1,2)),
              nrow=8,ncol=4)
 B0 <- matrix(c(rep(0,8),rep(1,2),rep(0,3),1,rep(0,2)),nrow=4,ncol=4)
 
-# Set seed becayse ASGSCA uses random numbers as starting values 
+# Set seed because ASGSCA uses random numbers as starting values 
 set.seed(1)
 
 GSCA.res <-GSCA(GenPhen,W0, B0,estim=TRUE,path.test=FALSE, 
