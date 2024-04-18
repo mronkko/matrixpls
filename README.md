@@ -7,8 +7,6 @@ matrixpls
    calculates the PLS estimates from a covariance matrix. The package is designed 
    towards Monte Carlo simulations with simsem.
    
-   matrixpls is currently under development and not suitable for end-users.
-   
 ## Development
 
 matrixpls has three development targets or main requirements
@@ -50,4 +48,4 @@ matrixpls
  
 Author Contact
 --------------
-Mikko Rönkkö (mikko.ronkko@aalto.fi)
+Mikko Rönkkö (mikko.ronkko@jyu.fi)
