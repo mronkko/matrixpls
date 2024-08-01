@@ -56,17 +56,17 @@ For information about GSCA weights, see \link{GSCA}.
 }
 \section{Functions}{
 \itemize{
-\item \code{innerEstim.centroid}: inner estimation with centroid scheme.
+\item \code{innerEstim.centroid()}: inner estimation with centroid scheme.
 
-\item \code{innerEstim.path}: inner estimation with path scheme.
+\item \code{innerEstim.path()}: inner estimation with path scheme.
 
-\item \code{innerEstim.factor}: inner estimation with factor scheme.
+\item \code{innerEstim.factor()}: inner estimation with factor scheme.
 
-\item \code{innerEstim.identity}: inner estimation with identity scheme.
+\item \code{innerEstim.identity()}: inner estimation with identity scheme.
 
-\item \code{innerEstim.gsca}: inner estimation with generalized structured component analysis.
+\item \code{innerEstim.gsca()}: inner estimation with generalized structured component analysis.
+
 }}
-
 \references{
 Lohmöller J.-B. (1989) \emph{Latent variable path modeling with partial least squares.} Heidelberg: Physica-Verlag.
 }

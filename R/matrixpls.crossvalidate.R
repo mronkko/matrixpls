@@ -54,7 +54,8 @@ matrixpls.crossvalidate <- function(data, model, ..., predictFun = stats::predic
   data <- as.matrix(data)
   data <- data[,rownames(nativeModel$reflective)]
 
-  assertive::assert_all_are_in_closed_range(nGroup,2,nrow(data))
+  assertthat::assert_that(nGroup >= 2,
+                          nGroup <= nrow(data))
   
   
   # Construct the omission pattern

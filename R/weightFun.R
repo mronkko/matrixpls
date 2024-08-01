@@ -66,17 +66,21 @@ weightFun.pls <- function(S, model, W.model,
   if(validateInput){
     
     # All parameters must have values
-    assertive::assert_all_are_not_na(formals())
+    assertthat::assert_that(all(!is.na(formals())))
+    
     
     # S must be symmetric and a valid covariance matrix
-    assertive::assert_is_matrix(S)
-    assertive::assert_is_symmetric_matrix(S)
-    assertive::assert_is_identical_to_true(is.positive.semi.definite(S))
+    assertthat::assert_that(is.matrix(S))
+    assertthat::assert_that(is.symmetric.matrix(S))
+    assertthat::assert_that(is.positive.semi.definite(S))
     
     # W.model must be a real matrix and each indicators must be
     # linked to at least one composite and each composite at least to one indicator
-    assertive::assert_is_matrix(W.model)
-    assertive::assert_all_are_real(W.model)
+
+    assertthat::assert_that(is.matrix(W.model))
+    assertthat::assert_that(all(is.numeric(W.model)),
+                            all(! is.na(W.model)),
+                            all(! is.nan(W.model)))
     
     if(! all(apply(W.model!=0,1,any))){
       print(W.model)	
@@ -101,24 +105,22 @@ weightFun.pls <- function(S, model, W.model,
     # a function
     if(! is.null(outerEstim)){
       if(is.list(outerEstim)){
-        assertive::assert_is_identical_to_true(length(outerEstim) == nrow(W.model))
-        for(oneOuterEstim in outerEstim){
-          assertive::assert_is_function(oneOuterEstim)
-        }
+        assertthat::assert_that(length(outerEstim) == nrow(W.model))
+        assertthat::assert_that(all(lapply(outerEstim, is.function)))
       }
       else{
-        assertive::assert_is_function(outerEstim)
+        assertthat::assert_that(is.function(outerEstim))
       }
     }
     
     if(! is.null(innerEstim)){
-      assertive::assert_is_function(innerEstim)
+      assertthat::assert_that(is.function(innerEstim))
     }
     # tol must be non negative
-    assertive::assert_all_are_non_negative(tol)
+    assertthat::assert_that(tol >= 0)
     
     #iter must not be negative
-    assertive::assert_all_are_non_negative(iter)
+    assertthat::assert_that(iter >= 0)
   }
   
   nativeModel <- parseModelToNativeFormat(model)

@@ -578,7 +578,7 @@ loadings.matrixpls <- function(object, ...) {
 #'composite reliability in research using partial least squares: Some issues and
 #'an alternative approach. 
 #' \emph{The DATA BASE for Advances in Information Systems}, 44(4), 11–43. 
-#' \doi{10.1145/2544415.2544417}{DOI:10.1145/2544415.2544417}
+#' \doi{10.1145/2544415.2544417}
 #'
 #'@export
 #'

@@ -29,15 +29,15 @@ from \code{matrixpls} objects.
 }
 \section{Functions}{
 \itemize{
-\item \code{optimCrit.maximizeInnerR2}: maximizes the sum of R2 statistics of the \code{inner} matrix
+\item \code{optimCrit.maximizeInnerR2()}: maximizes the sum of R2 statistics of the \code{inner} matrix
 
-\item \code{optimCrit.maximizeIndicatorR2}: maximizes the sum of R2 statistics of the \code{reflective} matrix.
+\item \code{optimCrit.maximizeIndicatorR2()}: maximizes the sum of R2 statistics of the \code{reflective} matrix.
 
-\item \code{optimCrit.maximizeFullR2}: maximizes the sum of R2 statistics of the \code{inner} and \code{reflective} matrices.
+\item \code{optimCrit.maximizeFullR2()}: maximizes the sum of R2 statistics of the \code{inner} and \code{reflective} matrices.
 
-\item \code{optimCrit.gsca}: minimizes the generalized structured component analysis criterion. See \link{GSCA}
+\item \code{optimCrit.gsca()}: minimizes the generalized structured component analysis criterion. See \link{GSCA}
+
 }}
-
 \seealso{
 \code{\link{weightFun.optim}}
 }

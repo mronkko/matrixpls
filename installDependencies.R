@@ -1,5 +1,5 @@
 # Matrixpls dependencies
-install.packages(c("assertive",
+install.packages(c("assertthat",
 "roxygen2",
 "devtools",
 "psych",

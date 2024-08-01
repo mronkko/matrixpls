@@ -69,9 +69,11 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
   
   
   # Basic verification of the arguments
-  if(boot.R != FALSE)	assertive::assert_all_are_positive(boot.R)	
-  assertive::assert_all_are_positive(cilevel)
-  assertive::assert_all_are_true(cilevel<1)
+  if(boot.R != FALSE)	assertthat::assert_that(boot.R>0)	
+  
+  assertthat::assert_that(cilevel>0,
+                          cilevel<1)
+  
   citype <- match.arg(citype)
   
   # Decide which arguments to route to simsem and which to matrispls.boot
@@ -244,7 +246,7 @@ matrixpls.sim <- function(nRep = NULL, model = NULL, n = NULL, ..., cilevel = 0.
       
     }
     if(! is.null(fitIndices)){
-      assertive::assert_is_function(fitIndices)
+      assertthat::assert_that(is.function(fitIndices))
       fitlist <- unlist(fitIndices(matrixpls.res))
       ret$fit <- fitlist
     }

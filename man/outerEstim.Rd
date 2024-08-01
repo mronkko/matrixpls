@@ -45,15 +45,15 @@ For information about GSCA weights, see \link{GSCA}.
 }
 \section{Functions}{
 \itemize{
-\item \code{outerEstim.modeA}: Mode A outer estimation.
+\item \code{outerEstim.modeA()}: Mode A outer estimation.
 
-\item \code{outerEstim.modeB}: Mode B outerestimation.
+\item \code{outerEstim.modeB()}: Mode B outerestimation.
 
-\item \code{outerEstim.gsca}: outer estimation with generalized structured component analysis.
+\item \code{outerEstim.gsca()}: outer estimation with generalized structured component analysis.
 
-\item \code{outerEstim.fixed}: Fixed weights. Returns the starting weights specified in \code{W.model}
+\item \code{outerEstim.fixed()}: Fixed weights. Returns the starting weights specified in \code{W.model}
+
 }}
-
 \references{
 Lohmöller J.-B. (1989) \emph{Latent variable path modeling with partial least squares.} Heidelberg: Physica-Verlag.
 }

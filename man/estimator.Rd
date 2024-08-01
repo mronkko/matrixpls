@@ -79,22 +79,22 @@ under GPL3.
 }
 \section{Functions}{
 \itemize{
-\item \code{estimator.ols}: parameter estimation with OLS regression. Can be applied to \code{inner}, \code{reflective},
+\item \code{estimator.ols()}: parameter estimation with OLS regression. Can be applied to \code{inner}, \code{reflective},
 or \code{formative} matrix.
 
-\item \code{estimator.tsls}: parameter estimation with two-stage least squares regression. For \code{inner} matrix only.
+\item \code{estimator.tsls()}: parameter estimation with two-stage least squares regression. For \code{inner} matrix only.
 
-\item \code{estimator.plscLoadings}: parameter estimation with Dijkstra's (2011) PLSc correction for loadings.  For \code{reflective} matrix only.
+\item \code{estimator.plscLoadings()}: parameter estimation with Dijkstra's (2011) PLSc correction for loadings.  For \code{reflective} matrix only.
 
-\item \code{estimator.efaLoadings}: parameter estimation with one indicator block at at time with exploratory
+\item \code{estimator.efaLoadings()}: parameter estimation with one indicator block at at time with exploratory
 factor analysis. Minres estimation is implemented natively and all other
 estimation techniques use the \code{\link[psych]{fa}} function from the \code{psych} package. For \code{reflective} matrix only.
 
-\item \code{estimator.cfaLoadings}: Estimates a maximum likelihood confirmatory factor analysis with \code{\link[lavaan]{lavaan}}.  For \code{reflective} matrix only.
+\item \code{estimator.cfaLoadings()}: Estimates a maximum likelihood confirmatory factor analysis with \code{\link[lavaan]{lavaan}}.  For \code{reflective} matrix only.
 
-\item \code{estimator.plsreg}: parameter estimation with PLS regression. For \code{inner} matrix only.
+\item \code{estimator.plsreg()}: parameter estimation with PLS regression. For \code{inner} matrix only.
+
 }}
-
 \examples{
 # Run the education example from the book
 

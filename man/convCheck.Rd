@@ -27,13 +27,13 @@ convergence criterion describing the difference between the two weight matrices.
 }
 \section{Functions}{
 \itemize{
-\item \code{convCheck.relative}: maximum of relative differences between
+\item \code{convCheck.relative()}: maximum of relative differences between
 weights from two iterations
 
-\item \code{convCheck.square}: maximum of squared absolute 
+\item \code{convCheck.square()}: maximum of squared absolute 
 differences between weights from two iterations.
 
-\item \code{convCheck.absolute}: maximum of absolute differences
+\item \code{convCheck.absolute()}: maximum of absolute differences
 between weights from two iterations
-}}
 
+}}

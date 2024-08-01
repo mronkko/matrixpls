@@ -181,17 +181,17 @@ criterion converges.
 }
 \section{Functions}{
 \itemize{
-\item \code{weightFun.pls}: partial Least Squares and other iterative two-stage weight algorithms.
+\item \code{weightFun.pls()}: partial Least Squares and other iterative two-stage weight algorithms.
 
-\item \code{weightFun.optim}: calculates a set of weights to minimize an optimization criterion.
+\item \code{weightFun.optim()}: calculates a set of weights to minimize an optimization criterion.
 
-\item \code{weightFun.fixed}: returns the starting weights.
+\item \code{weightFun.fixed()}: returns the starting weights.
 
-\item \code{weightFun.factor}: blockwise factor score weights.
+\item \code{weightFun.factor()}: blockwise factor score weights.
 
-\item \code{weightFun.principal}: blockwise principal component weights.
+\item \code{weightFun.principal()}: blockwise principal component weights.
+
 }}
-
 \examples{
 # Run the customer satisfaction examle form plspm
 

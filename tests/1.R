@@ -1,4 +1,4 @@
-library(assertive)
+
 library(RUnit)
 library(gtools)
 library(simsem)

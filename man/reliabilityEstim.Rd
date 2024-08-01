@@ -27,8 +27,8 @@ Calculates reliabilities as a matrix product of loadings and weights.
 }
 \section{Functions}{
 \itemize{
-\item \code{reliabilityEstim.weightLoadingProduct}: Reliability estimation based on weights and loadings.
+\item \code{reliabilityEstim.weightLoadingProduct()}: Reliability estimation based on weights and loadings.
 
-\item \code{reliabilityEstim.alpha}: Reliability estimation with Cronbach's alpha
+\item \code{reliabilityEstim.alpha()}: Reliability estimation with Cronbach's alpha
+
 }}
-

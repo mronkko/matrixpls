@@ -45,11 +45,11 @@ individual analyses
 }
 \section{Functions}{
 \itemize{
-\item \code{signChange.individual}: individual sign change correction
+\item \code{signChange.individual()}: individual sign change correction
 
-\item \code{signChange.construct}: individual sign change correction
+\item \code{signChange.construct()}: individual sign change correction
+
 }}
-
 \references{
 Tenenhaus, M., Esposito Vinzi, V., Chatelin, Y.-M., & Lauro, C. (2005). PLS Path Modeling.
 \emph{Computational Statistics & Data Analysis}, 48(1), 159–205. 

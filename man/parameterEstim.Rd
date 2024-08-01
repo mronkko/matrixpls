@@ -104,10 +104,10 @@ regressions using \code{\link{estimator.ols}}.
 }
 \section{Functions}{
 \itemize{
-\item \code{parameterEstim.separate}: Estimates the model parameters in \code{inner}, \code{reflective}, and
+\item \code{parameterEstim.separate()}: Estimates the model parameters in \code{inner}, \code{reflective}, and
 \code{formative} separately.
-}}
 
+}}
 \references{
 Rosseel, Y. (2012). lavaan: An R Package for Structural Equation Modeling. \emph{Journal of Statistical Software}, 48(2), 1–36. Retrieved from http://www.jstatsoft.org/v48/i02
 }

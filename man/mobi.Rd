@@ -23,7 +23,7 @@ data(ECSIsm)
 \details{
   The data frame \code{mobi} contains the observed data for the model
   specified by \code{ECSImobi}.
-  The from-to-matrizes \code{ECSImm} and code{ECSIsm} represent directed edges connecting the
+  The from-to-matrizes \code{ECSImm} and \code{ECSIsm} represent directed edges connecting the
   variables in outer/measurement and inner/structural model. They are
   needed for model specification by mean of the \code{plsm} method.
 }

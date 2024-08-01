@@ -93,7 +93,7 @@
 #'Rönkkö, M., McIntosh, C. N., & Antonakis, J. (2015). On the adoption of partial
 #' least squares in psychological research: Caveat emptor. 
 #' \emph{Personality and Individual Differences}, (87), 76–84. 
-#' \doi{10.1016/j.paid.2015.07.019}{DOI:10.1016/j.paid.2015.07.019}
+#' \doi{10.1016/j.paid.2015.07.019}
 #'
 #'Wold, H. (1982). Soft modeling - The Basic Design And Some Extensions. 
 #'In K. G. Jöreskog & S. Wold (Eds.),\emph{Systems under indirect observation:

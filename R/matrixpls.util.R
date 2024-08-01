@@ -228,7 +228,7 @@ standardize <- function(object){
   return (object)
 }
 #
-# Functions adapted from simsem
+# =========== Functions adapted from simsem ===========
 #
 
 is.partable <- function(object) {
@@ -240,7 +240,7 @@ is.lavaancall <- function(object) {
 }
 
 #
-# Functions adapted from matrixcalc
+# =========== Functions adapted from matrixcalc ===========
 #
 
 is.positive.semi.definite <- function (x, tol = 1e-08) 
